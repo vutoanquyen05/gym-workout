@@ -100,6 +100,15 @@ Xây dựng ứng dụng di động giúp người dùng quản lý hoạt độ
 
 Các tính năng mở rộng chỉ nên triển khai sau khi những luồng cốt lõi hoạt động ổn định.
 
+### 3.4. Ranh giới và phụ thuộc của MVP
+
+- MVP ưu tiên luồng sử dụng cá nhân trên một thiết bị: thiết lập hồ sơ, tìm bài tập, tạo kế hoạch, ghi nhận buổi tập, xem lịch sử/tiến bộ cơ bản và quản lý mục tiêu, nhắc nhở.
+- Dữ liệu cốt lõi của buổi tập phải hoạt động và được lưu cục bộ khi không có mạng. Đồng bộ máy chủ không phải điều kiện để nghiệm thu các luồng cốt lõi.
+- Đăng ký, đăng nhập và quản lý phiên vẫn thuộc phạm vi sản phẩm, nhưng cách tích hợp phụ thuộc quyết định backend và auth tại Phase 1.T02. Không tự suy diễn endpoint hoặc coi xác thực thật đã hoàn tất khi chưa có backend phù hợp.
+- Phạm vi đồng bộ MVP chỉ có thể được xác nhận sau khi có backend, hợp đồng dữ liệu và quy tắc xung đột phù hợp; không bao gồm đồng bộ đa thiết bị nâng cao.
+- Check-in phục hồi tự khai báo (FR-13) không thuộc luồng MVP cốt lõi; chỉ triển khai nếu được ưu tiên riêng.
+- Phân tích chuyên sâu, tích hợp thiết bị/sức khỏe ngoài và cá nhân hóa kế hoạch nâng cao nằm ngoài MVP.
+
 ---
 
 ## 4. Yêu cầu chức năng và phi chức năng

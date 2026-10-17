@@ -120,4 +120,31 @@ Các thao tác có ảnh hưởng lớn, như xóa dữ liệu, cần có bướ
 - Cho phép cuộn khi nội dung vượt chiều cao màn hình.
 - Ưu tiên thao tác một tay đối với các chức năng thường dùng.
 
+## 8.10. Phạm vi màn hình và luồng MVP
+
+### Danh mục màn hình
+
+| Khu vực | Màn hình MVP | Ghi chú |
+|---|---|---|
+| Truy cập và thiết lập | Đăng nhập, đăng ký, onboarding/hồ sơ ban đầu | Luồng xác thực thật phụ thuộc quyết định backend/auth tại Phase 1.T02. |
+| Home | Tổng quan, kế hoạch/buổi tập tiếp theo, bắt đầu hoặc tiếp tục tập | Điểm vào nhanh cho buổi tập và mục tiêu. |
+| Workouts | Danh sách kế hoạch, chi tiết kế hoạch, tạo/chỉnh sửa kế hoạch | Cho phép quản lý thứ tự bài tập và thông số hiệp, reps, nghỉ. |
+| Exercises | Thư viện, tìm kiếm/lọc, chi tiết bài tập | Có thể chọn bài tập để đưa vào kế hoạch. |
+| Workout session | Buổi tập đang diễn ra, tổng kết sau buổi tập | Ghi hiệp, nghỉ, tạm dừng/tiếp tục và kết thúc. |
+| Progress | Lịch sử, chi tiết buổi tập, thống kê cơ bản | Chỉ hiển thị chỉ số khi có dữ liệu và định nghĩa hợp lệ. |
+| Goals and profile | Mục tiêu/tiến độ, hồ sơ và cài đặt | Có thể là màn hình con truy cập từ Home/Profile; không yêu cầu thêm mục tab thứ sáu. |
+| Notifications | Thiết lập nhắc lịch và trạng thái quyền | Chỉ yêu cầu quyền khi người dùng chủ động bật chức năng cần quyền. |
+
+Điều hướng cấp cao giữ năm mục Home, Workouts, Exercises, Progress và Profile. Các màn hình chi tiết, chỉnh sửa, buổi tập và tổng kết được mở từ khu vực liên quan; không tạo thêm tab cấp cao cho từng luồng.
+
+### Luồng người dùng chính
+
+1. **Lần đầu sử dụng:** Mở ứng dụng → đăng ký/đăng nhập → onboarding và thiết lập hồ sơ → Home. Cách xử lý khi backend/auth chưa sẵn sàng phải theo quyết định Phase 1.T02, không tự thêm chế độ khách hoặc xác thực giả.
+2. **Tìm bài tập và lập kế hoạch:** Exercises → tìm kiếm/lọc → xem chi tiết → thêm bài tập vào kế hoạch; hoặc Workouts → tạo/chỉnh sửa kế hoạch → sắp xếp bài tập và cấu hình hiệp/reps/thời gian nghỉ → lưu → xem chi tiết kế hoạch.
+3. **Thực hiện buổi tập:** Home hoặc chi tiết kế hoạch → bắt đầu/tiếp tục → ghi nhận và hoàn thành hiệp → nghỉ theo timer → lặp lại cho các bài tập → kết thúc → xem tổng kết. Người dùng có thể tạm dừng và tiếp tục buổi tập.
+4. **Tra cứu kết quả:** Progress → xem danh sách lịch sử hoặc thống kê cơ bản → chọn buổi tập để xem chi tiết. Trường hợp chưa có dữ liệu cần có trạng thái rỗng thay vì số liệu gây hiểu nhầm.
+5. **Theo dõi mục tiêu và cài đặt:** Mở mục tiêu từ Home/Profile để xem hoặc cập nhật tiến độ; mở Profile để quản lý hồ sơ, giao diện và tùy chọn nhắc lịch/quyền riêng tư.
+
+Các luồng ghi nhận và tra cứu buổi tập phải hoạt động ngoại tuyến theo phạm vi lưu cục bộ. Đăng nhập/đăng ký và đồng bộ máy chủ là các phụ thuộc được quản lý riêng, không được ngầm coi là khả dụng trong luồng ngoại tuyến.
+
 ---

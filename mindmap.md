@@ -12,7 +12,7 @@
 
 ## Phase 1 — Phân tích và thiết lập
 
-- [ ] **Phase 1.T01** — Chốt phạm vi MVP, luồng người dùng và màn hình.  
+- [x] **Phase 1.T01** — Chốt phạm vi MVP, luồng người dùng và màn hình.
       Tham chiếu: `requirements.md`, `screens-ux.md`.
 - [ ] **Phase 1.T02** — Chốt quyết định backend, auth và phiên bản Expo SDK hoặc ghi nhận blocker.  
       Tham chiếu: `risks-decisions.md`.
