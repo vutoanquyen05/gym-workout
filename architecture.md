@@ -26,9 +26,11 @@ src/
 │   ├── _layout.tsx
 │   ├── index.tsx
 │   ├── (auth)/
+│   │   ├── _layout.tsx
 │   │   ├── login.tsx
 │   │   └── register.tsx
 │   └── (tabs)/
+│       ├── _layout.tsx
 │       ├── index.tsx
 │       ├── workouts.tsx
 │       ├── exercises.tsx
@@ -36,23 +38,11 @@ src/
 │       └── profile.tsx
 │
 ├── modules/
-│   ├── auth/
-│   │   ├── screens/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   └── types/
-│   ├── user-profile/
-│   ├── onboarding/
-│   ├── exercise-library/
-│   ├── workout-plans/
-│   ├── workout-session/
-│   ├── workout-history/
-│   ├── progress-tracking/
-│   ├── goals-habits/
-│   ├── recovery/
-│   ├── notifications/
-│   └── app-settings/
+│   └── <feature>/
+│       ├── components/
+│       ├── hooks/
+│       ├── services/
+│       └── types/
 │
 ├── shared/
 │   ├── design-system/
@@ -70,7 +60,13 @@ src/
 └── types/
 ```
 
-Đây là cấu trúc tham khảo. Các thư mục có thể được bổ sung dần theo nhu cầu thực tế, tránh tạo quá nhiều lớp trừu tượng khi dự án còn nhỏ.
+Đây là cấu trúc mục tiêu, được tạo dần khi feature bắt đầu để tránh thư mục rỗng và lớp trừu tượng chưa cần thiết. Mỗi feature chỉ tạo các thư mục con thực sự cần; module route nằm trong `src/app`, còn nghiệp vụ và component đặc thù nằm trong `src/modules/<feature>`. Component/hook dùng chung được đặt trong `src/shared` khi có nhu cầu chia sẻ thực tế. Kiểm thử dự án được đặt tại `__tests__/`; tiện ích test dùng chung chỉ đưa vào `src/shared/testing` khi được tái sử dụng.
+
+Hiện trạng nền tảng ban đầu giữ các component, hook và token dùng chung sẵn có tại `src/components`, `src/hooks` và `src/constants`; không di chuyển chúng trong task thiết lập cấu trúc. Các feature module sẽ được thêm theo phase tương ứng.
+
+Kiểm thử dùng Jest với preset `jest-expo` và React Native Testing Library; test hiện hành nằm trong `__tests__/`. Lint dùng Expo flat config trong `eslint.config.js` và chạy bằng `npm run lint`.
+
+Điều hướng hiện dùng Expo Router với root stack trong `src/app/_layout.tsx`, route mặc định chuyển vào nhóm `(tabs)`, và các layout riêng cho `(tabs)` và `(auth)`. Các tab hiện có giao diện placeholder cho đến khi module tính năng tương ứng được triển khai. Route auth chỉ là scaffold; chưa có route guard hoặc xác thực thật vì backend/auth còn blocker được ghi trong `risks-decisions.md`.
 
 ### 5.3. Các module nghiệp vụ
 

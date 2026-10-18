@@ -26,6 +26,8 @@ Nguồn: `baocao.md`, mục 6. Đây là danh sách công nghệ/API nền tản
 | AppState | Theo dõi trạng thái hoạt động của ứng dụng |
 | React Native Safe Area Context | Xử lý vùng an toàn của màn hình |
 
+**Baseline dự án hiện tại:** Expo SDK 57 (`expo ~57.0.30`). Đối chiếu API và khả năng tương thích thư viện với [tài liệu Expo SDK 57](https://docs.expo.dev/versions/v57.0.0/); không suy luận API từ phiên bản SDK khác. Đây là baseline hiện tại, không hàm ý nâng cấp hoặc xác nhận trước các thư viện chưa được thêm vào dự án.
+
 Việc sử dụng từng thư viện cần căn cứ vào phiên bản Expo SDK đang triển khai và tài liệu tương ứng. Không phải chức năng nào cũng cần đưa vào MVP.
 
 ### 6.2. Chức năng xác thực và hồ sơ

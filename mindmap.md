@@ -14,16 +14,18 @@
 
 - [x] **Phase 1.T01** — Chốt phạm vi MVP, luồng người dùng và màn hình.
       Tham chiếu: `requirements.md`, `screens-ux.md`.
-- [ ] **Phase 1.T02** — Chốt quyết định backend, auth và phiên bản Expo SDK hoặc ghi nhận blocker.  
+- [x] **Phase 1.T02** — Chốt quyết định backend, auth và phiên bản Expo SDK hoặc ghi nhận blocker.
       Tham chiếu: `risks-decisions.md`.
-- [ ] **Phase 1.T03** — Khởi tạo Expo + React Native + TypeScript.  
+- [x] **Phase 1.T03** — Khởi tạo Expo + React Native + TypeScript.
       Tham chiếu: `tech-stack.md`.
-- [ ] **Phase 1.T04** — Thiết lập Expo Router, tabs và auth routes.  
+- [x] **Phase 1.T04** — Thiết lập Expo Router, tabs và auth routes.
       Tham chiếu: `architecture.md`, `screens-ux.md`.
-- [ ] **Phase 1.T05** — Thiết lập cấu trúc module, lint và nền tảng kiểm thử.  
+- [x] **Phase 1.T05** — Thiết lập cấu trúc module, lint và nền tảng kiểm thử.
       Tham chiếu: `architecture.md`, `testing-acceptance.md`.
 
 **Điều kiện hoàn thành:** Ứng dụng khởi chạy trên iOS/Android; điều hướng cơ bản hoạt động.
+
+**Trạng thái xác minh:** T01–T05 hoàn tất; bundle web/iOS/Android đã build. Chưa xác minh chạy trên thiết bị/emulator thật, cần hoàn tất kiểm tra này trước Phase 2 (chi tiết tại `risks-decisions.md`).
 
 ## Phase 2 — Design System
 
