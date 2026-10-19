@@ -25,19 +25,19 @@
 
 **Điều kiện hoàn thành:** Ứng dụng khởi chạy trên iOS/Android; điều hướng cơ bản hoạt động.
 
-**Trạng thái xác minh:** T01–T05 hoàn tất; bundle web/iOS/Android đã build. Chưa xác minh chạy trên thiết bị/emulator thật, cần hoàn tất kiểm tra này trước Phase 2 (chi tiết tại `risks-decisions.md`).
+**Trạng thái xác minh:** T01–T05 hoàn tất; bundle web/iOS/Android đã build; runtime và điều hướng 5 tab đã xác minh trên Android emulator. iOS runtime verification còn thiếu do môi trường Windows. Người dùng đã chấp thuận bắt đầu Phase 2 trong khi giữ đây là blocker; tiếp tục theo ngoại lệ có ghi nhận tại `risks-decisions.md`.
 
 ## Phase 2 — Design System
 
-- [ ] **Phase 2.T01** — Tạo color tokens Dark/Light và theme provider.  
+- [x] **Phase 2.T01** — Tạo color tokens Dark/Light và theme provider.
       Tham chiếu: `color-palette.md`.
-- [ ] **Phase 2.T02** — Tạo typography, spacing, radius và size tokens.  
+- [x] **Phase 2.T02** — Tạo typography, spacing, radius và size tokens.
       Tham chiếu: `design-system.md`.
-- [ ] **Phase 2.T03** — Xây dựng AppText, Screen, Button, Card, Input và IconButton.  
+- [x] **Phase 2.T03** — Xây dựng AppText, Screen, Button, Card, Input và IconButton.
       Tham chiếu: `design-system.md`.
-- [ ] **Phase 2.T04** — Tạo Bottom Navigation và trạng thái giao diện chuẩn.  
+- [x] **Phase 2.T04** — Tạo Bottom Navigation và trạng thái giao diện chuẩn.
       Tham chiếu: `design-system.md`, `screens-ux.md`.
-- [ ] **Phase 2.T05** — Kiểm tra tương phản, vùng chạm, safe area và chữ phóng to.  
+- [x] **Phase 2.T05** — Kiểm tra tương phản, vùng chạm, safe area và chữ phóng to.
       Tham chiếu: `color-palette.md`, `design-system.md`.
 
 **Điều kiện hoàn thành:** Các màn hình dùng chung tokens/components; Light/Dark hoạt động.

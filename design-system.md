@@ -208,4 +208,36 @@ Mỗi màn hình có dữ liệu nên xem xét các trạng thái:
 
 Ví dụ, khi lịch sử tập luyện chưa có dữ liệu, nên hiển thị trạng thái trống với hướng dẫn hành động tiếp theo thay vì một màn hình trắng.
 
+## Theo dõi triển khai module design-system
+
+### Mục đích
+
+Triển khai palette, theme, tokens và component UI dùng chung theo đặc tả trên, ưu tiên mobile-first, Light/Dark, khả năng tiếp cận và tương thích iOS/Android/web.
+
+### Kiến trúc/Cấu trúc
+
+- `src/shared/design-system/colors.ts`, `typography.ts`, `spacing.ts`, `radius.ts`, `sizes.ts`: nguồn tokens.
+- `src/shared/design-system/theme-provider.tsx`: cung cấp theme scheme và colors cho component.
+- `src/shared/design-system/components/`: `AppText`, `Screen`, `Button`, `Card`, `Input`, `IconButton` và barrel exports.
+- `src/shared/design-system/components/bottom-navigation.tsx`: cấu hình native bottom tabs theo các route Expo Router hiện có.
+- `src/shared/design-system/components/feedback-state.tsx`: các trạng thái loading, success, empty, error, offline, disabled, unsynced và saving.
+- `src/constants/theme.ts`: compatibility exports cho các consumers hiện hữu.
+- `__tests__/design-tokens-test.ts` và `__tests__/design-components-test.tsx`: kiểm chứng token, tính tương thích, hành vi component và feedback states.
+
+### Lịch sử phát triển
+
+- Phase 2.T01: xây dựng palette Dark/Light và provider theo system hoặc mode tường minh.
+- Phase 2.T02: bổ sung typography, spacing, radius và size tokens.
+- Phase 2.T03: tạo các component design system dùng chung theo tokens.
+- Phase 2.T04: tích hợp bottom navigation dùng chung và component trạng thái phản hồi chuẩn.
+- Phase 2.T05: rà soát WCAG contrast, vùng chạm, safe area, phóng to/chảy dòng chữ và điều chỉnh các cặp màu viền/selected label chưa đạt.
+
+### Nhật ký chỉnh sửa
+
+| Thời gian | Nội dung | Lý do | Kết quả |
+|---|---|---|---|
+| 2026-10-18 | Bổ sung theo dõi cấu trúc triển khai design-system vào đặc tả. | Đồng bộ đặc tả với module tokens/components thực tế và quy tắc tài liệu module. | Ghi nhận T01–T03; T03 được nghiệm thu sau khi test, typecheck, lint và static export đạt. |
+| 2026-10-18 | Cập nhật theo dõi T04 cho bottom navigation và feedback states. | Đồng bộ kiến trúc triển khai thực tế với đặc tả UI. | T04 được nghiệm thu với Jest 9 tests, typecheck/lint và static exports iOS/Android/web. |
+| 2026-10-18 | Ghi nhận kiểm tra khả năng tiếp cận T05: 44pt control targets, safe-area/scroll behavior, font scaling, contrast thresholds và giới hạn runtime device checks. | Phản ánh kết quả đo được và minh bạch các kiểm thử cần thiết bị thật. | Jest: 5 suites, 13 tests; typecheck/lint/dependency check và static exports đạt; chưa đo runtime font enlargement hoặc native tab hit regions trong phiên này. |
+
 ---

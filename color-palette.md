@@ -56,3 +56,28 @@ Bảng dưới đây ghi nhận các cặp màu đã được tính toán trong 
 Các tỷ lệ trên chỉ áp dụng cho đúng cặp màu được liệt kê. Cần kiểm tra thêm từng cặp màu thực tế, đặc biệt là văn bản trên thẻ, nhãn lỗi, placeholder, icon và các trạng thái disabled.
 
 Không nên dùng màu đơn thuần để truyền tải ý nghĩa. Ví dụ, trạng thái lỗi cần có biểu tượng hoặc thông báo chữ bên cạnh màu cảnh báo.
+
+### Kiểm tra cặp màu của component — Phase 2.T05
+
+Các cặp dưới đây được kiểm tra bằng công thức relative luminance của WCAG và có test hồi quy trong `__tests__/color-accessibility-test.ts`.
+
+| Theme | Cặp màu thực tế | Tỷ lệ | Ngưỡng | Kết quả |
+|---|---|---:|---:|---|
+| Dark | `textPrimary` / `background` | 17.03:1 | 4.5:1 | Đạt AA/AAA |
+| Dark | `textSecondary` / `background` | 9.21:1 | 4.5:1 | Đạt AA/AAA |
+| Dark | `textSecondary` / `surface` | 8.17:1 | 4.5:1 | Đạt AA/AAA |
+| Dark | `textSecondary` / `surfaceElevated` | 6.74:1 | 4.5:1 | Đạt AA |
+| Dark | `background` / `brandPrimary` (primary button) | 6.51:1 | 4.5:1 | Đạt AA/AAA |
+| Dark | `info`, `success`, `danger` / `surface` | 8.15:1, 8.89:1, 6.36:1 | 4.5:1 | Đạt AA |
+| Dark | `textSecondary` / `surface` (input/outline border) | 8.17:1 | 3:1 | Đạt |
+| Light | `textPrimary` / `background` | 16.41:1 | 4.5:1 | Đạt AA/AAA |
+| Light | `textSecondary` / `background` | 6.49:1 | 4.5:1 | Đạt AA |
+| Light | `textSecondary` / `surface` | 6.89:1 | 4.5:1 | Đạt AA |
+| Light | `textSecondary` / `surfaceElevated` | 5.81:1 | 4.5:1 | Đạt AA |
+| Light | `surface` / `brandPrimary` (primary button) | 4.77:1 | 4.5:1 | Đạt AA |
+| Light | `info`, `success`, `danger` / `surface` | 6.61:1, 5.80:1, 6.57:1 | 4.5:1 | Đạt AA |
+| Light | `textSecondary` / `surface` (input/outline border) | 6.89:1 | 3:1 | Đạt |
+
+`brandPrimary` trên Light `background` đạt 4.49:1, thấp hơn một chút so với ngưỡng chữ thường 4.5:1; do đó không dùng màu này cho nhãn tab hoặc chữ nhỏ trên nền màn hình. Nhãn tab active dùng `textPrimary`; icon active vẫn dùng `brandPrimary` (đối tượng đồ họa, ngưỡng 3:1). Nút primary dùng chữ `surface` trên nền `brandPrimary`, đạt 4.77:1.
+
+Input và nút outline dùng `textSecondary` cho đường viền cần nhận biết; trạng thái focus dùng `brandPrimary`, trạng thái lỗi dùng `danger`. Các màu biên này được kiểm tra tối thiểu 3:1 trên nền màn hình và surface.

@@ -41,7 +41,9 @@ Không tự coi các mục chưa chốt là yêu cầu đã được xác nhận
 
 ## Khoảng trống xác minh Phase 1
 
-- **Trạng thái:** Chưa xác nhận chạy ứng dụng và điều hướng cơ bản trên thiết bị/emulator iOS hoặc Android.
-- **Bằng chứng hiện có:** Expo static export tạo bundle thành công cho web, iOS và Android; TypeScript, lint, Jest và kiểm tra tương thích SDK đạt.
-- **Giới hạn môi trường:** Không có `adb` hoặc Android emulator command trong môi trường hiện tại; native bundle export không thay thế kiểm thử chạy ứng dụng.
-- **Bước cần làm trước Phase 2:** Chạy ứng dụng trên ít nhất một thiết bị/emulator iOS và Android, kiểm tra điều hướng tab cơ bản và cập nhật kết quả tại đây. Chưa bắt đầu Phase 2 cho đến khi điều kiện đóng Phase 1 trong `mindmap.md` được xác minh.
+- **Trạng thái:** Android runtime và điều hướng cơ bản đã xác minh; iOS runtime còn chưa xác minh.
+- **Bằng chứng Android:** Expo Go `57.0.9` chạy app trên AVD `Medium_Phone_API_37.0` (Android 17). Home mở thành công; thao tác lần lượt Workouts, Exercises, Progress, Profile và trở lại Home đều chọn đúng tab và hiển thị đúng tiêu đề route qua Android UI hierarchy.
+- **Bằng chứng build:** Expo static export tạo bundle web, iOS và Android; TypeScript, Expo lint, Jest và kiểm tra tương thích SDK đạt. Native bundle export không thay thế runtime test iOS.
+- **Giới hạn iOS:** Workspace chạy trên Windows, không có `xcrun`, Xcode hoặc iOS Simulator; iOS runtime test cần môi trường macOS/Xcode hoặc thiết bị iOS khả dụng.
+- **Ngoại lệ được chấp thuận:** Ngày 2026-10-18, người dùng yêu cầu tiếp tục và xác nhận lựa chọn bắt đầu Phase 2 trong khi iOS runtime verification vẫn là blocker. Phase 2 được phép tiến hành; không xem đây là bằng chứng iOS đã kiểm thử.
+- **Việc còn lại:** Chạy app và kiểm tra điều hướng cơ bản trên iOS simulator/thiết bị khi có môi trường macOS/Xcode hoặc thiết bị iOS khả dụng.

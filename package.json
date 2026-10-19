@@ -41,6 +41,7 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
+    "android:emulator": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/start-android-emulator.ps1",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
