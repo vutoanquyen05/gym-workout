@@ -1,160 +1,84 @@
-# Gym & Workout App
+# Gym & Workout
 
-Ứng dụng quản lý tập luyện thể hình trên thiết bị di động, giúp người dùng xây dựng kế hoạch tập luyện, quản lý bài tập, ghi nhận kết quả và theo dõi tiến độ theo thời gian.
+Ứng dụng di động Gym & Workout giúp người dùng tổ chức kế hoạch tập, ghi nhận buổi tập và theo dõi tiến độ. Dự án được xây dựng với Expo, React Native và TypeScript; hiện tập trung vào nền tảng giao diện và lưu trữ SQLite cục bộ. Các màn hình tính năng và tích hợp backend vẫn đang trong quá trình phát triển.
 
-Dự án được phát triển bằng **React Native, Expo và TypeScript**, hỗ trợ Android và iOS.
+## Tech stack
 
-## Công nghệ sử dụng
+| Công nghệ | Phiên bản/cách sử dụng |
+|---|---|
+| Expo | SDK 57 (`~57.0.30`) |
+| React Native | `0.86.3` |
+| React | `19.2.3` |
+| TypeScript | `~6.0.3` |
+| Expo Router | `~57.0.28`, điều hướng theo file |
+| Expo SQLite | `~57.0.4`, nền tảng lưu trữ cục bộ |
+| Supabase JavaScript client | `^2.118.0`, dependency đã khai báo; Auth và đồng bộ chưa tích hợp |
+| Jest / jest-expo | Unit và component tests |
+| React Native Testing Library | Kiểm thử component React Native |
+| ESLint | Expo flat config |
 
-- **React Native:** Phát triển ứng dụng di động.
-- **Expo:** Công cụ phát triển và chạy ứng dụng.
-- **TypeScript:** Ngôn ngữ lập trình.
-- **Expo Router:** Quản lý điều hướng.
-- **SQLite:** Lưu trữ dữ liệu cục bộ.
+`package.json` và `package-lock.json` là nguồn xác nhận dependency. Các thư viện/API được nêu trong tài liệu quy hoạch không mặc nhiên có nghĩa là đã được cài hoặc tích hợp.
 
-## Chức năng chính
+## Project structure
 
-- Quản lý thông tin cá nhân.
-- Tra cứu và tìm kiếm bài tập.
-- Tạo và quản lý kế hoạch tập luyện.
-- Ghi nhận số hiệp, số lần lặp và mức tạ.
-- Theo dõi lịch sử và tiến độ tập luyện.
-- Hỗ trợ giao diện Dark Mode và Light Mode.
-- Định hướng hỗ trợ lưu trữ ngoại tuyến.
-
-> **Lưu ý:** Các chức năng trên thuộc phạm vi thiết kế dự án và có thể chưa được triển khai đầy đủ.
-
-## Hướng dẫn cài đặt
-
-### 1. Yêu cầu
-
-Cài đặt các công cụ sau:
-
-- [Node.js](https://nodejs.org/) (phiên bản LTS)
-- [Git](https://git-scm.com/)
-- [Android Studio](https://developer.android.com/studio) (nếu cần build Android)
-- Điện thoại Android hoặc iOS
-- Ứng dụng Expo Go (nếu dự án tương thích)
-
-### 2. Clone Repository
-
-Mở Terminal hoặc PowerShell:
-
-```bash
-git clone https://github.com/vutoanquyen05/gym-workout
+```text
+src/
+├── app/                    # Expo Router layouts, auth routes và tab routes
+├── components/             # Components dùng chung và giao diện scaffold
+├── hooks/                  # Hooks dùng chung
+├── constants/              # Tương thích theme/token hiện có
+└── shared/
+    ├── design-system/      # Theme, tokens và UI components
+    └── storage/            # SQLite schema, migrations và repositories
+__tests__/                  # Jest tests
+docs/                       # Kiến trúc, quy tắc, roadmap và tài liệu module
+scripts/                    # Tiện ích phát triển
+supabase/migrations/        # PostgreSQL migrations đã chuẩn bị
 ```
 
-Di chuyển vào thư mục dự án:
+Các route Expo Router và layout nằm trong `src/app/`. Mã dùng chung, storage và component không phải route đặt ngoài thư mục route.
+
+## Getting started
+
+### Yêu cầu
+
+- Node.js tương thích với Expo SDK 57.
+- npm.
+- Thiết bị hoặc emulator phù hợp với nền tảng bạn muốn chạy. Một số native modules có thể cần development build thay vì Expo Go.
+
+### Cài dependency và chạy ứng dụng
 
 ```bash
-cd gym-workout
-```
-
-### 3. Cài đặt Dependencies
-
-```bash
-npm install
-```
-
-### 4. Chạy ứng dụng
-
-Khởi động Expo:
-
-```bash
+npm ci
 npx expo start
 ```
 
-Nếu máy tính và điện thoại không thể kết nối trực tiếp qua mạng LAN:
+Sau khi Expo khởi động, làm theo hướng dẫn trong terminal để mở app trên thiết bị hoặc emulator.
+
+## Testing & quality checks
 
 ```bash
-npx expo start --tunnel
+npm test
+npm run lint
+npx tsc --noEmit
 ```
 
-## Chạy trên điện thoại
+## Trạng thái hiện tại
 
-### Cách 1: Sử dụng Expo Go
+- Expo Router, design system và SQLite schema/repositories có trong source. Storage vẫn là module cục bộ; chưa có luồng đồng bộ backend.
+- Các route tính năng và Auth còn ở trạng thái scaffold.
+- Supabase JavaScript client có trong dependencies, nhưng Supabase Auth, mutation gateway và sync chưa được tích hợp.
+- Các file trong `supabase/migrations/` mới được chuẩn bị; chưa được áp dụng hoặc xác minh runtime trên PostgreSQL/Supabase. Không chạy migrations nếu chưa có phê duyệt riêng.
 
-1. Cài đặt **Expo Go** trên điện thoại.
-2. Kết nối điện thoại và máy tính cùng mạng Wi-Fi.
-3. Chạy lệnh:
+## Tài liệu
 
-   ```bash
-   npx expo start
-   ```
+- [Tài liệu dự án](./docs/)
+- [Quy tắc làm việc](./docs/rule.md)
+- [Roadmap](./docs/mindmap.md)
+- [Kiến trúc](./docs/architecture.md)
+- [Tech stack và API thiết bị](./docs/tech-stack.md)
+- [SQLite và offline-first](./docs/data-offline.md)
+- [Supabase schema và migrations](./docs/supabase-schema.md)
+- [Kiểm thử và nghiệm thu](./docs/testing-acceptance.md)
 
-4. Mở Expo Go và quét mã QR xuất hiện trong Terminal.
-5. Chờ ứng dụng tải và khởi chạy.
-
-**Lưu ý:** Expo Go chỉ hỗ trợ các thư viện native tương thích. Nếu dự án sử dụng native module riêng, cần dùng Development Build.
-
-### Cách 2: Chạy trực tiếp trên Android qua USB
-
-**Bước 1:** Bật Developer Options và USB Debugging trên điện thoại.
-
-**Bước 2:** Kết nối điện thoại với máy tính bằng cáp USB và chấp nhận yêu cầu cấp quyền gỡ lỗi.
-
-**Bước 3:** Kiểm tra kết nối:
-
-```bash
-adb devices
-```
-
-**Bước 4:** Build và chạy ứng dụng:
-
-```bash
-npx expo run:android --device
-```
-
-Lệnh sẽ build, cài đặt và khởi chạy ứng dụng trên thiết bị Android đã kết nối.
-
-**Lưu ý:** Cần cấu hình Android SDK và môi trường build trước khi sử dụng.
-
-### Cách 3: Cài đặt APK đã build
-
-Nếu đã có file APK debug:
-
-```bash
-adb install -r android/app/build/outputs/apk/debug/app-debug.apk
-```
-
-Sau khi cài đặt thành công, mở ứng dụng trên điện thoại.
-
-> Bản APK debug có thể cần kết nối đến Metro Bundler để tải JavaScript.
-
-## Xử lý lỗi thường gặp
-
-**Không nhận thiết bị Android:**
-
-```bash
-adb devices
-```
-
-Kiểm tra USB Debugging, cáp USB và quyền kết nối trên điện thoại.
-
-**Expo bị lỗi cache:**
-
-```bash
-npx expo start --clear
-```
-
-**Không kết nối được Expo Go:**
-
-```bash
-npx expo start --tunnel
-```
-
-**Lỗi `INSTALL_FAILED_USER_RESTRICTED`:**
-
-Kiểm tra quyền cho phép cài đặt ứng dụng qua USB trong Developer Options và xác nhận yêu cầu cài đặt trên điện thoại.
-
-## Tài liệu tham khảo
-
-- [React Native](https://reactnative.dev/)
-- [Expo Documentation](https://docs.expo.dev/)
-- [Expo Router](https://docs.expo.dev/router/introduction/)
-
----
-
-**Project:** Gym & Workout App  
-**Platform:** Android & iOS  
-**Tech Stack:** React Native · Expo · TypeScript
+Quy tắc cho agent được đặt tại [AGENTS.md](./AGENTS.md); Claude Code đọc cùng hướng dẫn qua [CLAUDE.md](./CLAUDE.md).

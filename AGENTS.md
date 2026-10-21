@@ -39,3 +39,11 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+## Gym Workout workspace
+
+- Follow [`rule.md`](./docs/rule.md) and [`mindmap.md`](./docs/mindmap.md) for the project workflow; use [`architecture.md`](./docs/architecture.md), [`tech-stack.md`](./docs/tech-stack.md), and the relevant module document under [`docs/`](./docs/) as the current project references.
+- This workspace currently uses Expo SDK 57, Expo Router routes under `src/app/`, SQLite storage under `src/shared/storage/`, Jest tests under `__tests__/`, and npm via `package-lock.json`. Confirm actual installed packages in `package.json`; architecture documents may also describe planned work.
+- The local `android/` directory is Git-ignored and is not tracked as project source. Treat it as generated native output; do not edit or remove it manually. Configure native behavior through `app.json` and config plugins.
+- Supabase migrations are prepared but not applied or runtime-verified. Never execute SQL, connect to or mutate Supabase Cloud, or reset a database without explicit approval for that operation.
+- Do not delete or clean files based only on being untracked, ignored, or apparently unused; inspect references and distinguish generated files from data/configuration first.

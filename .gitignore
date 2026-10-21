@@ -41,3 +41,18 @@ example
 # generated native folders
 /ios
 /android
+
+# supabase
+.env
+.env.local
+.env.*.local
+/supabase/.temp/
+
+# IDE & Editor configs
+.idea/
+.vscode/settings.json
+
+# Local caches, test output, and logs
+.cache/
+coverage/
+*.log
