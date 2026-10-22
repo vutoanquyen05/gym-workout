@@ -2,7 +2,7 @@
 
 ## Mục đích
 
-Ghi nhận thiết kế/review PostgreSQL cho đồng bộ dữ liệu Gym Workout với SQLite. Bốn migration core v1 đã được chuẩn bị theo phê duyệt có điều kiện nhưng **chưa chạy/apply**. Không có bằng chứng đã kết nối project Supabase; tài liệu và file migration không cấp phép thực thi hoặc triển khai.
+Ghi nhận thiết kế, trạng thái triển khai và kế hoạch kiểm thử PostgreSQL cho đồng bộ dữ liệu Gym Workout với SQLite. Bốn migration core v1 đã được chạy thủ công trên Supabase Cloud project `gym-workout` theo báo cáo của người dùng ngày 2026-10-22. Kết quả Cloud này chưa được kiểm chứng độc lập trong phiên làm việc; việc áp dụng không đồng nghĩa đã hoàn tất kiểm thử bảo mật, kiểm thử hành vi RLS hoặc T13 trên local disposable.
 
 ## Kiến trúc/Cấu trúc
 
@@ -10,7 +10,32 @@ Ghi nhận thiết kế/review PostgreSQL cho đồng bộ dữ liệu Gym Worko
 - `risks-decisions.md`: quyết định đã thống nhất và blocker trước triển khai.
 - Phase đầu chỉ có bảy bảng nghiệp vụ: `users`, `exercises`, `workout_plans`, `plan_exercises`, `workout_sessions`, `session_exercises`, `workout_sets`.
 - PostgreSQL là server authority cho `version`, `created_at`, `updated_at`, conflict và idempotency. SQLite giữ dữ liệu offline cùng `sync_outbox` local-only.
-- Bốn file migration imperatively scaffold bằng Supabase CLI; chưa chạy/apply hoặc được xác minh bằng PostgreSQL. Không tạo config, RPC/gateway, receipt table, seed hay Auth integration.
+- Bốn file migration được scaffold bằng Supabase CLI và đã được người dùng báo cáo là chạy thủ công trên Supabase Cloud theo thứ tự. Chưa có kiểm chứng PostgreSQL độc lập trong phiên này. Không tạo config, RPC/gateway, receipt table, seed hay Auth integration.
+
+## Trạng thái triển khai Cloud — theo xác nhận của người dùng (2026-10-22)
+
+Người dùng xác nhận đã chạy lần lượt bốn file trong Supabase SQL Editor của project `gym-workout`; mỗi file trả về `Success. No rows returned`:
+
+1. `20261021112229_core_parent_tables.sql` — SUCCESS.
+2. `20261021112241_core_child_tables.sql` — SUCCESS.
+3. `20261021112248_core_indexes.sql` — SUCCESS.
+4. `20261021112254_core_read_policies.sql` — SUCCESS.
+
+Theo kết quả Table Editor và truy vấn `pg_class`/`pg_policy` do người dùng thực hiện: schema `public` có đủ 7 bảng; cả 7 bảng bật RLS; mỗi bảng có đúng 1 policy và cả 7 policy là SELECT (`polcmd = 'r'`).
+
+Người dùng cũng đã kiểm tra quyền bảng trên đủ 7 bảng × 3 vai trò (21 dòng kết quả):
+
+| Vai trò | SELECT | INSERT | UPDATE | DELETE |
+|---|---:|---:|---:|---:|
+| `anon` | false | false | false | false |
+| `authenticated` | true | false | false | false |
+| `service_role` | false | false | false | false |
+
+Phạm vi này hoàn tất kiểm tra được báo cáo cho bốn quyền trên bảng và ba vai trò nêu trên. Kết quả chưa xác nhận `USAGE` trên schema, thuộc tính role như `BYPASSRLS`, `pg_default_acl`, loại privilege khác, hoặc việc request thực tế được RLS cô lập theo hàng. Các quan sát trong mục này do người dùng cung cấp và chưa được kiểm chứng độc lập trong phiên này.
+
+Theo kết quả được báo cáo, quyền bảng của `service_role` hiện bị thu hồi trên cả bảy bảng. Trước khi triển khai mutation gateway, cần quyết định và review quyền tối thiểu cho executor/service role tin cậy cùng ranh giới RLS/role; không mặc định khôi phục DML rộng cho `service_role` và tuyệt đối không đưa secret service-role vào ứng dụng mobile.
+
+Không có SQL nào được chạy, không kết nối/sửa Supabase Cloud, không thay đổi migration hoặc source code trong lần cập nhật tài liệu này. Kết quả local migration test ngày 2026-10-21 dưới đây vẫn BLOCKED và T13 vẫn chưa hoàn tất; việc triển khai thủ công trên Cloud không thay thế bài kiểm thử local disposable hoặc migration-history reconciliation.
 
 ## Bản thiết kế đã review
 
@@ -87,7 +112,7 @@ Không tạo index theo từng cột một cách máy móc. PK/unique constraint
 
 ## Kế hoạch migration và kiểm thử
 
-Các tên migration dưới đây được Supabase CLI sinh; file đã chuẩn bị nhưng chưa thực thi. Trước khi chạy cần readiness review: xác minh CLI/version/workflow, project/environment, migration history, migration role, Data API exposure, grants và `pg_default_acl`; xác nhận đã có config/local test harness và chủ dự án phê duyệt apply riêng.
+Các tên migration dưới đây được Supabase CLI sinh. Bốn file đã được áp dụng thủ công trên Cloud theo xác nhận nêu trên; đối chiếu lịch sử migration thủ công với Supabase CLI vẫn còn phải thực hiện trước khi dùng CLI cho migration tiếp theo. Readiness review cho các lần thực thi tương lai vẫn cần xác minh CLI/version/workflow, project/environment, migration history, migration role, Data API exposure, grants và `pg_default_acl`, cùng phê duyệt riêng.
 
 | Nhóm | File/thứ tự và phạm vi | Gate kiểm thử / rollback |
 |---|---|---|
@@ -100,6 +125,27 @@ Các tên migration dưới đây được Supabase CLI sinh; file đã chuẩn 
 | 6. SQLite v2 + sync (tương lai) | Sau preflight, backup và duyệt riêng; UUID canonicalization, weight grams, account partition và local outbox. | Counts/FK/UUID/weight conversion, recovery, no auto-assign, multi-account isolation, Expo transaction isolation và full sync acceptance. |
 
 Mỗi migration mở/đóng một transaction rõ ràng; bảng mới không có grant Data API trong giai đoạn parent/child/index. RLS được enable và revoke table grants cùng transaction tạo bảng; nhóm policy/regrant chỉ chạy sau khi đủ bảy bảng và indexes. Hướng dẫn test chưa chạy: sau phê duyệt apply riêng và khi có local Supabase config, dùng local disposable stack (`supabase start`, `supabase db reset`, `supabase test db` với fixtures pgTAP hai user/anon), không link/push remote. Migration không có down scripts tự động; local-only rollback dùng reset DB disposable hoặc reverse group theo thứ tự và `DROP ... RESTRICT`. Staging/production áp dụng forward-fix/restore theo backup đã duyệt, không chạy rollback destructive.
+
+### Các kiểm tra còn lại và thứ tự tiếp theo an toàn
+
+Các mục sau chưa được xác minh bởi kết quả triển khai cấu trúc:
+
+- **GRANT trên bảng — hoàn thành theo báo cáo người dùng:** 21 kết quả cho 7 bảng và `anon`, `authenticated`, `service_role` khớp bảng quyền ở trên. Phạm vi này không bao gồm `PUBLIC`, schema `USAGE`, role attributes, `pg_default_acl` hoặc loại privilege khác; các mục đó cần kiểm tra riêng bằng catalog chỉ đọc nếu cần.
+- **RLS hai tài khoản — chưa kiểm thử:** dùng tài khoản thử nghiệm riêng A/B và request SELECT-only để kiểm tra mỗi tài khoản chỉ thấy dữ liệu của mình, bao gồm tombstone. Ghi nhận kết quả allow/deny riêng. Không suy ra isolation chỉ từ việc có 7 SELECT policies.
+- **Constraints và foreign keys:** truy vấn catalog chỉ đọc để lập danh sách constraints/FKs thực tế; kiểm thử từ chối dữ liệu sai/cross-owner cần negative writes và chỉ thực hiện sau này trên local disposable với fixtures giả lập, không trên Cloud đang dùng.
+- **Phân quyền ghi:** trước hết kiểm tra privilege catalog chỉ đọc; không thử INSERT/UPDATE/DELETE trên Cloud. Kiểm chứng hành vi từ chối ghi trong môi trường disposable được xác nhận an toàn.
+- **Mutation gateway và `service_role`:** chưa có thiết kế được duyệt. Chốt trust boundary, RPC hay server-side gateway, quyền tối thiểu của executor/service role, RLS/`SECURITY DEFINER`, receipts/versioning và `EXECUTE` trước khi thiết kế triển khai; không cấp DML trực tiếp cho app.
+- **Migration history:** các file được chạy thủ công chưa được đối chiếu với migration history của Supabase CLI. Trước khi dùng CLI, chỉ đọc lịch sử/version trên Cloud và trạng thái local, lập phương án đồng bộ không chạy lại hoặc reset database; dừng nếu có lệch.
+
+**Kế hoạch RLS hai tài khoản — đơn giản, an toàn cho người mới, không ghi lên Cloud:**
+
+1. Nhờ chủ dự án chuẩn bị hai tài khoản thử nghiệm tạm thời A/B và xác nhận có ít nhất một bản ghi thử vô hại do mỗi tài khoản sở hữu trong các bảng cần kiểm tra. Không dùng dữ liệu tập luyện cá nhân/production. Nếu chưa có fixture, dừng và chỉ chuẩn bị trên môi trường disposable đã xác minh; theo GRANT hiện tại client không thể tự tạo fixture.
+2. Mở hai phiên trình duyệt riêng tư (hoặc hai phiên ứng dụng tách biệt), đăng nhập A ở phiên thứ nhất và B ở phiên thứ hai. Không chia sẻ mật khẩu/token giữa hai phiên.
+3. Từ client đã xác thực bằng session thông thường của từng tài khoản, đọc cùng các bảng liên quan (gồm bảng con và tombstone nếu có). Không dùng SQL Editor/Table Editor để kết luận row visibility vì role dashboard đặc quyền có thể không đại diện JWT người dùng.
+4. Ghi expected/observed riêng: A thấy hàng của A nhưng không thấy B; B thấy hàng của B nhưng không thấy A; tombstone chỉ hiện với owner. Nếu không có fixture hoặc client request an toàn, đánh dấu BLOCKED — kết quả rỗng không chứng minh isolation.
+5. Không thử INSERT/UPDATE/DELETE trên Cloud. Để các bài kiểm tra hành vi ghi cho local disposable được duyệt. Đăng xuất và chỉ xóa tài khoản/fixture thử nghiệm qua quy trình cleanup đã được duyệt.
+
+**Bước tiếp theo đề xuất:** (1) chạy kế hoạch SELECT-only A/B ở trên với tài khoản/fixtures thử nghiệm đã chuẩn bị; (2) nếu cần, hoàn tất review chỉ đọc về `PUBLIC`, schema `USAGE`, role attributes, `pg_default_acl`, privilege khác và migration history; (3) dùng local disposable riêng để thử constraints/FKs và từ chối ghi; (4) sau đó mới duyệt thiết kế gateway/`service_role`. Không chạy các bước này trong cập nhật tài liệu hiện tại.
 
 ## Local migration test attempt — 2026-10-21
 
@@ -125,12 +171,14 @@ Mỗi migration mở/đóng một transaction rõ ràng; bảng mới không có
 
 ## Test plan chưa thực thi
 
-1. Migration: fresh database, thứ tự phụ thuộc, constraints, transaction rollback/failure injection, không có table ngoài 7 core trong rollout đầu.
-2. Grants và RLS độc lập: Postgres role `anon` bị từ chối; anonymous Auth JWT (`is_anonymous=true`) cũng bị RLS từ chối; A không đọc/sửa dữ liệu B; tombstone chỉ owner đọc; system catalog chỉ read permanent authenticated users; mọi direct client DML/hard-delete bị từ chối.
+1. Migration trên local disposable: fresh database, thứ tự phụ thuộc, constraints, transaction rollback/failure injection, không có table ngoài 7 core trong rollout đầu. T13 vẫn chưa hoàn thành.
+2. Grants và RLS độc lập: quyền table-level SELECT/INSERT/UPDATE/DELETE của `anon`, `authenticated`, `service_role` đã được người dùng báo cáo và ghi ở trên; role attributes/schema/default ACL rộng hơn còn cần xem xét. Kiểm tra Postgres role `anon` bị từ chối; anonymous Auth JWT (`is_anonymous=true`) cũng bị RLS từ chối; A không đọc/sửa dữ liệu B; tombstone chỉ owner đọc; system catalog chỉ read permanent authenticated users; mọi direct client DML/hard-delete bị từ chối. Báo cáo hiện tại chưa xác minh hành vi runtime/row isolation.
 3. Ownership: forged `user_id`, owner change, child trỏ parent khác owner, session trỏ plan khác owner, plan/session exercise nguồn user khác, system exercise create/update/delete từ client.
 4. Version/receipt trong phase riêng: base-version race, duplicate cùng payload, reuse mutation ID với payload khác, timeout sau commit, conflict replay, rollback và retention.
 5. FK/purge: plan/session/exercise retention behavior; snapshot còn nguyên; mọi hard purge qua quy trình tin cậy và theo thứ tự.
 6. Security review: role attributes (`BYPASSRLS`, ownership), RLS coverage, Data API exposure, schema/table/function privileges, default ACL, function `EXECUTE`, `search_path`, Security Definer owner; advisors.
+
+Các kiểm tra dữ liệu ghi/negative-write, kiểm thử constraints/FKs theo hành vi và direct DML deny chỉ chạy trên local disposable đã xác minh, không trên Cloud. RLS A/B trước mắt ưu tiên request SELECT-only với tài khoản thử nghiệm.
 
 ## Lịch sử phát triển
 
@@ -139,6 +187,8 @@ Mỗi migration mở/đóng một transaction rõ ràng; bảng mới không có
 - 2026-10-21: tạo bốn migration file cho bảy bảng core, constraints, indexes và read-only RLS/grants; chưa áp dụng hoặc kiểm thử với PostgreSQL.
 - 2026-10-21: preflight local migration test bị BLOCKED vì thiếu Docker, Supabase CLI và `config.toml`; chỉ hoàn tất static inventory check, không chạy SQL.
 - 2026-10-22: sửa CHECK NULL logic trong `workout_sets_completion_check` theo phê duyệt riêng; rà tĩnh CHECKs, thứ tự migration, RLS và grants. Không chạy SQL hoặc kết nối Cloud.
+- 2026-10-22: ghi nhận người dùng đã chạy thủ công cả bốn migration trên Supabase Cloud `gym-workout`; người dùng xác nhận 7 bảng, RLS bật trên cả 7 và mỗi bảng có một SELECT policy. Tại thời điểm ghi mục này, quyền bảng, A/B isolation, constraints/FKs, phân quyền ghi, gateway/service_role và CLI migration history còn mở; trạng thái kiểm tra quyền bảng được cập nhật ở mục nhật ký tiếp theo. T13 local vẫn chưa hoàn tất.
+- 2026-10-22: ghi nhận kiểm tra quyền bảng do người dùng cung cấp cho 7 bảng × 3 vai trò: `anon` và `service_role` không có SELECT/INSERT/UPDATE/DELETE; `authenticated` chỉ có SELECT. Đánh dấu hoàn tất kiểm tra GRANT table-level trong phạm vi này; schema privileges, role attributes/default ACL và RLS runtime vẫn chưa được xác minh. Bổ sung kế hoạch A/B SELECT-only và yêu cầu quyết định riêng quyền `service_role` trước mutation gateway.
 
 ## Nhật ký chỉnh sửa
 
@@ -148,3 +198,5 @@ Mỗi migration mở/đóng một transaction rõ ràng; bảng mới không có
 | 2026-10-21 | Chuẩn bị bốn migration file core v1 theo phê duyệt có điều kiện và đồng bộ kế hoạch test/rollback. | Tách schema theo phụ thuộc; RLS và revoke ngay khi tạo bảng, chỉ cấp SELECT sau khi policy hoàn tất. | File chưa apply, chưa kiểm thử PostgreSQL; dừng chờ phê duyệt riêng trước mọi lần thực thi. |
 | 2026-10-21 | Kiểm tra readiness cho local disposable migration test và ghi kết quả test groups. | Bảo đảm không apply SQL vào project/data chưa xác minh và tuân thủ cấm tự cài công cụ. | BLOCKED trước SQL: thiếu Docker/CLI/config; static inventory PASS, các database/runtime tests NOT RUN. |
 | 2026-10-22 | Sửa `workout_sets_completion_check` để `is_completed = TRUE` bắt buộc `reps IS NOT NULL AND reps > 0`; ghi nhận quyết định quyền `service_role` trước mutation gateway. | PostgreSQL `CHECK` chấp nhận kết quả NULL; gateway cần quyền server được xác định riêng mà không mở DML cho client. | Chỉ sửa constraint được duyệt và tài liệu; rà tĩnh CHECK/RLS/grants/migration order. Không chạy SQL, không kết nối Supabase; PostgreSQL syntax/runtime vẫn chưa xác minh. |
+| 2026-10-22 | Cập nhật trạng thái triển khai Cloud theo kết quả người dùng cung cấp và xác định các kiểm thử còn lại. | Phân biệt áp dụng schema/RLS cấu trúc với kiểm thử quyền và hiệu lực bảo mật; giữ T13 đúng phạm vi local disposable. | Ghi nhận 4 migration thành công, 7 bảng, 7 RLS-enabled và 7 SELECT policies theo xác nhận; không chạy SQL/kết nối Cloud/sửa migration hoặc source. Bổ sung kế hoạch ưu tiên kiểm tra chỉ đọc. |
+| 2026-10-22 | Ghi nhận kết quả GRANT bảng và cập nhật kế hoạch kiểm thử RLS hai tài khoản. | Hoàn tất đúng phạm vi quyền bảng đã kiểm tra, giữ T13/toàn bộ RLS test chưa hoàn thành, đề xuất cách kiểm thử SELECT-only an toàn. | Ghi nhận 21 kết quả: `anon` và `service_role` không có SELECT/INSERT/UPDATE/DELETE; `authenticated` chỉ có SELECT. Nêu rõ `service_role` đang bị thu hồi quyền bảng core và cần quyết định trước gateway. Không chạy SQL/kết nối Cloud/sửa migration hoặc source. |

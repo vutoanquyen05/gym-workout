@@ -2,6 +2,7 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { AuthProvider } from '@/modules/auth';
 import { AppThemeProvider, useAppTheme } from '@/shared/design-system/theme-provider';
 
 void SplashScreen.preventAutoHideAsync();
@@ -24,7 +25,9 @@ function AppNavigator() {
 export default function RootLayout() {
   return (
     <AppThemeProvider>
-      <AppNavigator />
+      <AuthProvider>
+        <AppNavigator />
+      </AuthProvider>
     </AppThemeProvider>
   );
 }

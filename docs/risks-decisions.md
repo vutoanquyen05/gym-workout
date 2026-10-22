@@ -43,7 +43,8 @@ Nguồn: `baocao.md`, mục 13 và ghi chú cuối báo cáo.
 
 - [ ] Xác nhận Supabase project/môi trường (development, staging, production), quyền truy cập và quy trình secrets cho môi trường phát triển/CI. Không yêu cầu cung cấp secret trong tài liệu hoặc client.
 - [ ] Xác nhận project/môi trường, callback/deep links, email template, bật email confirmation, redirect allowlist, và redirect cho password reset.
-- [ ] Cài đặt bằng `expo install expo-secure-store` khi bắt đầu Auth code, rồi kiểm tra session persistence, restore, sign-out, native storage errors và Android backup trên Expo SDK 57. Hiện package chưa có trong dependency; chưa code hoặc cài trong task thiết kế.
+- [x] Cài `expo-secure-store` tương thích Expo SDK 57 và tích hợp adapter/session provider cho native. Unit tests kiểm tra initialize/restore, auth refresh event, local sign-out và lỗi storage đã được thêm.
+- [ ] Kiểm thử persistence/restore/logout, lỗi native SecureStore, app foreground/background và Android backup trên thiết bị/build native iOS/Android; unit tests không thay thế runtime verification.
 - [ ] Chốt profile fields tối thiểu (hiện đề xuất display name và đơn vị hiển thị), chính sách giữ/xóa hồ sơ, retention và xóa tài khoản. Profile phải được tạo qua mutation channel được bảo vệ sau khi email xác minh; không dựa vào `user_metadata` để cấp quyền hoặc cờ client.
 - [ ] Chốt tombstone/conflict retention và cặp receipt retention–outbox retry TTL. Hiện retry không có TTL và không drop mutation, nên receipt phải giữ vô hạn hoặc cần max age + reconcile/full-fetch protocol trước khi purge.
 - [ ] Chọn policy password/rate-limit cho project: đề xuất tối thiểu 12 ký tự và leaked-password protection nếu gói hỗ trợ; kiểm thử đăng ký, xác minh, sign-in và reset email thực tế trước phát hành.

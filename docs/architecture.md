@@ -66,11 +66,11 @@ Hiện trạng nền tảng ban đầu giữ các component, hook và token dùn
 
 Storage dùng chung hiện được triển khai tại `src/shared/storage/`: caller khởi tạo SQLite connection và truyền vào migration runner/repositories; module không sở hữu kết nối toàn cục, không phụ thuộc UI và không gọi backend.
 
-Thiết kế PostgreSQL/Supabase đối ứng được ghi riêng trong `supabase-schema.md`; bốn file migration đã được chuẩn bị cho bảy bảng core nhưng chưa chạy hoặc kiểm thử bằng PostgreSQL. Chưa có kết nối database, tích hợp Auth, mutation gateway, receipts hay sync code. Việc apply vẫn chờ phê duyệt riêng; mutation gateway và receipt ledger cần được duyệt bảo mật riêng.
+Thiết kế PostgreSQL/Supabase đối ứng được ghi riêng trong `supabase-schema.md`; bốn file migration đã được chuẩn bị cho bảy bảng core nhưng chưa chạy hoặc kiểm thử bằng PostgreSQL. Auth Client/Session native đã được tích hợp trong `src/modules/auth/`; chưa có kết nối database, mutation gateway, receipts hay sync code. Việc apply vẫn chờ phê duyệt riêng; mutation gateway và receipt ledger cần được duyệt bảo mật riêng.
 
 Kiểm thử dùng Jest với preset `jest-expo` và React Native Testing Library; test hiện hành nằm trong `__tests__/`. Lint dùng Expo flat config trong `eslint.config.js` và chạy bằng `npm run lint`.
 
-Điều hướng hiện dùng Expo Router với root stack trong `src/app/_layout.tsx`, route mặc định chuyển vào nhóm `(tabs)`, và các layout riêng cho `(tabs)` và `(auth)`. Các tab hiện có giao diện placeholder cho đến khi module tính năng tương ứng được triển khai. Route auth chỉ là scaffold; chưa có route guard hoặc xác thực thật vì backend/auth còn blocker được ghi trong `risks-decisions.md`.
+Điều hướng hiện dùng Expo Router với root stack trong `src/app/_layout.tsx`, route mặc định chuyển vào nhóm `(tabs)`, và các layout riêng cho `(tabs)` và `(auth)`. Các tab hiện có giao diện placeholder cho đến khi module tính năng tương ứng được triển khai. Route login/register vẫn là scaffold; Auth Client/Session được mount ở root nhưng chưa có UI đăng nhập, callback, email-verification gate hoặc route guard. Các blocker profile/data-write vẫn được ghi trong `risks-decisions.md`.
 
 `package.json`/`package-lock.json` là nguồn xác nhận dependency thực tế; các bảng công nghệ trong `tech-stack.md` có thể mô tả API dự kiến chứ không khẳng định đã cài đặt. Thư mục `android/` hiện có cục bộ nhưng bị Git ignore và không được track; native behavior phải được cấu hình qua `app.json`/config plugins, không sửa tay output này. Bốn Supabase migrations đã chuẩn bị nhưng chưa apply hoặc runtime-verified; mọi thao tác thực thi cần được phê duyệt riêng.
 

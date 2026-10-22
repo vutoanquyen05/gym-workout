@@ -55,3 +55,6 @@ yarn-error.*
 # --- OS Specific ---
 .DS_Store
 *.pem
+
+# AI Local
+opencode.json

@@ -68,11 +68,11 @@
       Tham chiếu: `data-offline.md`, `testing-acceptance.md`, `risks-decisions.md`.
 - [x] **Phase 3.T11** — Review và xác nhận hợp đồng/schema trước khi cho phép triển khai migrations hoặc sync.
       Tham chiếu: `data-offline.md`, `risks-decisions.md`.
-- [x] **Phase 3.T12** — Chuẩn bị PostgreSQL Core Schema Migration v1 theo phê duyệt có điều kiện; chỉ tạo migration files và cập nhật kế hoạch kiểm thử/rollback.
-      Tham chiếu: `supabase-schema.md`, `data-offline.md`, `risks-decisions.md`.
-- [ ] **Phase 3.T13** — Kiểm thử core migration trên Supabase local disposable sau khi xác minh môi trường an toàn.
+- [x] **Phase 3.T12** — Chuẩn bị PostgreSQL Core Schema Migration v1 theo phê duyệt có điều kiện; chỉ tạo migration files và cập nhật kế hoạch kiểm thử/rollback.cal disposable sau khi xác minh môi trường an toàn.
       Tham chiếu: `supabase-schema.md`, `data-offline.md`, `risks-decisions.md`.
 
+      Tham chiếu: `supabase-schema.md`, `data-offline.md`, `risks-decisions.md`.
+- [ ] **Phase 3.T13** — Kiểm thử core migration trên Supabase lo
 **Điều kiện hoàn thành:** Người dùng có thể thiết lập hồ sơ, chọn bài tập và kế hoạch; lưu dữ liệu cục bộ. T06–T11 là thiết kế/review; T12 chỉ chuẩn bị files, không được xem là đã chạy migration, thay đổi database hay triển khai đồng bộ.
 
 **Phụ thuộc T06–T12:** T06 là tiền đề cho T07 và T09; T07 là tiền đề cho T08; T07–T09 là tiền đề cho T10; T10 là tiền đề cho T11; T12 yêu cầu phê duyệt có điều kiện riêng. Apply migration vẫn cần phê duyệt riêng và readiness gates; không hàm ý bắt đầu triển khai đồng bộ theo Phase 6.
@@ -88,6 +88,21 @@
 **PostgreSQL Core Schema Migration v1 preparation (2026-10-21): FILES PREPARED — NOT APPLIED.** Bốn migration CLI-generated theo thứ tự parent tables, child tables, indexes, read-only RLS/grants. Chỉ chứa bảy bảng core; direct client DML không được cấp. Chưa kiểm thử PostgreSQL, chưa chạy SQL, chưa kết nối Supabase. Chờ phê duyệt riêng trước mọi thực thi.
 
 **Local migration test (2026-10-21): BLOCKED — no SQL executed.** Docker, Supabase CLI và `supabase/config.toml` không có; chưa xác minh được môi trường local disposable. Static inventory check đạt nhưng không thay thế cú pháp/runtime test. T13 vẫn chưa hoàn thành; chờ môi trường local an toàn, không cài đặt công cụ theo ý agent.
+
+**Supabase Cloud deployment (2026-10-22; theo xác nhận người dùng):**
+
+- [x] Bốn migration core v1 chạy thủ công thành công trên project `gym-workout`, theo đúng thứ tự; mỗi file báo `Success. No rows returned`.
+- [x] Cấu trúc schema được kiểm tra trong Table Editor/catalog: đủ 7 bảng nghiệp vụ.
+- [x] Cấu trúc RLS được kiểm tra trong `pg_class`/`pg_policy`: RLS bật trên cả 7 bảng; mỗi bảng có đúng một policy SELECT (`polcmd = 'r'`).
+- [x] Kiểm tra GRANT table-level theo báo cáo người dùng: 21 kết quả cho 7 bảng × 3 vai trò. `anon`: SELECT/INSERT/UPDATE/DELETE đều false; `authenticated`: chỉ SELECT true; `service_role`: SELECT/INSERT/UPDATE/DELETE đều false.
+- [ ] Chưa kiểm thử RLS isolation bằng hai tài khoản, hành vi constraints/FKs, hay phân quyền ghi.
+- [ ] Chưa kiểm tra `PUBLIC`, schema `USAGE`, role attributes (`BYPASSRLS`), `pg_default_acl` hoặc các privilege ngoài SELECT/INSERT/UPDATE/DELETE.
+- [ ] Chưa thiết kế mutation gateway và quyền tối thiểu của `service_role`.
+- [ ] Chưa đối chiếu migration được chạy thủ công với lịch sử Supabase CLI.
+
+Các trạng thái Cloud trên được ghi theo bằng chứng người dùng cung cấp, chưa được kiểm chứng độc lập trong phiên này. `service_role` hiện bị thu hồi quyền bảng trên cả 7 bảng; cần quyết định và review quyền tối thiểu cho trusted executor trước khi thiết kế mutation gateway, không mặc định cấp lại DML rộng. Việc tạo schema, kiểm tra cấu trúc RLS và kiểm tra GRANT table-level đã hoàn tất theo báo cáo; không đồng nghĩa hoàn tất kiểm thử bảo mật. **Phase 3.T13 vẫn `[ ]`** vì đây là kiểm thử core migration trên Supabase local disposable, chưa được chạy. Không đánh dấu toàn bộ test RLS/bảo mật hoàn thành.
+
+**Kế hoạch tiếp theo — RLS A/B đơn giản và an toàn cho người mới (chưa thực hiện):** nhờ chủ dự án chuẩn bị hai tài khoản thử tạm A/B cùng dữ liệu fixture vô hại đã có sẵn; không dùng dữ liệu cá nhân/production. Mở hai phiên private browser/app tách biệt, đăng nhập mỗi tài khoản vào một phiên, rồi dùng client đã đăng nhập để chỉ đọc cùng bảng. Xác nhận A thấy hàng A nhưng không thấy B, B thấy hàng B nhưng không thấy A; kiểm tra tombstone nếu có. Không dùng SQL Editor/Table Editor để kết luận row visibility vì dashboard có thể chạy với quyền đặc biệt. Nếu fixture chưa tồn tại, dừng — không tạo trên Cloud; tạo ở local disposable đã xác minh. Không thử ghi trên Cloud; nếu request/fixture không sẵn sàng, ghi BLOCKED thay vì coi kết quả rỗng là pass. Sau đó mới kiểm tra rộng hơn `PUBLIC`/schema privileges/default ACL và migration history bằng truy vấn chỉ đọc; constraints/FKs và từ chối ghi cần local disposable; thiết kế gateway/`service_role` là quyết định riêng.
 
 **SQLite v1 Preflight (2026-10-21): BLOCKED — không tìm thấy bản sao/backup được xác nhận.** Schema chỉ khai báo `gym-workout.db`; repository không có file DB/backup và không có call site mở database hoặc khởi tạo database ở app/runtime (khởi tạo chỉ xuất hiện trong tests). Không chạy kiểm kê; số hàng, UUID/FK và cân nặng đều chưa xác định, không phải 0. Không truy cập DB nguồn hoặc thiết bị. Tiếp tục chỉ khi có bản sao an toàn, mở được và được chỉ rõ.
 
