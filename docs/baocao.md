@@ -434,7 +434,7 @@ Hệ thống xây dựng theo mô hình dịch vụ đám mây tập trung phụ
 MVP Gym Management là một **Chu trình Kinh doanh Khép kín** hoàn chỉnh có thể vận hành và nghiệm thu thực tế:
 
 ```text
-[Khởi tạo Gym & Chi nhánh] ──► [Mời Nhân viên & Phân quyền] ──► [Tạo Gói tập] 
+[Khởi tạo Gym & Chi nhánh] ──► [Mời Nhân viên & Phân quyền] ──► [Tạo Gói tập]
             │
             ▼
 [Tiếp nhận Hội viên] ──► [Bán gói & Thu phí (Payment Core GM-3b)] ──► [Điểm danh tại quầy] ──► [Đối soát Báo cáo]

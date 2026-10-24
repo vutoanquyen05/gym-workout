@@ -147,4 +147,3 @@ export interface Branch {
 | 2026-10-23 | Cập nhật định hướng kiến trúc Next.js App Router, npm workspaces, Server-First SSR cookies bảo mật và Edge Functions/RPC gateway. | Chuẩn bị phê duyệt P0.T07 theo chỉ đạo chủ dự án. | Hoàn thiện đặc tả kiến trúc Admin Web chuẩn bị cho Phase 2. |
 | 2026-10-23 | Final GM-1 Schema Security Review: Xác định các ranh giới kiểm thử an toàn phiên SSR Server-First (concurrent refresh race condition, cookie chunking, multi-tab logout sync). | Chuẩn bị kế hoạch kiểm thử cho P0.T08 và Phase 1/Phase 2. | Hoàn thiện đặc tả kiến trúc Admin Web; sẵn sàng cho Gate P0.T08. |
 | 2026-10-23 | Đồng bộ hóa interface `Gym` và `Branch` trong shared contract với schema chuẩn (`status: 'active' \| 'suspended' \| 'archived'`). | Sửa theo kết quả Phase 0 Documentation Audit (AUD-03). | Loại bỏ `isActive: boolean` khỏi contract mẫu; đồng bộ với `branches.status`. |
-
