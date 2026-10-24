@@ -147,4 +147,10 @@ Các thao tác có ảnh hưởng lớn, như xóa dữ liệu, cần có bướ
 
 Các luồng ghi nhận và tra cứu buổi tập phải hoạt động ngoại tuyến theo phạm vi lưu cục bộ. Đăng nhập/đăng ký và đồng bộ máy chủ là các phụ thuộc được quản lý riêng, không được ngầm coi là khả dụng trong luồng ngoại tuyến.
 
+### 8.10. Màn hình bổ sung cho Hội viên phòng gym (Định hướng Phase II)
+
+- **QR Check-in:** Màn hình modal với mã QR to, độ tương phản cao đạt chuẩn WCAG, kèm đếm ngược làm mới mã bảo mật và trạng thái check-in thời gian thực.
+- **Thẻ gói tập (Membership Card):** Hiển thị trực quan loại gói tập, chi nhánh áp dụng, thanh tiến trình (số buổi đã dùng / tổng số buổi) và ngày hết hạn.
+- **Lịch hẹn PT (Personal Training Schedule):** Danh sách buổi tập với PT, thông tin huấn luyện viên phụ trách, ghi chú bài tập và xác nhận hoàn thành buổi tập.
+
 ---

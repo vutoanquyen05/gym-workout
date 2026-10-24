@@ -120,3 +120,85 @@ Ví dụ, module `workout-session` có thể sử dụng `ActiveWorkoutScreen` �
 Không phải module nào cũng cần đầy đủ tất cả thư mục. Cấu trúc nên phản ánh nhu cầu thực tế của module.
 
 ---
+
+---
+
+## Kiến trúc mục tiêu — Multi-Tenant Gym Management
+
+> **Cập nhật (2026-10-23):** Phần này mô tả kiến trúc mục tiêu sau khi chuyển đổi định hướng. Toàn bộ là thiết kế; chưa có code hoặc migration. Kiến trúc hiện tại (Phase 1–3) vẫn là mobile-only React Native + Expo + SQLite như trên.
+
+### Tổng quan kiến trúc mới
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                    Clients                                  │
+│                                                             │
+│  Mobile App (Expo/React Native)   Admin Web (Next.js)       │
+│  - Member: workout, profile       - Owner/Manager/          │
+│  - Xem gói, check-in             Receptionist: quản lý     │
+└────────────────┬──────────────────────────┬────────────────┘
+                 │                          │
+                 └──────────┬───────────────┘
+                            │
+           ┌────────────────▼────────────────┐
+           │         Supabase Platform        │
+           │                                  │
+           │  Auth (JWT, PKCE, email verify)  │
+           │  PostgreSQL + RLS (multi-tenant)  │
+           │  Mutation Gateway (RPC/Function)  │
+           │  Storage (assets)                │
+           └──────────────────────────────────┘
+                            │
+           ┌────────────────▼────────────────┐
+           │    SQLite (Mobile - Offline)      │
+           │  - Workout data (personal)        │
+           │  - sync_outbox (local queue)      │
+           └──────────────────────────────────┘
+```
+
+### Phân chia trách nhiệm
+
+| Layer | Thành phần | Trách nhiệm |
+|---|---|---|
+| Mobile App | Expo/React Native | Giao diện member: workout, profile, gói tập của mình |
+| Admin Web | Next.js App Router + TypeScript *(D-MT-02 — APPROVED WITH CONDITIONS)* | Giao diện staff: quản lý gym, hội viên, check-in, báo cáo |
+| Shared | packages/shared-types | TypeScript types và contracts dùng chung (nếu monorepo) |
+| Backend | Supabase Auth (SSR trên web) *(D-MT-03 — APPROVED WITH CONDITIONS)* | Xác thực, JWT, session management qua secure cookies httpOnly |
+| Backend | PostgreSQL + RLS | Dữ liệu server; tenant isolation qua RLS |
+| Backend | Mutation Gateway *(D-MT-04 — APPROVED WITH CONDITIONS)* | Direct Self-Authorizing RPC cho transaction ACID, Edge Functions cho orchestration |
+| Local | SQLite | Dữ liệu workout offline; sync_outbox local |
+
+### Thiết kế multi-tenant
+
+- Mỗi gym là một tenant; phân biệt bằng `gym_id` trong mọi bảng liên quan.
+- RLS kiểm tra `gym_staff`/`gym_members` để xác nhận caller thuộc tenant; **bắt buộc kiểm tra `gym_staff.status = 'active'`**.
+- **Quyền hạn Owner:** Nhận diện qua `gyms.owner_id = auth.uid()` hoặc `gym_staff` role `owner` (`branch_id IS NULL`, `status = 'active'`). Owner có quyền SELECT toàn chuỗi mà không bị lọc branch.
+- **Phân quyền Multi-Branch & Uniqueness (D-MT-11 — APPROVED WITH CONDITIONS):**
+  - Giải quyết chuẩn SQL `NULL != NULL` bằng hai partial unique indexes trên `gym_staff`:
+    1. Quyền toàn gym: `UNIQUE(gym_id, user_id) WHERE branch_id IS NULL AND status = 'active'`.
+    2. Quyền chi nhánh: `UNIQUE(gym_id, branch_id, user_id) WHERE branch_id IS NOT NULL AND status = 'active'`.
+  - Nhân viên phụ trách nhiều chi nhánh có nhiều records tương ứng; RLS dùng `EXISTS (...)` tự động cấp quyền.
+  - Tuân thủ **Mutual Exclusivity (OD-02=A)**: Một nhân sự không thể đồng thời giữ quyền toàn gym active và quyền chi nhánh active trong cùng phòng gym. Không xóa lịch sử; phân công cũ được chuyển sang `revoked`.
+- **Nguyên tắc Least Privilege & Gateway (D-MT-04 — APPROVED WITH CONDITIONS):**
+  - Client tuyệt đối không có quyền DML trực tiếp trên các bảng (`REVOKE ALL`).
+  - Edge Functions đảm nhận nghiệp vụ orchestration, tác vụ Admin cần thiết (như gửi lời mời nhân viên qua Supabase Auth Admin API theo OD-01=A).
+  - PostgreSQL RPC đảm nhận ACID transactions với `SECURITY DEFINER` và `SET search_path = ''` (schema-qualified references). RPC tự kiểm tra authorization và tenant scope từ caller JWT (`auth.uid()`).
+
+### Quyết định monorepo vs. tách repo (D-MT-01 — APPROVED WITH CONDITIONS)
+
+**Monorepo bằng npm workspaces (D-MT-01 — Đã duyệt có điều kiện):**
+- Sử dụng chính cơ chế `workspaces` của npm (khớp với baseline `package-lock.json` hiện tại của dự án, không cần thêm Turborepo/Nx).
+- Ưu điểm: chia sẻ types, contracts; atomic changes giữa mobile và web; không thêm công cụ build ngoài npm.
+- Migration: cấu trúc `apps/mobile` (từ `gym-workout`), `apps/admin-web`, `packages/shared-types`.
+- **Thời điểm chuyển đổi (OD-03=A):** Thực hiện tại **Pre-Phase 2 (ngay trước `P2.T01`)**. Không di chuyển thư mục tại Phase 0 hoặc Phase 1.
+
+> **Trạng thái phê duyệt kiến trúc (P0.T07):** Các quyết định D-MT-01, D-MT-02, D-MT-03, D-MT-04, D-MT-11 và Owner Decisions OD-01=A, OD-02=A, OD-03=A đã được Chủ dự án **PHÊ DUYỆT CÓ ĐIỀU KIỆN (APPROVED WITH CONDITIONS) ngày 2026-10-23**.  
+> Việc phê duyệt này ở **cấp độ kiến trúc (Architecture Approval)**, KHÔNG đồng nghĩa với nghiệm thu triển khai (Implementation Acceptance) hay cho phép mở Phase 1. Quá trình triển khai thực tế bắt buộc tuân thủ 5 điều kiện kiểm soát `AC-P0T07-01..05` (xem chi tiết tại `risks-decisions.md`). Gate DDL GM-1 (`P0.T08`) vẫn ở trạng thái chờ thẩm định riêng (`[ ]`).
+
+### Tác động đến kiến trúc hiện tại
+
+- 7 bảng core SQLite và PostgreSQL **giữ nguyên**; không sửa trong Phase 0.
+- `src/modules/auth/` sẽ được mở rộng để hỗ trợ role-aware sau khi schema gym-staff sẵn sàng.
+- Các module workout hiện tại (SQLite) tái sử dụng được; không thay đổi ownership.
+- Admin Web là ứng dụng riêng; không merge vào mobile app bundle.
+- Mutation gateway (chưa triển khai) sẽ phục vụ cả mobile và admin web.

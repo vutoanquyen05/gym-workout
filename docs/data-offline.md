@@ -363,3 +363,38 @@ Không chạy kiểm kê trên dữ liệu nào. Counts, `PRAGMA user_version`, 
 Điều kiện tiếp tục: cung cấp đường dẫn tới bản sao/backup an toàn trong workspace và xác nhận không phải nguồn đang dùng; cần kiểm tra bản sao mở được trước khi chạy truy vấn chỉ đọc. Nếu DB ở thiết bị, cần chủ dự án xuất bản sao theo quy trình an toàn, bao gồm xử lý WAL nhất quán; không tự truy cập thiết bị hoặc copy file đang chạy.
 
 ---
+
+---
+
+## Ranh giới offline/online — Multi-Tenant Gym Management (2026-10-23)
+
+> Phần này làm rõ ranh giới dữ liệu offline/online sau khi chuyển đổi định hướng. Không thay đổi thiết kế offline hiện tại.
+
+### Phân chia rõ ràng: SQLite vs. Server-only
+
+| Dữ liệu | Lưu trữ | Lý do |
+|---|---|---|
+| Workout session (cá nhân) | SQLite (offline-first) | Cốt lõi; cần hoạt động không có mạng |
+| Workout plan, exercise library | SQLite (offline-first) | Cần tra cứu khi tập |
+| Auth session token | SecureStore | Nhỏ, nhạy cảm |
+| Gym/Branch info | Server-only (Supabase) | Multi-tenant; không offline |
+| Staff/Member management | Server-only (Supabase) | Cần real-time; RBAC phụ thuộc server |
+| Membership data | Server-only (Supabase) | Cần validation real-time khi check-in |
+| Attendance logs | Server-only (Supabase) | Audit trail; append-only; chống trùng server-side |
+| Payments | Server-only (Supabase) | Financial; idempotency server-side |
+| Báo cáo/thống kê gym | Server-only (Supabase) | Tổng hợp từ nhiều records |
+
+### Nguyên tắc offline boundary mới
+
+1. **SQLite chỉ là workout cá nhân.** Không lưu gym management data vào SQLite.
+2. **Gym management data không offline.** App mobile hiển thị thông báo lỗi khi mất mạng cho gym management features.
+3. **Check-in không offline.** Validation gói tập và chống trùng đòi hỏi server; check-in không hoạt động nếu mất mạng.
+4. **Member profile của mình có thể cache nhẹ.** Tên, ảnh, gói tập đang active có thể cache client-side với TTL ngắn. Không cache payment data.
+5. **sync_outbox vẫn chỉ cho workout data.** Không tạo outbox cho gym management mutations (real-time required).
+
+### Tác động đến thiết kế sync hiện tại
+
+- Sync contract (Phase 3.T06) vẫn còn hiệu lực cho workout data.
+- Không cần sync contract cho gym management data (server-authoritative, no offline).
+- Mutation gateway thiết kế cho workout cũng phục vụ gym management write operations.
+- SQLite v2 migration (Phase 3.T09) không bị ảnh hưởng bởi gym management schema.

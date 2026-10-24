@@ -143,3 +143,41 @@ Các chỉ số phải được định nghĩa rõ ràng. Ví dụ, tổng khố
 - Cập nhật hoặc hủy lịch thông báo khi cài đặt thay đổi.
 
 ---
+
+## 7. Công nghệ mục tiêu — Multi-Tenant Gym Management (2026-10-23)
+
+> **Cập nhật (2026-10-23):** Phần này mô tả công nghệ mục tiêu phục vụ hệ thống quản lý phòng gym nhiều tenant, đa chi nhánh. Các công nghệ dưới đây là đề xuất kiến trúc (Phase 0); chưa được cài đặt trong `package.json` trừ khi có ghi chú rõ ràng.
+
+### 7.1. Kiến trúc phân tầng và công nghệ
+
+| Thành phần | Công nghệ đề xuất | Trạng thái | Vai trò chính |
+|---|---|---|---|
+| **Mobile App (Hội viên)** | React Native, Expo SDK 57, TypeScript, Expo Router | Đang phát triển (Phase 1–3) | Ứng dụng di động cho hội viên: tập luyện cá nhân, xem gói tập, QR check-in, lịch PT |
+| **Admin Web (Quản trị gym)** | React / Next.js App Router, TypeScript | PROPOSED (chưa duyệt, D-MT-02) | Cổng web dành cho Owner, Manager, Receptionist: quản lý chi nhánh, hội viên, gói tập, check-in, thanh toán |
+| **Backend & Database** | Supabase (PostgreSQL 15+, Supabase Auth, Storage) | Sẵn sàng schema v1 (7 bảng core) | Dữ liệu trung tâm; xác thực người dùng; phân quyền multi-tenant qua PostgreSQL RLS |
+| **Web Authentication** | Supabase SSR (`@supabase/ssr`) với httpOnly cookies | PROPOSED (chưa duyệt, D-MT-03) | Quản lý phiên web SSR an toàn, route protection qua middleware |
+| **Mutation Gateway** | Edge Functions (nghiệp vụ) + RPC SECURITY DEFINER (transaction) | PROPOSED (chưa duyệt, D-MT-04) | Điểm kiểm soát toàn bộ thao tác ghi dữ liệu (idempotency, versioning, audit trail, role verification) |
+| **Local Storage (Mobile)** | Expo SQLite (SDK 57) | Đã có v1 (offline-first) | Lưu trữ ngoại tuyến dữ liệu tập luyện cá nhân của hội viên (`exercises`, `plans`, `sessions`) và hàng đợi sync_outbox |
+| **Shared Types / Monorepo** | npm workspaces / `packages/shared-types` | PROPOSED (chưa duyệt, D-MT-01) | Chia sẻ DTO, interfaces, validation schemas giữa Mobile App và Admin Web |
+
+### 7.2. Chi tiết công nghệ Admin Web (Đề xuất)
+
+- **Framework:** Next.js (App Router) với Server-Side Rendering (SSR) và React Server Components (RSC).
+- **Ngôn ngữ:** TypeScript (strict mode đồng bộ với Mobile App).
+- **Authentication:** Supabase SSR Auth (`@supabase/ssr`), quản lý phiên qua `httpOnly` secure cookies.
+- **State Management & Data Fetching:** React Query / TanStack Query hoặc SWR kết hợp Server Actions.
+- **Biểu đồ & Báo cáo:** Recharts hoặc Chart.js cho dashboard doanh thu, lượt check-in và thống kê hội viên.
+- **Form & Validation:** React Hook Form kết hợp Zod schema (chia sẻ được với mobile).
+
+### 7.3. Chi tiết Backend Supabase & PostgreSQL
+
+- **PostgreSQL 15+:** Hỗ trợ UUID v4, JSONB, Row Level Security (RLS) cho multi-tenant isolation.
+- **RLS Policies:** Thực thi cách ly tenant dựa trên `gym_id` liên kết qua bảng `gym_staff` và `gym_members`.
+- **Supabase Auth:** Email/password, OTP, Magic Link, Invite flow cho nhân viên. Token JWT mang claims tiêu chuẩn.
+- **Storage:** Supabase Storage (S3-compatible) lưu trữ avatar hội viên, logo phòng tập, ảnh/video bài tập có signed URLs.
+
+### 7.4. Nguyên tắc phụ thuộc và kiểm định
+
+1. **Tuân thủ quy tắc lockfile:** Chỉ những thư viện được liệt kê trong `package.json` của từng ứng dụng mới được coi là đã tích hợp.
+2. **Không tự ý cài đặt package:** Mọi quyết định thêm dependency (đặc biệt cho Admin Web hoặc Monorepo) cần được phê duyệt theo `risks-decisions.md`.
+3. **Kiểm tra tương thích:** Mọi cập nhật liên quan đến Expo API trên Mobile App phải tra cứu đúng Expo SDK 57 docs.

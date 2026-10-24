@@ -200,3 +200,478 @@ Các kiểm tra dữ liệu ghi/negative-write, kiểm thử constraints/FKs the
 | 2026-10-22 | Sửa `workout_sets_completion_check` để `is_completed = TRUE` bắt buộc `reps IS NOT NULL AND reps > 0`; ghi nhận quyết định quyền `service_role` trước mutation gateway. | PostgreSQL `CHECK` chấp nhận kết quả NULL; gateway cần quyền server được xác định riêng mà không mở DML cho client. | Chỉ sửa constraint được duyệt và tài liệu; rà tĩnh CHECK/RLS/grants/migration order. Không chạy SQL, không kết nối Supabase; PostgreSQL syntax/runtime vẫn chưa xác minh. |
 | 2026-10-22 | Cập nhật trạng thái triển khai Cloud theo kết quả người dùng cung cấp và xác định các kiểm thử còn lại. | Phân biệt áp dụng schema/RLS cấu trúc với kiểm thử quyền và hiệu lực bảo mật; giữ T13 đúng phạm vi local disposable. | Ghi nhận 4 migration thành công, 7 bảng, 7 RLS-enabled và 7 SELECT policies theo xác nhận; không chạy SQL/kết nối Cloud/sửa migration hoặc source. Bổ sung kế hoạch ưu tiên kiểm tra chỉ đọc. |
 | 2026-10-22 | Ghi nhận kết quả GRANT bảng và cập nhật kế hoạch kiểm thử RLS hai tài khoản. | Hoàn tất đúng phạm vi quyền bảng đã kiểm tra, giữ T13/toàn bộ RLS test chưa hoàn thành, đề xuất cách kiểm thử SELECT-only an toàn. | Ghi nhận 21 kết quả: `anon` và `service_role` không có SELECT/INSERT/UPDATE/DELETE; `authenticated` chỉ có SELECT. Nêu rõ `service_role` đang bị thu hồi quyền bảng core và cần quyết định trước gateway. Không chạy SQL/kết nối Cloud/sửa migration hoặc source. |
+
+---
+
+## Tác động và đề xuất schema mở rộng — Multi-Tenant Gym Management (2026-10-23)
+
+> **Trạng thái: THIẾT KẾ CHI TIẾT GM-1 — CHƯA TẠO FILE SQL VÀ CHƯA APPLY MIGRATION.** Phần này ghi nhận đặc tả kỹ thuật chi tiết nhóm bảng GM-1 phục vụ Gate P0.T08. Không thay đổi 7 bảng core hiện tại và không chạy SQL trên database Cloud/Local.
+
+### Nguyên tắc bất biến
+
+- 7 bảng core (`users`, `exercises`, `workout_plans`, `plan_exercises`, `workout_sessions`, `session_exercises`, `workout_sets`) **không bị thay đổi**.
+- Schema mở rộng hoàn toàn là additive-only; không ALTER hoặc DROP bất kỳ bảng/cột cũ nào.
+- Mọi bảng mới phải bật RLS ngay khi tạo (`ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`).
+- Mặc định thu hồi toàn bộ DML từ client (`REVOKE ALL ON ... FROM anon, authenticated;`). Mọi thao tác ghi phải thông qua Mutation Gateway (Edge Functions + RPC).
+- Workout ownership vẫn thuộc `user_id` cá nhân; không đổi sang `gym_id`.
+
+---
+
+### Đề xuất schema DDL chi tiết nhóm GM-1 (Chuẩn bị cho P0.T08)
+
+> **Nguyên tắc thiết kế tối thượng:** Mọi bảng khi tạo mới trong migration file đều được thực thi trong một **Atomic Transaction** (`BEGIN; ... COMMIT;`). Lệnh `ENABLE ROW LEVEL SECURITY` và `REVOKE ALL` được chạy **NGAY LẬP TỨC** sau lệnh `CREATE TABLE` trong cùng một transaction. Bảng ở trạng thái **Fail-Closed mặc định** từ microsecond đầu tiên; không bao giờ để hở khoảng trống thời gian không có RLS hoặc còn quyền mặc định của `PUBLIC`/`anon`/`authenticated`.
+
+#### 1. Bảng `gyms` (Tenant gốc)
+```sql
+CREATE TABLE public.gyms (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'archived')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now()),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())
+);
+
+-- Kích hoạt RLS và thu hồi quyền mặc định NGAY KHI TẠO BẢNG (Fail-Closed Default)
+ALTER TABLE public.gyms ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.gyms FROM anon, authenticated;
+
+-- Index tra cứu owner và slug
+CREATE INDEX gyms_owner_id_idx ON public.gyms (owner_id);
+CREATE INDEX gyms_status_idx ON public.gyms (status);
+```
+
+#### 2. Bảng `branches` (Chi nhánh vận hành)
+```sql
+CREATE TABLE public.branches (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  gym_id UUID NOT NULL REFERENCES public.gyms(id) ON DELETE RESTRICT,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL,
+  address TEXT,
+  phone TEXT,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'archived')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now()),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now()),
+  CONSTRAINT branches_gym_slug_unique UNIQUE (gym_id, slug),
+  -- Ràng buộc phục vụ Composite Foreign Key từ gym_staff và các bảng con
+  CONSTRAINT branches_id_gym_unique UNIQUE (id, gym_id)
+);
+
+-- Kích hoạt RLS và thu hồi quyền mặc định NGAY KHI TẠO BẢNG (Fail-Closed Default)
+ALTER TABLE public.branches ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.branches FROM anon, authenticated;
+
+CREATE INDEX branches_gym_id_idx ON public.branches (gym_id);
+CREATE INDEX branches_status_idx ON public.branches (gym_id, status);
+```
+
+#### 3. Bảng `gym_staff` (Phân quyền nhân viên & Multi-Branch)
+```sql
+CREATE TABLE public.gym_staff (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  gym_id UUID NOT NULL REFERENCES public.gyms(id) ON DELETE CASCADE,
+  branch_id UUID,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL CHECK (role IN ('owner', 'manager', 'receptionist', 'trainer')),
+  status TEXT NOT NULL DEFAULT 'invited' CHECK (status IN ('invited', 'active', 'suspended')),
+  invited_at TIMESTAMPTZ DEFAULT timezone('utc', now()),
+  activated_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now()),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now()),
+  -- Composite Foreign Key: Ngăn chặn triệt để gán chi nhánh chéo tenant (Cross-Tenant Branch Assignment)
+  -- Sử dụng ON DELETE RESTRICT thay vì CASCADE để bảo vệ toàn vẹn lịch sử nhân sự và audit trail
+  CONSTRAINT fk_gym_staff_branch_gym FOREIGN KEY (branch_id, gym_id)
+    REFERENCES public.branches(id, gym_id) ON DELETE RESTRICT
+);
+
+-- Kích hoạt RLS và thu hồi quyền mặc định NGAY KHI TẠO BẢNG (Fail-Closed Default)
+ALTER TABLE public.gym_staff ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.gym_staff FROM anon, authenticated;
+
+CREATE INDEX gym_staff_lookup_idx ON public.gym_staff (gym_id, user_id, status);
+CREATE INDEX gym_staff_branch_idx ON public.gym_staff (branch_id);
+```
+
+---
+
+### Phân tích Tính toàn vẹn Dữ liệu & Ngăn chặn Cross-Tenant Branch Assignment
+
+**1. Lỗ hổng tiềm ẩn nếu chỉ dùng Single Foreign Key `REFERENCES branches(id)`:**
+Nếu `gym_staff.branch_id` chỉ tham chiếu đơn lẻ đến `branches(id)`, một lỗi logic trong Gateway/RPC hoặc thao tác nhầm lẫn có thể gán `gym_id = Gym_A` nhưng `branch_id = Branch_thuộc_Gym_B`. Khi đó:
+- Dữ liệu bị phân mảnh và rò rỉ chéo tenant (Cross-tenant branch assignment).
+- RLS join có thể cấp quyền sai lệch cho nhân viên Gym A tại cơ sở của Gym B.
+
+**2. Cơ chế bảo vệ của Composite Foreign Key `FOREIGN KEY (branch_id, gym_id) REFERENCES branches(id, gym_id)`:**
+- Bảng `public.branches` bắt buộc có ràng buộc duy nhất trên cặp `(id, gym_id)`: `CONSTRAINT branches_id_gym_unique UNIQUE (id, gym_id)`.
+- Khi `branch_id IS NOT NULL`: PostgreSQL kiểm tra cả cặp `(branch_id, gym_id)` phải tồn tại đồng thời trên cùng một dòng của bảng `branches`. Nếu `branch_id` thuộc về `gym_id` khác, cơ sở dữ liệu sẽ từ chối ngay lập tức bằng lỗi `foreign_key_violation` (mã lỗi `23503`).
+- Khi `branch_id IS NULL` (quyền quản trị toàn gym): Theo chuẩn SQL (`MATCH SIMPLE` mặc định của PostgreSQL), ràng buộc foreign key cho phép một trong các cột là NULL và bỏ qua kiểm tra dòng con đó; trong khi đó tính toàn vẹn của `gym_id` vẫn được bảo đảm độc lập nhờ `gym_staff.gym_id REFERENCES public.gyms(id)`.
+
+**3. Tại sao chọn `ON DELETE RESTRICT` và chiến lược Soft-Deactivation cho Branch:**
+- *Rủi ro của `ON DELETE CASCADE`:* Nếu dùng CASCADE, khi xóa một chi nhánh, toàn bộ phân công nhân viên, lịch sử công tác, và audit trail tại chi nhánh đó sẽ bị xóa sạch khỏi database mà không có khả năng truy vết đối soát tài chính hoặc điều tra vi phạm.
+- *Nguyên tắc bảo vệ Audit Trail:* Đổi khóa ngoại sang `ON DELETE RESTRICT`. Database từ chối xóa vật lý bất kỳ branch nào nếu đang có bản ghi nhân viên (`gym_staff`), hội viên (`gym_members`), hoặc nhật ký giao dịch liên kết.
+- *Vận hành thực tế (Soft-Deactivation):* Các chi nhánh ngừng hoạt động sẽ được chuyển trạng thái mềm `status = 'archived'` (hoặc `status = 'suspended'` nếu tạm đóng cửa bảo trì) thay vì xóa vật lý. Mô hình `status TEXT CHECK (status IN ('active', 'suspended', 'archived'))` đạt tính nhất quán 100% với `gyms.status` và các bảng khác trong hệ thống, vừa bảo toàn 100% dữ liệu lịch sử/audit, vừa phân biệt rõ giữa tạm ngừng hoạt động và giải thể vĩnh viễn, ngăn chặn các tác vụ nghiệp vụ mới (check-in, phân công nhân sự, bán gói tập) tại chi nhánh đó.
+
+---
+
+### Giải pháp kỹ thuật Uniqueness & Phân tích Coexistence (Toàn Gym vs. Chi nhánh)
+
+#### 1. Hai Partial Unique Indexes
+Theo chuẩn SQL, `NULL != NULL`. Do đó, một ràng buộc `UNIQUE (gym_id, branch_id, user_id)` thông thường trong PostgreSQL sẽ **không ngăn chặn được việc tạo trùng bản ghi** khi `branch_id IS NULL` (mỗi NULL được coi là một giá trị phân biệt).
+
+Kiến trúc GM-1 sử dụng hai **Partial Unique Indexes** bổ trợ nhau:
+
+1. **Quyền toàn Gym (`branch_id IS NULL`):**
+   ```sql
+   -- Đảm bảo mỗi user chỉ có duy nhất 1 bản ghi quyền toàn gym (Owner hoặc General Manager)
+   CREATE UNIQUE INDEX gym_staff_gym_user_null_branch_idx
+   ON public.gym_staff (gym_id, user_id)
+   WHERE branch_id IS NULL;
+   ```
+2. **Quyền Chi nhánh cụ thể (`branch_id IS NOT NULL`):**
+   ```sql
+   -- Đảm bảo trong một chi nhánh, mỗi user chỉ có duy nhất 1 vai trò được phân công
+   CREATE UNIQUE INDEX gym_staff_gym_branch_user_idx
+   ON public.gym_staff (gym_id, branch_id, user_id)
+   WHERE branch_id IS NOT NULL;
+   ```
+
+#### 2. Phân tích trường hợp nhân viên đồng thời có quyền toàn gym và quyền chi nhánh (Coexistence vs. Mutual Exclusivity)
+
+- **Trường hợp xảy ra:** Một user có đồng thời 2 dòng trong `gym_staff`:
+  - Dòng 1: `(gym_id, user_id, role='manager', branch_id=NULL, status='active')` (General Manager toàn gym).
+  - Dòng 2: `(gym_id, user_id, role='trainer', branch_id=Branch_A, status='active')` (Huấn luyện viên tại Chi nhánh A).
+- **Hành vi RLS:**
+  Hàm helper `is_active_staff(gym_id, branch_id)` kiểm tra điều kiện `s.branch_id IS NULL OR s.branch_id = check_branch_id`. Khi user đã có dòng toàn gym `active`, điều kiện này **luôn thỏa mãn** cho bất kỳ chi nhánh nào trong gym. Quyền toàn gym (Global Role) bao trùm và có độ ưu tiên cao nhất.
+- **Rủi ro xung đột nghiệp vụ & Bảo mật:**
+  1. *Xung đột trạng thái đình chỉ:* Nếu nhân viên bị đình chỉ tại Chi nhánh A (`status = 'suspended'`) nhưng dòng toàn gym vẫn `active`, nhân viên đó vẫn truy cập được Chi nhánh A thông qua quyền toàn gym!
+  2. *Mâu thuẫn vai trò:* Hệ thống UI/Audit sẽ ghi nhận vai trò nào khi người đó check-in hội viên tại Chi nhánh A?
+- **Khuyến nghị kiến trúc chuẩn hóa (Enforce Mutual Exclusivity tại RPC Gateway):**
+  - **Quy tắc phân quyền:** Trong một gym, một user chỉ nên ở một trong hai trạng thái: hoặc là **Nhân sự cấp Gym** (`branch_id IS NULL`, role Owner/General Manager), hoặc là **Nhân sự cấp Chi nhánh** (`branch_id IS NOT NULL`, role Branch Manager/Receptionist/Trainer).
+  - **Thực thi tại RPC Gateway (`fn_gm_assign_staff`):**
+    - Khi cấp quyền toàn gym (`branch_id IS NULL`), hệ thống tự động xóa hoặc nâng cấp toàn bộ các dòng chi nhánh lẻ của user đó trong gym.
+    - Khi gán quyền chi nhánh cụ thể, hệ thống kiểm tra và từ chối nếu user đang giữ dòng toàn gym `active`.
+  - **Trường hợp ngoại lệ cho phép đồng thời (Coexistence):**
+    Nếu nghiệp vụ chấp nhận một nhân sự kiêm nhiệm, RLS helper function và logic nghiệp vụ bắt buộc tuân theo:
+    - *Quyền toàn gym có độ ưu tiên cao hơn (Global overrides Branch).*
+    - *Đình chỉ toàn gym (`branch_id IS NULL, status = 'suspended'`) sẽ lập tức vô hiệu hóa quyền của user trên toàn bộ các chi nhánh.*
+
+---
+
+### Đặc tả RLS Fail-Closed & Helper Functions cho GM-1
+
+#### 1. RLS Helper Functions (STABLE, SECURITY DEFINER, Search Path Pinned)
+
+Để tối ưu hiệu năng và tránh lặp lại subqueries phức tạp trong RLS policies, các hàm helper được chuẩn hóa nghiêm ngặt:
+
+```sql
+-- 1. Kiểm tra user hiện tại có phải Owner của Gym không
+CREATE OR REPLACE FUNCTION public.is_gym_owner(check_gym_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+  SELECT (auth.uid() IS NOT NULL)
+    AND (auth.jwt() ->> 'is_anonymous')::boolean IS NOT TRUE
+    AND (
+      EXISTS (
+        SELECT 1 FROM public.gyms
+        WHERE id = check_gym_id
+          AND owner_id = auth.uid()
+          AND status = 'active'
+      ) OR EXISTS (
+        SELECT 1 FROM public.gym_staff
+        WHERE gym_id = check_gym_id
+          AND user_id = auth.uid()
+          AND role = 'owner'
+          AND status = 'active'
+          AND branch_id IS NULL
+      )
+    );
+$$;
+
+-- Thu hồi quyền từ PUBLIC và chỉ cấp quyền EXECUTE cho authenticated
+REVOKE ALL ON FUNCTION public.is_gym_owner(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_gym_owner(UUID) TO authenticated;
+
+-- 2. Kiểm tra user hiện tại có phải Staff active tại Gym (và Branch nếu cung cấp)
+-- BẮT BUỘC KIỂM TRA ĐỒNG THỜI: gyms.status = 'active' VÀ gym_staff.status = 'active'
+CREATE OR REPLACE FUNCTION public.is_active_staff(check_gym_id UUID, check_branch_id UUID DEFAULT NULL)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+  SELECT (auth.uid() IS NOT NULL)
+    AND (auth.jwt() ->> 'is_anonymous')::boolean IS NOT TRUE
+    AND EXISTS (
+      SELECT 1
+      FROM public.gym_staff s
+      JOIN public.gyms g ON g.id = s.gym_id
+      WHERE s.gym_id = check_gym_id
+        AND s.user_id = auth.uid()
+        AND s.status = 'active'
+        AND g.status = 'active'
+        AND (
+          s.branch_id IS NULL -- Quyền toàn gym
+          OR check_branch_id IS NULL -- Không yêu cầu branch cụ thể, chỉ cần là staff của gym
+          OR s.branch_id = check_branch_id -- Quyền đúng chi nhánh yêu cầu
+        )
+    );
+$$;
+
+-- Thu hồi quyền từ PUBLIC và chỉ cấp quyền EXECUTE cho authenticated
+REVOKE ALL ON FUNCTION public.is_active_staff(UUID, UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_active_staff(UUID, UUID) TO authenticated;
+```
+
+#### 2. Đánh giá An toàn RLS Helper Functions & Chống Leo thang Đặc quyền (Privilege Escalation)
+
+| Tiêu chí | Cơ chế bảo vệ | Nguy cơ nếu không áp dụng |
+|---|---|---|
+| **Function Owner** | Function được sở hữu bởi `postgres` hoặc migration role hệ thống. Tuyệt đối không để `authenticated` hoặc `anon` sở hữu hàm. | Caller có thể sửa đổi định nghĩa hàm để bypass kiểm tra quyền. |
+| **Search Path Hijacking** | `SET search_path = public, pg_temp`: ghim cứng search path chỉ gồm `public` và temporary schema an toàn. | Kẻ tấn công có thể tạo schema độc hại chứa bảng giả mạo `gym_staff` để chiếm quyền. |
+| **Identity Injection** | Không nhận `user_id` làm tham số; hàm luôn đọc trực tiếp từ `auth.uid()`. | Caller có thể truyền UUID của Owner hoặc Admin khác để mạo danh quyền hạn. |
+| **Anonymous Token Block** | Bắt buộc `(auth.jwt() ->> 'is_anonymous')::boolean IS NOT TRUE`. | Anonymous JWT có thể truy vấn dữ liệu nội bộ tenant. |
+| **EXECUTE Grants** | `REVOKE ALL FROM PUBLIC; GRANT EXECUTE TO authenticated;`. | Client chưa đăng nhập có thể thăm dò (probe) hàm. |
+| **Trạng thái Gym Lockdown** | Hàm `is_active_staff` bắt buộc JOIN `gyms` và kiểm tra `g.status = 'active'`. | Khi phòng gym bị đình chỉ (nợ cước/vi phạm), nhân viên vẫn truy cập được dữ liệu nếu không kiểm tra trạng thái gym. |
+| **Tối ưu hóa lập lịch (STABLE Optimization)** | Khai báo `STABLE`: Báo cho PostgreSQL query planner biết hàm không làm thay đổi database và trả về kết quả nhất quán trong cùng một câu lệnh với cùng tham số. Planner có thể tối ưu hóa số lần gọi khi tham số là bất biến trong câu truy vấn (query-constant). **Lưu ý:** `STABLE` không tự động loại bỏ hoàn toàn N+1 trong mọi trường hợp; việc đánh chỉ mục đúng đắn `(gym_id, user_id, status)` và phân tích `EXPLAIN ANALYZE` vẫn là bắt buộc để đảm bảo hiệu năng. | Nếu để mặc định `VOLATILE`, query planner bắt buộc phải thực thi lại hàm trên từng dòng dữ liệu duyệt qua, gây lãng phí tài nguyên CPU. |
+
+---
+
+### Ma trận Quyền Truy cập theo Vòng đời Trạng thái (`gyms.status` × `gym_staff.status`)
+
+| Trạng thái Gym (`gyms.status`) | Vai trò / Trạng thái Nhân sự | Quyền truy cập Admin Web / Database | Ghi chú vận hành |
+|---|---|---|---|
+| **`active`** | Owner | Toàn quyền quản trị (Gym, Branches, Staff, Members, Finance) | Hoạt động bình thường |
+| **`active`** | Manager (toàn gym, `active`) | Toàn quyền vận hành trên tất cả chi nhánh | General Manager |
+| **`active`** | Manager (chi nhánh, `active`) | Quản lý vận hành trong phạm vi chi nhánh được gán | Branch-scoped |
+| **`active`** | Receptionist / Trainer (`active`) | Thao tác tác vụ được giao tại chi nhánh được gán | Branch-scoped |
+| **`active`** | Bất kỳ staff mang `suspended` | **BỊ TỪ CHỐI HOÀN TOÀN (0 quyền)** | `is_active_staff` trả về `FALSE` |
+| **`active`** | Bất kỳ staff mang `invited` | **BỊ TỪ CHỐI (0 quyền)** | Chưa kích hoạt tài khoản |
+| **`suspended`** (Tạm khóa/Nợ cước) | Owner | **Chỉ đọc thông tin Gym & Thanh toán Gia hạn/Khôi phục Dịch vụ** | Bị khóa toàn bộ nghiệp vụ thông thường (hội viên, check-in, chi nhánh, nhân sự) |
+| **`suspended`** (Tạm khóa/Nợ cước) | Toàn bộ Staff (Manager, Rec, PT) | **BỊ KHÓA TRUY CẬP HOÀN TOÀN (LOCKED OUT)** | `is_active_staff` trả về `FALSE` do `gyms.status != 'active'` |
+| **`archived`** (Đã đóng cửa) | Toàn bộ người dùng | **BỊ KHÓA HOÀN TOÀN (LOCKED OUT)** | Chỉ hỗ trợ xuất dữ liệu qua luồng backend chuyên biệt |
+
+#### Đặc tả Cơ chế Quyền Hạn của Owner khi `gyms.status = 'suspended'`:
+1. **Quyền được phép:**
+   - Policy `gyms_select_policy` cho phép Owner đọc bản ghi `gyms` của mình (`owner_id = auth.uid()`) ngay cả khi `status = 'suspended'`. Nhờ đó, Owner đăng nhập Admin Web sẽ thấy màn hình thông báo tạm khóa, lý do nợ cước SaaS và số tiền cần thanh toán.
+   - Endpoint / RPC gia hạn: Owner được phép gọi RPC khôi phục `fn_gm_reactivate_gym(gym_id, payment_receipt)` hoặc cổng thanh toán tích hợp để xử lý giao dịch nộp cước SaaS. Khi thanh toán thành công, trạng thái chuyển về `'active'` và quyền hạn tự động phục hồi.
+2. **Khóa triệt để các quyền nghiệp vụ thông thường:**
+   - Hàm `public.is_gym_owner` kiểm tra điều kiện `status = 'active'`. Do đó khi `gyms.status = 'suspended'`, hàm trả về `FALSE`.
+   - Kết quả: Owner bị từ chối truy cập trên toàn bộ các bảng con (`branches`, `gym_staff`, `gym_members`, `attendance_logs`, `payments`).
+   - Mọi RPC nghiệp vụ (tạo hội viên, check-in, đổi cấu hình chi nhánh, mời nhân viên) đều có guard kiểm tra `gyms.status = 'active'`, ngăn chặn mọi thao tác vận hành phòng gym khi dịch vụ chưa được gia hạn.
+
+#### 2. Fail-Closed RLS Policies cho nhóm GM-1
+```sql
+-- 1. gyms: Bật RLS và chỉ cấp quyền SELECT cho Owner và Active Staff thuộc gym
+ALTER TABLE public.gyms ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.gyms FROM anon, authenticated;
+GRANT SELECT ON public.gyms TO authenticated;
+
+CREATE POLICY gyms_select_policy ON public.gyms
+FOR SELECT TO authenticated
+USING (
+  (auth.jwt() ->> 'is_anonymous')::boolean IS NOT TRUE
+  AND (
+    owner_id = auth.uid()
+    OR public.is_active_staff(id)
+  )
+);
+
+-- 2. branches: Bật RLS và chỉ cấp quyền SELECT cho Staff active thuộc gym/branch
+ALTER TABLE public.branches ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.branches FROM anon, authenticated;
+GRANT SELECT ON public.branches TO authenticated;
+
+CREATE POLICY branches_select_policy ON public.branches
+FOR SELECT TO authenticated
+USING (
+  (auth.jwt() ->> 'is_anonymous')::boolean IS NOT TRUE
+  AND (
+    public.is_gym_owner(gym_id)
+    OR public.is_active_staff(gym_id, id)
+  )
+);
+
+-- 3. gym_staff: Bật RLS và phân quyền xem danh sách nhân sự
+ALTER TABLE public.gym_staff ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.gym_staff FROM anon, authenticated;
+GRANT SELECT ON public.gym_staff TO authenticated;
+
+CREATE POLICY gym_staff_select_policy ON public.gym_staff
+FOR SELECT TO authenticated
+USING (
+  (auth.jwt() ->> 'is_anonymous')::boolean IS NOT TRUE
+  AND (
+    -- User tự đọc bản ghi nhân sự của chính mình
+    user_id = auth.uid()
+    -- Hoặc Owner đọc toàn bộ nhân sự trong gym
+    OR public.is_gym_owner(gym_id)
+    -- Hoặc Manager đọc nhân sự trong chi nhánh mình quản lý
+    OR (
+      branch_id IS NOT NULL
+      AND public.is_active_staff(gym_id, branch_id)
+      AND EXISTS (
+        SELECT 1 FROM public.gym_staff s
+        WHERE s.gym_id = gym_staff.gym_id
+          AND s.user_id = auth.uid()
+          AND s.role = 'manager'
+          AND s.status = 'active'
+          AND (s.branch_id IS NULL OR s.branch_id = gym_staff.branch_id)
+      )
+    )
+  )
+);
+```
+
+---
+
+### Đặc tả quyền thực thi: Edge Functions, RPC, SECURITY DEFINER & Least Privilege
+
+Hệ thống tuân thủ triệt để nguyên tắc **Least Privilege** (đặc quyền tối thiểu) và **Zero Direct Table DML** cho client:
+
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│                        Client (Mobile / Web)                           │
+└──────────────┬──────────────────────────────────────────┬──────────────┘
+               │ Query (SELECT only)                      │ Mutation (POST/CALL)
+               ▼                                          ▼
+┌──────────────────────────────┐          ┌──────────────────────────────┐
+│     PostgreSQL Tables        │          │    Mutation Gateway          │
+│   - RLS strictly enforced    │          │  - Edge Functions (Business) │
+│   - Direct DML REVOKED       │          │  - RPC (ACID Transactions)   │
+└──────────────────────────────┘          └──────────────┬───────────────┘
+                                                         │ Secure Writes
+                                                         ▼
+                                          ┌──────────────────────────────┐
+                                          │   PostgreSQL Core Database   │
+                                          │   (SECURITY DEFINER RPCs)    │
+                                          └──────────────────────────────┘
+```
+
+#### 1. Nguyên tắc phân quyền RPC Functions
+- Các thao tác thay đổi dữ liệu (tạo gym, thêm branch, gán staff, đổi trạng thái) được đóng gói thành các hàm PostgreSQL RPC có tiền tố nghiệp vụ:
+  - `fn_gm_create_gym(name TEXT, slug TEXT) RETURNS UUID`
+  - `fn_gm_create_branch(gym_id UUID, name TEXT, slug TEXT, address TEXT, phone TEXT) RETURNS UUID`
+  - `fn_gm_assign_staff(gym_id UUID, branch_id UUID, staff_user_id UUID, staff_role TEXT) RETURNS UUID`
+  - `fn_gm_update_staff_status(staff_record_id UUID, new_status TEXT) RETURNS VOID`
+- **Cấu hình bảo mật RPC:**
+  - `SECURITY DEFINER`: Chạy với quyền của function owner để ghi dữ liệu sau khi direct DML của table đã bị revoke.
+  - `SET search_path = public, pg_temp`: Ngăn chặn hoàn toàn lỗi Search Path Hijacking.
+  - **Caller Verification Guard (Bắt buộc tại dòng đầu tiên của mọi RPC):**
+    ```sql
+    IF auth.uid() IS NULL OR (auth.jwt() ->> 'is_anonymous')::boolean IS TRUE THEN
+      RAISE EXCEPTION 'Unauthorized: Caller must be an authenticated non-anonymous user'
+        USING ERRCODE = '42501';
+    END IF;
+    ```
+  - **Role & Status Verification:** RPC tự kiểm tra `public.is_gym_owner(target_gym_id)` hoặc quyền quản lý tương ứng trước khi thực hiện INSERT/UPDATE.
+
+#### 2. Nguyên tắc phân quyền Edge Functions (Deno Runtime)
+- **Mục đích:** Xử lý các logic nghiệp vụ phức tạp không nên đặt trong database:
+  - Gửi email mời nhân viên qua Supabase Auth Admin API (`supabase.auth.admin.inviteUserByEmail`).
+  - Xác thực payload tích hợp bên thứ ba (Webhooks, thanh toán).
+  - Điều phối luồng nhiều bước (Orchestration).
+- **Quyền hạn của Edge Functions:**
+  - `verify_jwt: true`: Luôn xác thực JWT gửi lên từ client.
+  - Tôn trọng ngữ cảnh caller: Edge Function tạo Supabase client bằng Header `Authorization` của user, đảm bảo RLS được kích hoạt.
+  - Sử dụng `SUPABASE_SERVICE_ROLE_KEY` **CHỈ KHI CẦN THIẾT** cho các tác vụ admin đặc quyền (như mời user bằng email). Tuyệt đối không để lộ key này ra client và không dùng nó để bypass kiểm tra quyền phòng gym.
+
+#### 3. Chính sách quyền hạn của `service_role`
+- Tiếp tục duy trì quyết định: `service_role` không được mở DML trực tiếp từ internet.
+- `service_role` chỉ được sử dụng trong backend có kiểm soát (Edge Functions server-side).
+
+---
+
+### Thứ tự migration dự kiến cho nhóm GM-1 và Khả năng Rollback (Chuẩn bị cho P0.T08)
+
+#### 1. Trình tự thực thi thuận (Forward Migration Sequence — GM-1)
+Quá trình áp dụng migration GM-1 được tổ chức thành các file migration tuần tự, mỗi file được thực thi trong một **Atomic Transaction** (`BEGIN; ... COMMIT;`), tuân thủ nguyên tắc **Fail-Closed mặc định từ microsecond đầu tiên**:
+
+1. **Bước 1 — Khởi tạo bảng `gyms` (Atomic Transaction):**
+   - Tạo bảng `public.gyms`, check constraints (`status IN ('active', 'suspended', 'archived')`), unique slug.
+   - **Bật RLS & thu hồi quyền ngay lập tức:** `ALTER TABLE public.gyms ENABLE ROW LEVEL SECURITY; REVOKE ALL ON public.gyms FROM anon, authenticated;` (Bảng ở trạng thái đóng hoàn toàn, không thể đọc/ghi).
+   - Tạo index `gyms_owner_id_idx` và `gyms_status_idx`.
+2. **Bước 2 — Khởi tạo bảng `branches` (Atomic Transaction):**
+   - Tạo bảng `public.branches`, check constraints, unique `(gym_id, slug)`, và ràng buộc composite unique: `CONSTRAINT branches_id_gym_unique UNIQUE (id, gym_id)`.
+   - **Bật RLS & thu hồi quyền ngay lập tức:** `ALTER TABLE public.branches ENABLE ROW LEVEL SECURITY; REVOKE ALL ON public.branches FROM anon, authenticated;`.
+   - Tạo index `branches_gym_id_idx` và `branches_status_idx`.
+3. **Bước 3 — Khởi tạo bảng `gym_staff` (Atomic Transaction):**
+   - Tạo bảng `public.gym_staff`, role/status check constraints.
+   - Tạo Composite Foreign Key với quy tắc bảo vệ audit trail: `CONSTRAINT fk_gym_staff_branch_gym FOREIGN KEY (branch_id, gym_id) REFERENCES public.branches(id, gym_id) ON DELETE RESTRICT`.
+   - Tạo 2 Partial Unique Indexes: `gym_staff_gym_user_null_branch_idx` (cho `branch_id IS NULL`) và `gym_staff_gym_branch_user_idx` (cho `branch_id IS NOT NULL`).
+   - **Bật RLS & thu hồi quyền ngay lập tức:** `ALTER TABLE public.gym_staff ENABLE ROW LEVEL SECURITY; REVOKE ALL ON public.gym_staff FROM anon, authenticated;`.
+   - Tạo lookup index `gym_staff_lookup_idx`.
+4. **Bước 4 — Khởi tạo RLS Helper Functions & EXECUTE Grants (Atomic Transaction):**
+   - Tạo các hàm `is_gym_owner` và `is_active_staff` với thuộc tính `STABLE`, `SECURITY DEFINER`, `SET search_path = public, pg_temp;`.
+   - Thu hồi quyền: `REVOKE ALL ON FUNCTION ... FROM PUBLIC;`.
+   - Cấp quyền hạn hẹp: `GRANT EXECUTE ON FUNCTION ... TO authenticated;`.
+5. **Bước 5 — Cài đặt RLS Policies & Cấp Quyền Đọc (Atomic Transaction):**
+   - Cài đặt các chính sách SELECT: `gyms_select_policy`, `branches_select_policy`, `gym_staff_select_policy`.
+   - Cấp duy nhất quyền đọc: `GRANT SELECT ON public.gyms, public.branches, public.gym_staff TO authenticated;`.
+   - *Ghi chú:* Toàn bộ DML (INSERT/UPDATE/DELETE) vẫn bị thu hồi 100%, chỉ có thể ghi qua Mutation Gateway RPC.
+
+#### 2. Kịch bản khôi phục và Khả năng Rollback (Rollback Strategy)
+Rollback phải thực hiện theo **thứ tự nghịch đảo hoàn toàn** (Reverse Order) để tôn trọng ràng buộc khóa ngoại và phụ thuộc hàm:
+
+```sql
+-- Kịch bản Rollback GM-1 (Chạy trong Atomic Transaction khi test Local/Staging gặp sự cố):
+BEGIN;
+
+-- 1. Thu hồi quyền đọc bảng
+REVOKE SELECT ON public.gyms, public.branches, public.gym_staff FROM authenticated;
+
+-- 2. Xóa các chính sách RLS
+DROP POLICY IF EXISTS gym_staff_select_policy ON public.gym_staff;
+DROP POLICY IF EXISTS branches_select_policy ON public.branches;
+DROP POLICY IF EXISTS gyms_select_policy ON public.gyms;
+
+-- 3. Xóa các RLS Helper Functions
+DROP FUNCTION IF EXISTS public.is_active_staff(UUID, UUID);
+DROP FUNCTION IF EXISTS public.is_gym_owner(UUID);
+
+-- 4. Xóa các bảng theo thứ tự quan hệ phụ thuộc (Child -> Parent)
+DROP TABLE IF EXISTS public.gym_staff CASCADE;
+DROP TABLE IF EXISTS public.branches CASCADE;
+DROP TABLE IF EXISTS public.gyms CASCADE;
+
+COMMIT;
+```
+
+**Nguyên tắc triển khai an toàn:**
+- Môi trường Production tuân thủ tuyệt đối nguyên tắc **Forward-Fix** (không chạy rollback xóa bảng phá hủy dữ liệu một khi đã có giao dịch thật).
+- Kịch bản Rollback trên được kiểm thử tự động trên môi trường Local Disposable và Staging trước khi bất kỳ lệnh migration nào được cấp phép chạy trên Production.
+
+---
+
+### Lộ trình migration tổng thể cho gym management
+
+| Nhóm | Nội dung | Trạng thái | Điều kiện tiên quyết |
+|---|---|---|---|
+| **GM-1** | `gyms`, `branches`, `gym_staff`, composite FK (RESTRICT), partial indexes, helper functions & RLS | **Thiết kế chi tiết hoàn tất** | Chờ phê duyệt P0.T07 & P0.T08 |
+| **GM-2** | `gym_members` & member linking flow | Thiết kế tổng quan | Sau khi GM-1 sẵn sàng |
+| **GM-3** | `membership_plans`, `memberships` | Thiết kế tổng quan | Sau GM-2 |
+| **GM-4** | `attendance_logs` | Thiết kế tổng quan | Sau GM-3 |
+| **GM-5** | `payment_transactions` & idempotency | Thiết kế tổng quan | Sau GM-3 & chốt D-MT-05 |
+| **GM-6** | RPC Mutation Gateway & Edge Functions hoàn chỉnh | Thiết kế tổng quan | Cùng nhịp với các nhóm bảng tương ứng |
+
+> **Cam kết an toàn:** Không tạo file SQL hay chạy migration nào trong Phase 0. Mọi bước chuẩn bị trên hoàn toàn ở mức đặc tả tài liệu.
+
+---
+
+### Nhật ký chỉnh sửa
+
+| Thời gian | Nội dung | Lý do | Kết quả |
+|---|---|---|---|
+| 2026-10-21 | Tạo bản thiết kế review thay thế proposal SQL ban đầu; giới hạn rollout đầu vào 7 bảng. | Khắc phục mâu thuẫn giữa SQL nháp với ownership/version/outbox contract. | Cập nhật thiết kế; không chạy SQL. |
+| 2026-10-22 | Sửa constraint và ghi nhận trạng thái kiểm tra bảng Cloud. | Đồng bộ tiến độ kiểm thử bảng core. | 7 bảng core đạt kiểm tra table-level grant. |
+| 2026-10-23 | Đề xuất schema mở rộng cho Phase II Multi-Tenant Gym Management. | Khởi tạo phân kỳ roadmap mới. | Tài liệu thiết kế mức đặc tả. |
+| 2026-10-23 | Chi tiết hóa schema GM-1, partial unique indexes giải quyết uniqueness multi-branch, RLS helper functions, và phân quyền Edge Functions/RPC least privilege. | Chuẩn bị phê duyệt P0.T07 và chốt thiết kế GM-1 cho P0.T08 theo chỉ đạo chủ dự án. | Hoàn thiện đặc tả kỹ thuật chi tiết GM-1; không tạo migration file hay chạy SQL. |
+| 2026-10-23 | Final GM-1 Schema Security Review: Bổ sung Composite Foreign Key `(branch_id, gym_id)` chống cross-tenant branch assignment; phân tích coexistence và mutual exclusivity; kiểm tra `gyms.status = 'active'` trong `is_active_staff`; ma trận trạng thái vòng đời gym; quy định rõ thứ tự migration 5 bước và kịch bản rollback nghịch đảo. | Đảm bảo tính toàn vẹn dữ liệu và an toàn bảo mật tuyệt đối trước phê duyệt P0.T08. | Tài liệu thiết kế GM-1 hoàn thiện; sẵn sàng cho Gate P0.T08. |
+| 2026-10-23 | Final Security Corrections Before Approval: Bật RLS và thu hồi quyền ngay khi tạo bảng trong Atomic Transactions; đổi composite FK `gym_staff → branches` sang `ON DELETE RESTRICT` và đề xuất soft-deactivation; làm rõ quyền Owner khi gym suspended (chỉ đọc trạng thái/gia hạn); hiệu chỉnh mô tả `STABLE` chính xác theo PostgreSQL optimizer. | Hoàn thiện tuyệt đối các nguyên tắc an toàn dữ liệu và fail-closed trước khi trình duyệt P0.T08. | Tài liệu chuẩn xác 100%; sẵn sàng phê duyệt. |
+| 2026-10-23 | Final Pre-Approval Verification: Chuẩn hóa schema `branches.status TEXT CHECK (status IN ('active', 'suspended', 'archived'))` thay cho `is_active BOOLEAN`; đồng bộ index `branches_status_idx`; làm rõ cơ chế soft-deactivation chuyển trạng thái `archived`. | Đạt tính nhất quán 100% giữa các bảng tenant, branch và staff trước khi phê duyệt P0.T08. | Schema GM-1 nhất quán hoàn toàn. |

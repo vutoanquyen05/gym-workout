@@ -1,6 +1,8 @@
 # Phạm vi và yêu cầu — Single Source of Truth
 
-Nguồn: `baocao.md`, mục 2–4.
+> **Cập nhật định hướng (2026-10-23):** Dự án đang chuyển đổi từ ứng dụng theo dõi tập luyện cá nhân sang hệ thống quản lý phòng gym nhiều tenant, nhiều chi nhánh. Các yêu cầu Phase I (cá nhân) được giữ nguyên; yêu cầu Phase II (gym management) được bổ sung ở cuối tài liệu. Xem `mindmap.md` để biết roadmap chi tiết.
+
+Nguồn gốc Phase I: `baocao.md`, mục 2–4. Nguồn Phase II: `multi-tenancy.md`, `gym-management.md`, `member-management.md`, `membership.md`, `attendance.md`, `payments.md`.
 
 ## 2. Phân tích nhu cầu người dùng
 
@@ -167,3 +169,69 @@ Các tính năng mở rộng chỉ nên triển khai sau khi những luồng c�
 - Đảm bảo các nút quan trọng có vùng chạm đủ lớn.
 
 ---
+
+## Phase II — Yêu cầu hệ thống quản lý phòng gym (Multi-Tenant)
+
+> Trạng thái: **Thiết kế — chưa triển khai.** Đây là yêu cầu mục tiêu sau chuyển đổi định hướng (2026-10-23). Xem `mindmap.md` để biết roadmap.
+
+### Mục tiêu Phase II
+
+Xây dựng nền tảng quản lý phòng gym nhiều tenant, nhiều chi nhánh, phục vụ: Owner, Manager, Receptionist, Trainer và Member.
+
+### FR-GM — Gym & Branch
+| Mã | Yêu cầu | Mô tả |
+|---|---|---|
+| FR-GM-01 | Tạo gym | Owner tạo phòng gym mới (tenant) |
+| FR-GM-02 | Quản lý gym | Sửa thông tin, cài đặt, trạng thái |
+| FR-GM-03 | Tạo/quản lý branch | Tạo chi nhánh trong gym |
+| FR-GM-04 | Mời nhân viên | Mời staff theo email + vai trò + branch |
+| FR-GM-05 | Quản lý nhân viên | Xem, đổi vai trò, đình chỉ |
+
+### FR-MB — Member Management
+| Mã | Yêu cầu | Mô tả |
+|---|---|---|
+| FR-MB-01 | Tạo hồ sơ | Tạo thủ công; hội viên có thể chưa có tài khoản app |
+| FR-MB-02 | Liên kết tài khoản | Liên kết hồ sơ với Supabase Auth |
+| FR-MB-03 | Tìm kiếm | Tìm theo tên, SĐT, email, mã HV |
+| FR-MB-04 | Lịch sử | Gói, check-in, giao dịch |
+| FR-MB-05 | Trạng thái | Active / suspended / deleted (soft) |
+
+### FR-MS — Membership
+| Mã | Yêu cầu | Mô tả |
+|---|---|---|
+| FR-MS-01 | Danh mục gói | Tạo, sửa, deactivate |
+| FR-MS-02 | Đăng ký gói | Cho hội viên |
+| FR-MS-03 | Gia hạn | Tạo gói mới kế tiếp |
+| FR-MS-04 | Tạm dừng/hủy | Với lý do; audit trail |
+| FR-MS-05 | Đa chi nhánh | Quyền check-in nhiều branch |
+
+### FR-AT — Attendance
+| Mã | Yêu cầu | Mô tả |
+|---|---|---|
+| FR-AT-01 | Check-in thủ công | Receptionist tìm HV và check-in |
+| FR-AT-02 | Kiểm tra điều kiện | Gói active, quyền branch, chống trùng |
+| FR-AT-03 | Xem lịch | By member / branch / date |
+| FR-AT-04 | QR check-in | Phase sau — chưa thiết kế |
+
+### FR-PY — Payments
+| Mã | Yêu cầu | Mô tả |
+|---|---|---|
+| FR-PY-01 | Ghi nhận thanh toán | Cash, chuyển khoản, POS; idempotent |
+| FR-PY-02 | Hoàn tiền | Full/partial; audit trail |
+| FR-PY-03 | Công nợ | amount_due vs amount_paid |
+| FR-PY-04 | Báo cáo | Theo thời gian, branch, phương thức |
+
+### FR-WPT — Workout & PT
+| Mã | Yêu cầu | Mô tả |
+|---|---|---|
+| FR-WPT-01 | Tái sử dụng workout | Member dùng app mobile |
+| FR-WPT-02 | Lịch PT | Tạo và quản lý lịch hẹn |
+| FR-WPT-03 | Phân công PT | Gán trainer cho member |
+| FR-WPT-04 | Quyền xem workout | Trainer xem data được giao |
+
+### NFR-GM — Phi chức năng (bổ sung)
+- Dữ liệu gym hoàn toàn cách biệt; không rò rỉ cross-tenant.
+- RBAC đúng vai trò và branch; không dùng user_metadata để phân quyền.
+- Mọi mutation đi qua gateway; không DML trực tiếp từ client.
+- Giao dịch tài chính: audit trail đầy đủ, append-only, idempotent.
+- Tìm kiếm hội viên < 2s với 10.000+ records; dashboard < 3s trên 4G.

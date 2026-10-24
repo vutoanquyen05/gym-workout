@@ -34,3 +34,17 @@ Trước Phase 1.T04, dự án có `src/app/index.tsx` và `src/app/explore.tsx`
 | 2026-10-18 | Đưa root stack và native tabs vào `AppThemeProvider`; tabs lấy màu từ scheme ứng dụng. | Giữ màu điều hướng nhất quán với semantic color tokens và hỗ trợ provider quản lý system/light/dark. | TypeScript, Expo lint, Jest và static web export đạt. |
 | 2026-10-18 | Tách cấu hình native tabs khỏi route layout thành `BottomNavigation`, giữ năm route/icon hiện tại và áp dụng selected tint, label color/size từ theme/token. | Chuẩn hóa bottom navigation và cung cấp điểm cấu hình dùng chung thay vì nhúng chi tiết trong Expo Router layout. | Jest, TypeScript, Expo lint và static export đa nền tảng đạt; thao tác runtime tab đã xác minh trước đó trên Android, chưa chạy lại native runtime trong task này. |
 | 2026-10-18 | Chuyển màu nhãn selected từ brand sang `textPrimary`; giữ icon selected màu brand. | Brand Light trên nền background chỉ đạt 4.49:1, thấp hơn ngưỡng 4.5:1 cho chữ thường; cách phối mới giữ dấu hiệu active và đạt tương phản chữ. | Các cặp màu được tính trong `color-accessibility-test.ts`; web/iOS/Android static export đạt. Native runtime tab chưa được kiểm tra lại trong phiên này. |
+| 2026-10-23 | Bổ sung định hướng điều hướng cho tính năng hội viên kết nối phòng gym (QR check-in, gói tập, PT). | Đồng bộ tài liệu điều hướng mobile theo kiến trúc multi-tenant mới. | Cập nhật tài liệu thiết kế; không thay đổi code route hiện tại. |
+
+---
+
+## Định hướng điều hướng Hội viên trong hệ thống Multi-Tenant (2026-10-23)
+
+> **Cập nhật (2026-10-23):** Khi tích hợp vào hệ thống multi-tenant gym management, Mobile App tiếp tục duy trì 5 tabs cốt lõi cho tập luyện cá nhân, đồng thời dự kiến bổ sung các route phục vụ tương tác phòng gym:
+
+### Các route dự kiến bổ sung trên Mobile (Phase 4–6 mới — Chưa triển khai)
+
+- `src/app/check-in/qr-modal.tsx`: Modal hiển thị mã QR hội viên kèm refresh token/timestamp để check-in tại quầy tiếp tân hoặc qua đầu đọc QR.
+- `src/app/memberships/index.tsx`: Màn hình xem gói tập cá nhân, thời hạn, số lượt tập còn lại và lịch sử gia hạn.
+- `src/app/pt/index.tsx`: Màn hình xem lịch tập PT và buổi huấn luyện được phân công.
+- Tích hợp trong `src/app/(tabs)/profile.tsx`: Hiển thị thẻ thông tin phòng gym và chi nhánh hội viên đang tham gia.

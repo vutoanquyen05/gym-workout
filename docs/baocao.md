@@ -1,1146 +1,646 @@
-# BÁO CÁO PHÂN TÍCH VÀ THIẾT KẾ ỨNG DỤNG TẬP LUYỆN THỂ HÌNH TRÊN DI ĐỘNG
+# BÁO CÁO TỔNG THỂ HỆ THỐNG GYM WORKOUT & ĐẶC TẢ PRODUCT VISION
 
-**Tên dự án:** Ứng dụng quản lý tập luyện thể hình (Gym & Workout App)  
-**Nền tảng:** iOS và Android  
-**Công nghệ chính:** React Native, Expo, TypeScript  
-**Định hướng thiết kế:** Mobile-first, Modular Architecture, Offline-first và Design System thống nhất
-
----
-
-## MỤC LỤC
-
-1. [Tổng quan dự án](#1-tổng-quan-dự-án)
-2. [Phân tích nhu cầu người dùng](#2-phân-tích-nhu-cầu-người-dùng)
-3. [Mục tiêu và phạm vi hệ thống](#3-mục-tiêu-và-phạm-vi-hệ-thống)
-4. [Yêu cầu chức năng và phi chức năng](#4-yêu-cầu-chức-năng-và-phi-chức-năng)
-5. [Kiến trúc module tái sử dụng](#5-kiến-trúc-module-tái-sử-dụng)
-6. [Danh sách chức năng và công nghệ React Native/Expo](#6-danh-sách-chức-năng-và-công-nghệ-react-nativeexpo)
-7. [Thiết kế kiến trúc dữ liệu và hoạt động ngoại tuyến](#7-thiết-kế-kiến-trúc-dữ-liệu-và-hoạt-động-ngoại-tuyến)
-8. [Thiết kế giao diện và bố cục màn hình](#8-thiết-kế-giao-diện-và-bố-cục-màn-hình)
-9. [Design System và bảng phối màu](#9-design-system-và-bảng-phối-màu)
-10. [Khả năng tiếp cận và trải nghiệm sử dụng](#10-khả-năng-tiếp-cận-và-trải-nghiệm-sử-dụng)
-11. [Kiểm thử và tiêu chí nghiệm thu](#11-kiểm-thử-và-tiêu-chí-nghiệm-thu)
-12. [Kế hoạch triển khai](#12-kế-hoạch-triển-khai)
-13. [Rủi ro và phương án xử lý](#13-rủi-ro-và-phương-án-xử-lý)
-14. [Kết luận](#14-kết-luận)
+> **Tên dự án:** Gym Workout — Multi-Tenant Gym Management Platform & Dual-Mode Workout Mobile Application  
+> **Phiên bản:** Baseline Candidate v1.4 (Đã tích hợp Phạm vi Phê duyệt của Chủ Dự án)  
+> **Ngày cập nhật:** 2026-10-23  
+> **Trạng thái phê duyệt:**  
+> - **APPROVED (Chủ dự án đã phê duyệt):** Gym Management là Core Product; Workout Mobile hỗ trợ Dual-Mode (Standalone Workout & Gym Member Mode); PT Management là phân hệ chính thức triển khai theo giai đoạn; Một Unified Roadmap tổng thể; Cấu trúc báo cáo 10 chương và 8 nhóm quy trình nghiệp vụ.  
+> - **NOT YET APPROVED / PROPOSED / UNDECIDED (Chờ phê duyệt tại Gate P0.T07 / P0.T08 hoặc theo Phase):** Các lựa chọn kiến trúc chờ P0.T07 (D-MT-01 đến D-MT-04, D-MT-11); Thiết kế Schema GM-1 và các migration đề xuất; Tách Payment Core GM-3b sang Phase 4; Chính sách kích hoạt gói 100% thanh toán; Các quy tắc kinh doanh mở (BR-PAY, BR-PT, BR-AT, BR-MB...); Phương án phân tách 3 Release Gates; Chưa bắt đầu Phase 1.
 
 ---
 
-## 1. Tổng quan dự án
+## MỤC LỤC TỔNG THỂ
 
-### 1.1. Giới thiệu
+1. [Chương 1: Tổng quan Hệ thống và Product Vision](#chương-1-tổng-quan-hệ-thống-và-product-vision)
+   - 1.1. Bối cảnh và Tầm nhìn Sản phẩm
+   - 1.2. Định vị Sản phẩm Cốt lõi: Gym Management là trọng tâm
+   - 1.3. Hệ sinh thái 2 Client chính: Admin Web Portal & Workout Mobile App (Dual-Mode)
+   - 1.4. Đối tượng sử dụng và Giá trị mang lại
+2. [Chương 2: Mô hình Vận hành & 8 Quy trình Nghiệp vụ End-to-End](#chương-2-mô-hình-vận-hành--8-quy-trình-nghiệp-vụ-end-to-end)
+   - 2.1. Quy trình 1: Gym Onboarding và Quản lý Chi nhánh (Branches)
+   - 2.2. Quy trình 2: Staff Onboarding, Phân quyền RBAC & Quản lý Kiêm nhiệm
+   - 2.3. Quy trình 3: Member Onboarding, Bán gói tập và Kích hoạt Hội viên
+   - 2.4. Quy trình 4: Điểm danh (Check-in) và Xử lý Ngoại lệ
+   - 2.5. Quy trình 5: Thu phí, Hoàn tiền, Quản lý Công nợ và Đối soát Doanh thu
+   - 2.6. Quy trình 6: Quản lý Huấn luyện viên cá nhân (PT Assignment, Scheduling & Session Consumption)
+   - 2.7. Quy trình 7: Liên kết Tài khoản Hội viên (Account Linking & Ownership Verification)
+   - 2.8. Quy trình 8: Standalone Workout Mode và Chuyển đổi sang Gym Member Mode
+3. [Chương 3: Yêu cầu Hệ thống Tổng thể & Ranh giới Ngoại tuyến](#chương-3-yêu-cầu-hệ-thống-tổng-thể--ranh-giới-ngoại-tuyến)
+   - 3.1. Ranh giới Ngoại tuyến (Offline Boundary): Workout Offline-First vs. Management Server-Authoritative
+   - 3.2. Yêu cầu Chức năng Phân hệ Gym Management (FR-GM, FR-MB, FR-MS, FR-AT, FR-PY)
+   - 3.3. Yêu cầu Chức năng Phân hệ Workout & PT (Bảo toàn 100% FR-01 đến FR-17 và FR-WPT)
+   - 3.4. Yêu cầu Phi chức năng Tổng thể (NFR-SEC, NFR-DATA, NFR-PERF, NFR-MOB)
+4. [Chương 4: Kiến trúc Hệ thống & Nguyên tắc Thiết kế](#chương-4-kiến-trúc-hệ-thống--nguyên-tắc-thiết-kế)
+   - 4.1. Kiến trúc Tổng thể Đa tầng (Clients - Supabase Cloud Platform - Local SQLite)
+   - 4.2. Cổng Quản trị Admin Web (Next.js, Server-First Cookie SSR Architecture) `[PROPOSED]`
+   - 4.3. Ứng dụng Di động Workout Mobile (Expo/React Native, SQLite Offline-First, Dual-Mode) `[APPROVED]`
+   - 4.4. Nền tảng Dữ liệu Đám mây (Supabase Multi-Tenant RLS theo gym_id) `[APPROVED]`
+   - 4.5. Cổng Giao dịch Đột biến & Nguyên tắc Đặc quyền Tối thiểu (Mutation Gateway) `[PROPOSED]`
+5. [Chương 5: Thiết kế Dữ liệu & Chiến lược Migration Tổng thể](#chương-5-thiết-kế-dữ-liệu--chiến-lược-migration-tổng-thể)
+   - 5.1. Phân tầng Dữ liệu: Core Workout và Multi-Tenant Gym Management (GM-1 đến GM-5) `[PROPOSED]`
+   - 5.2. Ranh giới Lưu trữ: Cloud Authority (PostgreSQL) và Local Cache (SQLite)
+   - 5.3. Đối chiếu Hiện trạng Cơ sở Dữ liệu Thực tế (Verified Baseline vs. Not Verified Independently)
+6. [Chương 6: Hệ thống Thiết kế (Design System) & Trải nghiệm Người dùng](#chương-6-hệ-thống-thiết-kế-design-system--trải-nghiệm-người-dùng)
+   - 6.1. Design System Web Portal: Dashboard quản trị, bảng đối soát ca
+   - 6.2. Design System Mobile App (Bảo toàn 100%): Minimalist Fitness, Dark/Light Theme WCAG 2.2 AA, Typography, Spacing, Tokens
+7. [Chương 7: Đặc tả MVP Gym Management và Tiêu chí Nghiệm thu Phát hành](#chương-7-đặc-tả-mvp-gym-management-và-tiêu-chi-nghiệm-thu-phát-hành)
+   - 7.1. Định nghĩa MVP: Chu trình Kinh doanh Khép kín (Closed Business Cycle)
+   - 7.2. Phân định Payment Core (GM-3b) và Payment Advanced (GM-5) `[PROPOSED]`
+   - 7.3. Phân tách Độc lập các Cổng Nghiệm thu Phát hành (Cổng 1, Cổng 2, Cổng 3) `[PROPOSED]`
+   - 7.4. Tiêu chí Nghiệm thu Chức năng Ứng dụng Di động (Bảo toàn 100% AC-01 đến AC-12)
+   - 7.5. Kịch bản Kiểm thử E2E Chu trình Kinh doanh Gym MVP (E2E Business Cycle Suite) `[PROPOSED]`
+   - 7.6. Phạm vi Nghiệp vụ Triển khai theo Giai đoạn (Deferred / Staged Scope)
+8. [Chương 8: Lộ trình Triển khai Tổng thể & Ma trận Phụ thuộc (Unified Roadmap)](#chương-8-lộ-trình-triển-khai-tổng-thể--ma-trận-phụ-thuộc-unified-roadmap)
+   - 8.1. Cấu trúc Lộ trình Tích hợp (Phase 0 đến Phase 7) `[APPROVED]`
+   - 8.2. Ma trận Phụ thuộc Toàn diện: Phase ➔ Schema ➔ Business Capability ➔ Acceptance Criteria
+9. [Chương 9: Quản trị Rủi ro & Danh mục Quyết định](#chương-9-quản-trị-rủi-ro--danh-mục-quyết-định)
+   - 9.1. Ma trận Rủi ro Trọng yếu (R-MT-01 đến R-MT-14)
+   - 9.2. Decision Register Phân loại Chuẩn xác 5 Nhóm Trạng thái
+   - 9.3. Danh mục Business Rules Còn Mở (Open Business Rules Register — UNDECIDED)
+   - 9.4. Danh mục các Quyết định Chưa được Phê duyệt (Pending Owner Approval)
+10. [Chương 10: Kết luận và Đề xuất Tiếp theo](#chương-10-kết-luận-và-đề-xuất-tiếp-theo)
 
-Ứng dụng quản lý tập luyện thể hình được xây dựng nhằm hỗ trợ người dùng lập kế hoạch tập luyện, tra cứu bài tập, ghi nhận kết quả từng buổi tập và theo dõi sự tiến bộ theo thời gian.
+---
 
-Ứng dụng hướng đến nhiều nhóm người dùng, từ người mới bắt đầu làm quen với tập luyện đến người đã có kinh nghiệm và thường xuyên theo dõi hiệu suất tập luyện. Hệ thống cần có giao diện trực quan, thao tác nhanh trên điện thoại, khả năng cá nhân hóa và cơ chế lưu trữ dữ liệu đáng tin cậy.
+## CHƯƠNG 1: TỔNG QUAN HỆ THỐNG VÀ PRODUCT VISION
 
-Dự án sử dụng React Native kết hợp Expo và TypeScript để phát triển ứng dụng đa nền tảng. Kiến trúc được tổ chức theo module nhằm tăng khả năng tái sử dụng, bảo trì, mở rộng và kiểm thử.
+### 1.1. Bối cảnh và Tầm nhìn Sản phẩm
+Hệ thống Gym Workout được định hướng phát triển thành **Nền tảng Quản trị Phòng gym Đa tenant toàn diện kết hợp Ứng dụng Tập luyện Thông minh (Multi-Tenant Gym Management Platform)**. Nền tảng số hóa toàn diện quy trình kinh doanh và vận hành của các chuỗi phòng gym thương mại, từ quản lý chi nhánh, nhân sự, thẻ hội viên, điểm danh, tài chính thu chi đến quản lý huấn luyện viên cá nhân (PT), đồng thời cung cấp công cụ tự tập luyện độc lập hàng đầu cho người dùng di động.
 
-### 1.2. Định hướng phát triển
+### 1.2. Định vị Sản phẩm Cốt lõi `[APPROVED]`
+- **Gym Management là sản phẩm trọng tâm (Core Commercial Product):** Là nền tảng phần mềm SaaS cốt lõi, giải quyết trực tiếp bài toán kinh doanh của chủ phòng gym: quản lý doanh thu, ngăn chặn thất thoát tiền mặt, kiểm soát quyền ra vào chi nhánh, tối ưu hóa năng suất nhân sự và nâng cao tỷ lệ giữ chân hội viên.
+- **Workout Mobile là ứng dụng mở rộng giá trị (Value-Added Client):** Là kênh tương tác trực tiếp giữa phòng gym và hội viên; đồng thời giữ vai trò ứng dụng tập luyện độc lập (Standalone Workout App) hoàn chỉnh cho cộng đồng thể hình nói chung.
 
-Các định hướng chính của dự án gồm:
+### 1.3. Hệ sinh thái 2 Client chính `[APPROVED]`
+1. **Admin Web Portal (Dành cho Quản trị & Vận hành):** Ứng dụng Web dành cho Chủ phòng gym (Owner), Quản lý chi nhánh (Manager), Tiếp tân (Receptionist) và Huấn luyện viên (Trainer). Hoạt động tối ưu trên máy tính quầy lễ tân và thiết bị máy tính bảng.
+2. **Workout Mobile App (Dành cho Hội viên, PT & Người tập tự do):** Ứng dụng di động iOS và Android (React Native + Expo SDK 57), xây dựng trên kiến trúc giao diện kép **Dual-Mode Architecture**:
+   - *Chế độ Hội viên (Gym Member Mode):* Hiển thị thẻ hội viên điện tử, mã QR điểm danh, thông tin gói tập, lịch tập PT và thông báo phòng gym.
+   - *Chế độ Tập luyện Độc lập (Standalone Workout Mode):* Thư viện bài tập, lập giáo án cá nhân, ghi nhật ký buổi tập (hiệp/tạ/reps), đồng hồ bấm giờ nghỉ, lưu trữ ngoại tuyến bằng SQLite cục bộ.
 
-- **User-centered design:** Phát triển chức năng dựa trên nhu cầu và khó khăn thực tế của người tập.
-- **Modular architecture:** Chia hệ thống thành các module độc lập tương đối, có ranh giới trách nhiệm rõ ràng.
-- **Reusable components:** Tái sử dụng giao diện, logic và kiểu dữ liệu ở những nơi phù hợp.
-- **Offline-first:** Cho phép ghi nhận buổi tập ngay cả khi kết nối Internet không ổn định.
-- **Mobile-first:** Ưu tiên trải nghiệm trên màn hình nhỏ, thao tác bằng một tay và khả năng sử dụng khi đang tập.
-- **Accessibility:** Đảm bảo khả năng đọc, tương phản màu, kích thước vùng chạm và hỗ trợ phóng to chữ.
-- **Maintainability:** Sử dụng TypeScript, quy ước cấu trúc thư mục và kiểm thử để giảm lỗi trong quá trình phát triển.
+### 1.4. Đối tượng sử dụng và Giá trị mang lại
 
-### 1.3. Đối tượng sử dụng
-
-Ứng dụng phục vụ ba nhóm người dùng chính:
-
-| Nhóm người dùng | Đặc điểm | Nhu cầu chính |
+| Đối tượng | Vai trò trong Hệ thống | Nhu cầu & Giá trị Cung cấp |
 |---|---|---|
-| Người mới bắt đầu | Chưa có nhiều kiến thức về bài tập và cách tổ chức buổi tập | Hướng dẫn dễ hiểu, kế hoạch đơn giản, theo dõi tiến độ |
-| Người tập trung cấp | Đã có lịch tập và mục tiêu tương đối rõ ràng | Tùy chỉnh bài tập, quản lý hiệp, mức tạ, số lần lặp |
-| Người tập có kinh nghiệm | Quan tâm đến hiệu suất và tính nhất quán của dữ liệu | Theo dõi thành tích cá nhân, lịch sử tập, phân tích tiến bộ |
-
-Các nhóm trên là cơ sở để thiết kế trải nghiệm linh hoạt, không phải những phân loại cố định. Người dùng cần có khả năng tùy chỉnh ứng dụng theo mục tiêu và thói quen cá nhân.
+| **Chủ phòng gym (Owner)** | Quản trị cấp cao nhất của Tenant | Nắm bắt dòng tiền thời gian thực, quản lý chuỗi chi nhánh, kiểm soát quyền hạn nhân sự, ngăn ngừa thất thoát. |
+| **Quản lý chi nhánh (Manager)** | Điều hành vận hành cơ sở | Quản lý nhân viên chi nhánh, duyệt hợp đồng gói tập, xử lý ngoại lệ điểm danh, phân công PT và duyệt đối soát ca. |
+| **Tiếp tân (Receptionist)** | Thao tác quầy trực tiếp | Tiếp nhận hội viên walk-in, bán gói tập, thu tiền mặt/POS, kiểm tra điểm danh tốc độ cao dưới 500ms. |
+| **Huấn luyện viên (Trainer / PT)** | Hướng dẫn chuyên môn | Xem danh sách học viên phụ trách, xếp lịch dạy, ghi nhận hoàn thành buổi tập, theo dõi tiến độ thể hình học viên. |
+| **Hội viên phòng gym (Gym Member)** | Khách hàng sử dụng dịch vụ | Sử dụng mã QR điểm danh không chạm, theo dõi thời hạn thẻ, đặt lịch PT, nhận thông báo gia hạn. |
+| **Người tự tập luyện (Standalone User)** | Người tập thể hình tự do | Tra cứu bài tập, tự thiết kế giáo án, ghi chép buổi tập 100% offline, lưu trữ dữ liệu an toàn trên thiết bị cá nhân. |
 
 ---
 
-## 2. Phân tích nhu cầu người dùng
+## CHƯƠNG 2: MÔ HÌNH VẬN HÀNH & 8 QUY TRÌNH NGHIỆP VỤ END-TO-END
 
-### 2.1. Nhu cầu cốt lõi
+> **Nguyên tắc biên soạn:** Phân tách rõ ràng giữa **Nguyên tắc nghiệp vụ (Business Rules)** và **Chi tiết triển khai kỹ thuật**. Chương này tập trung vào luồng thao tác, tác nhân, điều kiện kiểm tra nghiệp vụ và kết quả vận hành. Chi tiết về câu lệnh SQL, DDL bảng, định nghĩa hàm RLS helper, Partial Index, RPC và tham số kỹ thuật được trích xuất và tham chiếu sang các tài liệu chuyên biệt: [`docs/gym-management.md`](./gym-management.md), [`docs/member-management.md`](./member-management.md), [`docs/membership.md`](./membership.md), [`docs/attendance.md`](./attendance.md), [`docs/payments.md`](./payments.md), [`docs/multi-tenancy.md`](./multi-tenancy.md), và [`docs/supabase-schema.md`](./supabase-schema.md). Mọi quy tắc nghiệp vụ chưa được chủ dự án phê duyệt chính thức đều được đánh dấu tường minh là `[PROPOSED]` hoặc `[UNDECIDED]`.
 
-Qua việc phân tích quá trình tập luyện, có thể xác định những nhu cầu chính sau:
+---
 
-1. Tìm kiếm và lựa chọn bài tập phù hợp.
-2. Xây dựng hoặc sử dụng kế hoạch tập luyện có sẵn.
-3. Ghi lại mức tạ, số lần lặp và số hiệp nhanh chóng.
-4. Quản lý thời gian nghỉ giữa các hiệp.
-5. Theo dõi lịch sử và sự tiến bộ.
-6. Duy trì thói quen thông qua mục tiêu và nhắc nhở.
-7. Sử dụng các chức năng quan trọng khi mất kết nối Internet.
-8. Quản lý hồ sơ, cài đặt và dữ liệu cá nhân.
+### 2.1. Quy trình 1: Gym Onboarding và Quản lý Chi nhánh (Branches)
 
-### 2.2. Những vấn đề người dùng thường gặp
+#### Luồng Nghiệp vụ
+1. **Đăng ký Chủ sở hữu (Owner Onboarding):** Chủ phòng gym đăng ký tài khoản xác thực hệ thống. Nhập thông tin doanh nghiệp: Tên phòng gym, mã định danh thương hiệu (slug duy nhất hệ thống), logo, hotline và múi giờ vận hành.
+2. **Khởi tạo Chi nhánh (Branch Onboarding):** Owner tạo các chi nhánh vận hành: Tên chi nhánh, slug (duy nhất trong phạm vi phòng gym), địa chỉ cơ sở, hotline và giờ hoạt động.
+3. **Quản lý Vòng đời Chi nhánh:** Chi nhánh được quản lý theo 3 trạng thái: Đang hoạt động (`active`), Tạm ngưng sửa chữa/bảo trì (`suspended`), và Đóng cửa/giải thể (`archived`).
 
-| Vấn đề | Biểu hiện | Hướng giải quyết |
+#### Nguyên tắc Nghiệp vụ Cốt lõi
+- **Bảo vệ Vết kiểm toán Kế toán (Audit Trail Protection):** Nghiêm cấm xóa vật lý bất kỳ chi nhánh nào nếu chi nhánh đó đã từng phát sinh nhân sự, hội viên, điểm danh hoặc giao dịch tài chính. Khi cơ sở dừng hoạt động, hệ thống áp dụng cơ chế **Lưu trữ mềm (Soft-Deactivation - archived)** nhằm lưu giữ toàn vẹn lịch sử đối soát và lập tức ngăn chặn các nghiệp vụ mới (bán gói, điểm danh) tại cơ sở đó.
+- **Ngăn chặn Gán nhầm Chi nhánh Chéo phòng gym:** Hệ thống bắt buộc kiểm tra tính toàn vẹn để đảm bảo nhân viên và hội viên chỉ được gán vào chi nhánh thuộc quyền sở hữu của chính phòng gym đó, không thể xảy ra tình trạng rò rỉ chéo tenant. *(Chi tiết kỹ thuật Composite Key tham chiếu [`docs/gym-management.md`](./gym-management.md)).*
+- **Cơ chế Khóa Phòng Gym khi Nợ cước / Vi phạm Điều khoản (`suspended`):** Khi phòng gym bị hệ thống đình chỉ dịch vụ, toàn bộ nhân viên chi nhánh (Manager, Receptionist, Trainer) lập tức bị ngắt quyền truy cập vào dữ liệu vận hành. Duy nhất tài khoản Owner được phép đăng nhập để xem thông báo nợ cước/lý do đình chỉ và thực hiện thanh toán gia hạn dịch vụ.
+
+---
+
+### 2.2. Quy trình 2: Staff Onboarding, Phân quyền RBAC & Quản lý Kiêm nhiệm
+
+#### Luồng Nghiệp vụ
+1. **Gửi lời mời Nhân viên (Staff Invite):** Chủ phòng gym hoặc Quản lý chi nhánh nhập email nhân sự, chọn vai trò (`manager`, `receptionist`, `trainer`) và phạm vi quản lý (chỉ định 1 chi nhánh cụ thể, hoặc toàn chuỗi phòng gym).
+2. **Kích hoạt Tài khoản:** Nhân viên nhận email chứa liên kết mời an toàn, tạo mật khẩu và xác thực tài khoản. Trạng thái nhân sự chuyển từ Chờ kích hoạt (`invited`) sang Đang làm việc (`active`).
+3. **Đình chỉ / Nghỉ việc:** Khi nhân viên nghỉ việc hoặc bị tạm đình chỉ công tác, Quản lý chuyển trạng thái sang `suspended`.
+
+#### Nguyên tắc Nghiệp vụ Cốt lõi
+- **Nguyên tắc Xác thực Quyền lực Máy chủ (Server-Enforced RBAC):** Quyền hạn của nhân viên được tính toán trực tiếp từ cơ sở dữ liệu vật lý tại thời điểm thực thi câu lệnh. Nghiêm cấm sử dụng thông tin do ứng dụng client tự khai báo để phân quyền. Nhân viên có trạng thái `invited` hoặc `suspended` lập tức bị tước quyền truy cập dữ liệu nghiệp vụ ngay tại request tiếp theo.
+- **Quy tắc Kiêm nhiệm Đa chi nhánh và Loại trừ Lẫn nhau (Mutual Exclusivity) `[PROPOSED]`:**
+  - Một nhân sự có thể kiêm nhiệm làm việc tại nhiều chi nhánh khác nhau với các vai trò tương ứng (ví dụ: làm Quản lý tại Cơ sở 1 và làm Huấn luyện viên tại Cơ sở 2).
+  - Phương án đề xuất phân quyền: Nhân sự cấp toàn gym (General Manager) nắm quyền bao trùm trên mọi chi nhánh. Nếu một nhân sự bị đình chỉ cấp toàn gym, toàn bộ quyền tại các chi nhánh lẻ sẽ tự động bị vô hiệu hóa ngay lập tức. *(Chi tiết kỹ thuật 2 Partial Unique Indexes tham chiếu [`docs/multi-tenancy.md`](./multi-tenancy.md)).*
+
+---
+
+### 2.3. Quy trình 3: Member Onboarding, Bán gói tập và Kích hoạt Hội viên
+
+#### Luồng Nghiệp vụ
+1. **Tiếp nhận Hội viên tại Quầy (Walk-in Member):** Khách hàng đến phòng gym. Tiếp tân tạo hồ sơ hội viên: Họ tên, số điện thoại, email, ngày sinh, giới tính và chi nhánh đăng ký chính (`home_branch`). Hệ thống tự động cấp phát mã hội viên nội bộ (`member_code` `[UNDECIDED: quy tắc sinh mã BR-MB-01]`). Hồ sơ ban đầu chưa gắn với tài khoản ứng dụng di động.
+2. **Chọn Gói tập:** Tiếp tân chọn gói từ danh mục gói đang mở bán (`membership_plans`), xác định các điều kiện: Thời hạn hiệu lực (số ngày), giá tiền, quyền sử dụng chi nhánh (chỉ cơ sở gốc, toàn bộ cơ sở, hay danh sách chỉ định), giới hạn lượt tập và số buổi PT đi kèm.
+3. **Tạo Hợp đồng Gói tập:** Hệ thống lưu vết hợp đồng gói tập ở trạng thái Chờ kích hoạt (`pending`) kèm snapshot thông tin gói tại thời điểm ký kết để bảo toàn lịch sử khi biểu giá phòng gym thay đổi.
+4. **Kích hoạt Gói tập (Membership Activation) `[PROPOSED: Chính sách MVP Kích hoạt 100% Thanh toán]`: Gói tập chỉ được kích hoạt sang trạng thái `active` sau khi đã ghi nhận giao dịch thanh toán đầy đủ 100% qua Payment Core `GM-3b`, trừ khi có chính sách công nợ khác được Chủ dự án phê duyệt.** Ngày bắt đầu (`start_date`) được xác lập và ngày hết hạn được tính toán tự động.
+
+#### Nguyên tắc Nghiệp vụ Cốt lõi
+- **Phụ thuộc vào Payment Core `GM-3b` `[PROPOSED]`:** Quy trình kích hoạt gói tập phụ thuộc trực tiếp vào việc ghi nhận thanh toán thành công (Payment Core). Đề xuất phân tách phần schema tối thiểu của `payment_transactions` (thống nhất đặt mã duy nhất là `GM-3b` `[PROPOSED]`) để phục vụ kích hoạt gói tập ngay trong Phase 4 mà không phải chờ toàn bộ phân hệ Payment Advanced ở Phase 5.
+- **Bảo toàn Snapshot Hợp đồng Gói tập:** Giá bán, tên gói, quyền chi nhánh tại thời điểm ký kết là bất biến. Mọi sự thay đổi về giá hoặc chính sách của gói tập chung sau này tuyệt đối không làm thay đổi các hợp đồng đã ký của hội viên.
+
+---
+
+### 2.4. Quy trình 4: Điểm danh (Check-in) và Xử lý Ngoại lệ
+
+#### Luồng Điểm danh Tiêu chuẩn
+1. **Nhận diện Hội viên:** Hội viên đọc số điện thoại/mã thẻ tại quầy, hoặc xuất trình mã QR từ ứng dụng di động.
+2. **Động cơ Kiểm tra Điều kiện Tự động (Pre-check-in Validation Engine):**
+   - [x] Hồ sơ hội viên có đang ở trạng thái Hoạt động (`active`)?
+   - [x] Hội viên có hợp đồng gói tập nào đang Hiệu lực (`active`)?
+   - [x] Thời điểm hiện tại có nằm trong thời hạn gói (`start_date` đến `end_date`)?
+   - [x] Chi nhánh hiện tại có nằm trong phạm vi được phép vào tập của gói (`access_scope`)?
+   - [x] Gói có bị giới hạn số lượt không? Nếu có, số buổi còn lại có lớn hơn 0?
+   - [x] Hội viên đã check-in trong khung giờ/ngày hôm nay chưa? `[UNDECIDED: Giới hạn số lượt/ngày tùy thuộc loại gói tập và cấu hình từng phòng gym — BR-AT-01]`.
+3. **Ghi nhận Điểm danh:** Nếu toàn bộ điều kiện hợp lệ, hệ thống ghi nhận một lượt điểm danh vào nhật ký bất biến (`attendance_logs`), ghi nhận nhân viên thực hiện và trừ 1 lượt tập còn lại (nếu áp dụng).
+
+#### Xử lý các Ngoại lệ Thường gặp
+- **Gói hết hạn:** Giao diện quầy báo đỏ, từ chối vào tập, hiển thị ngày hết hạn và đề xuất nút "Gia hạn gói tập ngay".
+- **Sai chi nhánh:** Từ chối điểm danh, nêu rõ danh sách chi nhánh hợp lệ của gói; cung cấp tùy chọn bán vé tập lẻ trong ngày hoặc nâng cấp gói tập liên chi nhánh.
+- **Gói đang tạm dừng (Bảo lưu hoặc Nợ cước):** Từ chối điểm danh, yêu cầu liên hệ quản lý để mở khóa gói.
+- **Thao tác lặp (Bấm đúp chuột / Quét mã 2 lần):** Hệ thống chặn tự động trong khung thời gian ngắn (ví dụ: cửa sổ thời gian 15 phút tại cùng cơ sở `[PROPOSED]`), thông báo rõ lượt điểm danh hợp lệ vừa được ghi nhận trước đó. *(Chi tiết bảng nhật ký điểm danh tham chiếu [`docs/attendance.md`](./attendance.md)).*
+
+---
+
+### 2.5. Quy trình 5: Thu phí, Hoàn tiền, Quản lý Công nợ và Đối soát Doanh thu
+
+#### Luồng Nghiệp vụ Thu phí
+1. **Ghi nhận Thanh toán (Payment Core `GM-3b` — Phase 4 `[PROPOSED]`):** Tiếp tân/Quản lý tạo phiếu thu gắn với hợp đồng gói tập hoặc dịch vụ phòng gym. Chọn phương thức: Tiền mặt (`cash`), Chuyển khoản ngân hàng (`bank_transfer`), Quẹt thẻ POS (`pos`). Client sinh mã khóa duy nhất (Idempotency Key) để ngăn chặn thu tiền trùng lặp khi bấm đúp hoặc mạng gián đoạn.
+2. **Chuẩn hóa Kiểu dữ liệu Tiền tệ `[PROPOSED]`: Đề xuất lưu trữ số tiền bằng số nguyên đồng VND (`amount BIGINT`), không dùng số thập phân, phục vụ thị trường Việt Nam.** Hạn chốt quyết định kỹ thuật này được kéo về trước khi thiết kế migration Payment Core Phase 4.
+3. **Xử lý Thanh toán Một phần & Công nợ (Payment Advanced — Phase 5 `[UNDECIDED]`):**
+   - Cho phép ghi nhận số tiền thực đóng nhỏ hơn tổng giá trị hợp đồng.
+   - Hệ thống ghi nhận số tiền còn nợ (`amount_due` - `amount_paid`).
+   - **Chính sách Kích hoạt Gói khi còn Nợ `[UNDECIDED: BR-PAY-01]`: Phương án mặc định MVP là CHỈ kích hoạt khi thanh toán 100%. Chính sách cho phép kích hoạt gói khi khách còn nợ (ví dụ: đóng trước X%, gia hạn trả nợ Y ngày) là quy tắc mở cần Chủ dự án quyết định trước khi nghiệm thu Phase 4.**
+4. **Xử lý Thanh toán Chờ xác nhận (Pending Verification) `[PROPOSED]`:**
+   - Giao dịch chuyển khoản chờ đối soát ngân hàng được ghi nhận ở trạng thái `pending_verification`.
+   - Gói tập tạm thời ở trạng thái Chờ kích hoạt (`pending_activation`). Quầy tiếp tân có thể cấp quyền tập tạm (Temporary Pass) theo thẩm quyền cho phép.
+5. **Xử lý Giao dịch Thất bại & Gián đoạn Kết nối:**
+   - Giao dịch lỗi được ghi nhận `failed` kèm nguyên nhân; không kích hoạt gói tập.
+   - Khi mạng gián đoạn, client sử dụng Idempotency Key tra cứu trạng thái giao dịch trên server trước khi thử lại, ngăn ngừa thu tiền lặp 2 lần của khách hàng.
+
+#### Tách biệt Quy trình Hoàn tiền và Điều chỉnh Quyền lợi Gói tập
+- **Quy trình 1: Giao dịch Tài chính Hoàn tiền (Financial Refund Transaction):**
+  - Chỉ Owner hoặc Manager có thẩm quyền duyệt hoàn tiền.
+  - **Nguyên tắc Bất biến:** Không xóa hay sửa phiếu thu cũ. Hệ thống tạo phiếu hoàn tiền đảo ngược mới mang tính chất kế toán, liên kết chặt chẽ với phiếu thu gốc qua `parent_transaction_id`.
+- **Quy trình 2: Điều chỉnh Quyền lợi Gói tập (Membership Entitlement Adjustment):**
+  - **Hệ thống KHÔNG mặc định tự động hủy gói khi hoàn tiền 100% hoặc tự động giảm ngày/lượt khi hoàn tiền một phần.** (Ví dụ: Trường hợp hoàn tiền đền bù sự cố cơ sở vật chất nhưng hội viên vẫn được giữ nguyên thời hạn tập).
+  - Việc điều chỉnh quyền lợi gói tập (hủy gói, rút ngắn ngày, giảm lượt) là một quyết định nghiệp vụ quản lý độc lập, đòi hỏi Quản lý/Owner chủ động thực hiện với lý do rõ ràng và được ghi nhận trong nhật ký kiểm toán (Audit Log).
+
+#### Đối soát Doanh thu (Reconciliation)
+- Cuối ca/ngày, tiếp tân thực hiện kết ca, đối soát số tiền mặt thu được thực tế với bảng kê hệ thống.
+- Báo cáo phân quyền nghiêm ngặt: Tiếp tân chỉ xem ca của mình; Quản lý xem toàn chi nhánh; Chủ phòng gym xem tổng hợp chuỗi theo thời gian thực. *(Chi tiết kỹ thuật bảng tài chính tham chiếu [`docs/payments.md`](./payments.md)).*
+
+---
+
+### 2.6. Quy trình 6: Quản lý Huấn luyện viên cá nhân (PT Management)
+
+#### Luồng Nghiệp vụ
+1. **Bán Gói Dịch vụ PT:** Hội viên mua gói tập kèm số buổi PT hoặc mua hợp đồng huấn luyện viên cá nhân độc lập.
+2. **Phân công Huấn luyện viên (PT Assignment):** Quản lý chi nhánh chỉ định Huấn luyện viên phụ trách hội viên, ghi nhận mục tiêu thể hình (tăng cơ, giảm mỡ, cải thiện sức bền).
+3. **Thay đổi Huấn luyện viên (Reassignment / Handover):** Khi hội viên yêu cầu đổi PT hoặc nhân viên nghỉ việc:
+   - Quản lý thực hiện bàn giao hồ sơ sang Huấn luyện viên mới.
+   - Số buổi PT chưa sử dụng được chuyển giao nguyên vẹn sang Trainer mới.
+   - **Thu hồi quyền tức thì:** Trainer cũ lập tức bị ngắt toàn bộ quyền xem nhật ký và thông tin của hội viên đó tại request tiếp theo.
+4. **Đặt lịch, Đổi lịch và Hủy lịch (Scheduling & Rescheduling) `[UNDECIDED: BR-PT-01]`:**
+   - Trainer hoặc Hội viên đặt lịch hẹn buổi tập (`pt_sessions`).
+   - Đổi lịch: Cho phép dời lịch trước thời gian quy định của phòng gym.
+   - **Chính sách xử lý khi hủy lịch muộn hoặc vắng mặt không báo trước (No-show) `[UNDECIDED]`: Việc có trừ buổi tập hay chỉ nhắc nhở/cảnh cáo là chính sách kinh doanh mở, chờ Chủ dự án quyết định hoặc cấu hình linh hoạt theo từng phòng gym; hệ thống không tự ý áp đặt chính sách trừ buổi.**
+5. **Tiêu thụ Buổi tập (Session Consumption) `[UNDECIDED: BR-PT-02]`:**
+   - Khi hoàn thành buổi tập, Trainer ghi nhận hoàn thành buổi tập trên hệ thống.
+   - **Cơ chế xác nhận hoàn thành `[UNDECIDED]`: Phương thức xác thực (hội viên xác nhận qua OTP, quét mã QR, ký tên trên app, hay Trainer tự xác nhận) là quyết định mở cần thống nhất ở Phase 6.**
+   - Sau khi hoàn thành hợp lệ, hệ thống trừ 1 buổi trong số buổi PT còn lại của gói tập (`pt_sessions_remaining`) và lưu vết phục vụ tính lương/hoa hồng cho Trainer.
+6. **Điều chỉnh Sai sót (Session Adjustment / Rollback):**
+   - Trường hợp trừ nhầm buổi do thao tác sai, Quản lý chi nhánh có quyền thực hiện nghiệp vụ hoàn lại buổi PT kèm lý do giải trình bắt buộc trong nhật ký kiểm toán.
+
+#### Nguyên tắc Thu thập Dữ liệu Sức khỏe & Bảo vệ Quyền riêng tư
+- **Nguyên tắc Giảm thiểu Dữ liệu Sức khỏe (Health Data Minimization):**
+  - **Nghiêm cấm mặc định thu thập thông tin bệnh lý hoặc hồ sơ y tế nhạy cảm của hội viên.**
+  - Chỉ đề xuất thu thập các chỉ số thể trạng cơ bản liên quan trực tiếp đến an toàn vận động (chiều cao, cân nặng, tiền sử chấn thương vận động cần tránh bài tập nặng) trên cơ sở:
+    1. *Mục đích rõ ràng (Fit-for-purpose):* Đảm bảo an toàn bài tập cho hội viên.
+    2. *Sự đồng ý rõ ràng và tự nguyện (Explicit Consent):* Hội viên chủ động đồng ý cung cấp.
+    3. *Quyền truy cập tối thiểu (Least Privilege):* Chỉ Trainer được phân công trực tiếp mới được xem.
+    4. *Quyền yêu cầu xóa bỏ (Right to Erasure):* Hội viên có quyền yêu cầu xóa bỏ dữ liệu thể trạng này bất kỳ lúc nào.
+- **Mô hình Chấp thuận Chia sẻ Dữ liệu Tập luyện (Consent Model) `[PROPOSED: BR-PT-03]`:**
+  - Phân công PT **KHÔNG** tự động mở toàn bộ lịch sử tập luyện cá nhân của hội viên.
+  - Hội viên chủ động cấp quyền chia sẻ trên ứng dụng di động theo các phạm vi đề xuất (buổi tập PT hướng dẫn, hoặc buổi tự tập tại phòng gym đó).
+  - Hội viên có quyền thu hồi quyền chia sẻ dữ liệu bất kỳ lúc nào qua ứng dụng di động; khi thu hồi, Trainer lập tức không thể xem dữ liệu tập luyện của hội viên tại request tiếp theo.
+
+---
+
+### 2.7. Quy trình 7: Liên kết Tài khoản Hội viên (Account Linking & Ownership Verification)
+
+#### Bối cảnh Nghiệp vụ
+Khách hàng ban đầu được tạo hồ sơ hội viên tại quầy lễ tân (Walk-in Member), chưa liên kết với tài khoản ứng dụng di động (`user_id = NULL`).
+
+#### Luồng Liên kết An toàn (Security-Verified Linking Flow)
+1. **Khởi tạo Liên kết:**
+   - *Cách 1 (Hội viên chủ động):* Hội viên tải ứng dụng Workout Mobile, đăng ký tài khoản với Email/Số điện thoại khớp với thông tin đã khai báo tại quầy.
+   - *Cách 2 (Tiếp tân hỗ trợ):* Tiếp tân bấm nút "Gửi mã kích hoạt ứng dụng" trên Admin Web.
+2. **Xác minh Quyền Kiểm soát Danh tính (Verification of Control):**
+   - Hệ thống bắt buộc gửi mã xác thực dùng một lần (OTP qua SMS) hoặc liên kết xác thực an toàn (Magic Link qua Email) tới đúng thông tin đã đăng ký tại quầy.
+   - Hội viên nhập mã OTP để chứng minh quyền kiểm soát hòm thư/số điện thoại thực tế.
+3. **Hoàn tất Liên kết Hồ sơ:**
+   - Sau khi xác minh thành công, hệ thống liên kết hồ sơ hội viên phòng gym với tài khoản di động của người dùng.
+   - Ứng dụng di động tự động mở khóa giao diện **Chế độ Hội viên**: Thẻ hội viên điện tử, mã QR điểm danh, thông tin gói tập, thời hạn và lịch tập PT.
+
+#### Xử lý Ngoại lệ An toàn & Phòng chống Chiếm quyền Tài khoản
+- **Thông tin liên hệ tại quầy bị nhập sai:** Hội viên xuất trình giấy tờ tùy thân (CCCD/CMND) tại quầy; tiếp tân đối soát và Quản lý phê duyệt cập nhật lại Email/Số điện thoại trên hồ sơ walk-in trước khi gửi lại mã xác minh.
+- **Email hoặc Số điện thoại đã đổi chủ sở hữu (Sim rác/Đổi số):**
+  - **Tuyệt đối không dùng "họ tên và ngày sinh" đơn thuần làm bằng chứng đủ để xác minh hoặc chuyển quyền sở hữu hồ sơ.**
+  - Bắt buộc thực hiện quy trình xác minh danh tính độc lập tại quầy: Quản lý đối chiếu CCCD/CMND trực tiếp và ký duyệt biên bản xác minh chủ sở hữu hồ sơ trước khi kích hoạt quy trình đổi số điện thoại liên kết.
+- **Hồ sơ đã bị liên kết với tài khoản khác (Nguy cơ Account Takeover):**
+  - **Tuyệt đối không tự động ghi đè liên kết tài khoản đang tồn tại.**
+  - Một hồ sơ hội viên tại 1 phòng gym chỉ được liên kết với duy nhất 1 tài khoản xác thực. Nếu phát sinh tranh chấp hoặc nghi ngờ chiếm quyền, hệ thống khóa tạm thời trạng thái liên kết và chuyển sang quy trình hủy liên kết (Unlink Workflow) yêu cầu xác thực đa yếu tố và phê duyệt của Quản lý chi nhánh.
+
+#### Xử lý Hồ sơ Trùng lặp & Hoãn Tính năng Nâng cao (ALIGN-01)
+- **Tình huống:** Hội viên từng được tạo 2 hồ sơ độc lập tại 2 chi nhánh khác nhau.
+- **Kiểm tra Toàn vẹn Tiền xử lý (Pre-merge Inspection):**
+  - Bắt buộc kiểm tra đồng thời trên cả 2 hồ sơ: Gói tập đang hoạt động (`status = 'active'`), số buổi tập còn lại (`sessions_remaining`), công nợ chưa thanh toán, lịch sử giao dịch tài chính (`payment_transactions`) và nhật ký điểm danh (`attendance_logs`).
+  - **Nghiêm cấm mặc định lưu trữ (archive) hồ sơ phụ nếu hồ sơ đó còn gói active, còn buổi tập, còn công nợ hoặc có lịch sử giao dịch.**
+  - **Đồng bộ hóa Schema & Trạng thái Quản lý (ALIGN-01):** Hệ thống không tự ý thêm giá trị trạng thái mới (như `under_review`) vào cột `status` của schema hiện hữu khi chưa được phê duyệt. Thay vào đó, cả 2 hồ sơ được giữ nguyên trạng thái vận hành hiện tại (`active`), đồng thời gắn **Cờ Rà soát Hành chính Nội bộ (Administrative Review Flag `[PROPOSED]`)** để nhân viên quầy và quản lý nhận diện đối soát thủ công; tuyệt đối không tự ý thay đổi dữ liệu hoặc xóa bỏ lịch sử.
+- **Tính năng Sáp nhập Hồ sơ Nâng cao (Advanced Profile Merge — tự động gộp giao dịch tài chính và quyền lợi gói) chính thức đánh dấu là DEFERRED (Trì hoãn sang phase sau)** do cần thiết kế bổ sung quy tắc bảo toàn vết kiểm toán kế toán đa chi nhánh (`BR-MB-02`).
+
+---
+
+### 2.8. Quy trình 8: Standalone Workout Mode và Chuyển đổi sang Gym Member Mode
+
+#### Chế độ Tập luyện Độc lập (Standalone Workout Mode)
+- Dành cho người tập tự do, không tham gia bất kỳ phòng gym đối tác nào.
+- Toàn bộ tính năng tập luyện cá nhân hoạt động độc lập và không cần kết nối mạng: Tra cứu bài tập, tạo giáo án cá nhân, ghi chép từng hiệp tập, bấm giờ nghỉ, lưu trữ ngoại tuyến bằng SQLite cục bộ.
+
+#### Chuyển đổi sang Chế độ Hội viên (Gym Member Mode)
+- Khi người dùng đăng ký thẻ tập tại một phòng gym trên hệ thống và hoàn tất liên kết tài khoản (theo Quy trình 7).
+- Ứng dụng di động tự động kích hoạt giao diện tích hợp: Bổ sung thêm tab phòng gym, thông tin chi nhánh, mã QR check-in và lịch hẹn PT.
+
+#### Nguyên tắc Bất khả Xâm phạm Dữ liệu Tập luyện Cá nhân (Data Ownership Invariant)
+- **Quyền Sở hữu Tuyệt đối của Người dùng:** Toàn bộ nhật ký tập luyện cá nhân, các bài tập tự tạo và giáo án riêng của người dùng thuộc quyền sở hữu riêng của cá nhân. Phòng gym tuyệt đối không có quyền can thiệp, sửa đổi, khóa hoặc xóa dữ liệu tập luyện của hội viên.
+- **Bảo toàn khi Rời Phòng gym:** Khi hội viên hết hạn gói tập, chuyển phòng gym hoặc chấm dứt hợp đồng hội viên: Ứng dụng di động chuyển mượt mà trở lại Chế độ Tập luyện Độc lập (Standalone Mode). Toàn bộ lịch sử tập luyện cá nhân được bảo toàn trên thiết bị và tài khoản người dùng, không bị mất dữ liệu.
+
+---
+
+## CHƯƠNG 3: YÊU CẦU HỆ THỐNG TỔNG THỂ & RANH GIỚI NGOẠI TUYẾN
+
+### 3.1. Phân định Ranh giới Ngoại tuyến (Offline Boundary)
+
+| Phân hệ / Nghiệp vụ | Tính chất Ranh giới | Cơ chế Hoạt động & Đảm bảo Toàn vẹn |
 |---|---|---|
-| Khó lựa chọn bài tập | Không biết nên tập bài nào hoặc dùng thiết bị nào | Thư viện bài tập có tìm kiếm và bộ lọc |
-| Khó duy trì kế hoạch | Lịch tập thiếu nhất quán hoặc quá phức tạp | Kế hoạch tập luyện có thể tùy chỉnh |
-| Ghi chép mất thời gian | Phải ghi thủ công bằng giấy hoặc ứng dụng khác | Giao diện ghi nhận hiệp tập nhanh |
-| Dễ quên mức tạ và số lần lặp | Không nhớ kết quả của buổi trước | Lịch sử tập luyện và dữ liệu của từng bài |
-| Khó đánh giá tiến bộ | Thiếu dữ liệu để so sánh theo thời gian | Biểu đồ, thống kê và thành tích cá nhân |
-| Dễ gián đoạn buổi tập | Mất kết nối hoặc ứng dụng bị đóng | Lưu cục bộ, tự động lưu và khôi phục buổi tập |
-| Khó thao tác khi đang tập | Nút nhỏ, màn hình nhiều thông tin | Thiết kế mobile-first, vùng chạm lớn |
-| Thiếu động lực duy trì | Quên lịch tập hoặc không theo dõi mục tiêu | Nhắc nhở, mục tiêu và theo dõi thói quen |
+| **Workout Cá nhân** (Bài tập, Kế hoạch, Ghi hiệp, Timer, PR) | **Ngoại tuyến Cốt lõi (Offline-First Core)** | Hoạt động không cần kết nối Internet. Lưu trữ trực tiếp trên SQLite cục bộ (`gym-workout.db`). Đưa thay đổi vào hàng đợi đồng bộ nội bộ và gửi lên đám mây khi có kết nối mạng. |
+| **Quản lý Gói tập (Membership)** (Đăng ký, Kích hoạt, Gia hạn, Hủy) | **Thẩm quyền Máy chủ (Server-Authoritative)** | Bắt buộc kiểm tra tính hợp lệ và cập nhật trên Server/Database tập trung. Không cho phép client tự động kích hoạt hoặc sửa đổi ngày hết hạn để chống gian lận. |
+| **Điểm danh (Attendance)** (Check-in, Kiểm tra điều kiện gói) | **Trực tuyến Ưu tiên (Online-First)** | Điểm danh tại quầy kiểm tra điều kiện gói tập theo thời gian thực. *(Phương án Chế độ Điểm danh Khẩn cấp khi mất mạng quầy tiếp tân - Emergency Offline Queue - được đưa vào danh mục xem xét tại Phase 4 `[UNDECIDED: BR-AT-03]`).* |
+| **Giao dịch Tài chính (Payments)** (Thu phí, Hoàn tiền, Công nợ) | **Trực tuyến Tuyệt đối (Strictly Online-First)** | Bắt buộc xác nhận trực tuyến với cơ chế Idempotency Key để đảm bảo tính toàn vẹn tài chính, chống ghi đúp và bảo vệ vết kiểm toán. |
 
-### 2.3. Chuyển đổi nhu cầu thành chức năng
+### 3.2. Yêu cầu Chức năng Phân hệ Gym Management
+- **FR-GM (Gym & Chi nhánh):** Khởi tạo phòng gym (tenant), quản lý thông tin chi nhánh, cơ chế soft-deactivation chi nhánh (`archived`), mời và phân quyền nhân viên đa chi nhánh.
+- **FR-MB (Quản lý Hội viên):** Tạo hồ sơ hội viên walk-in, cấp mã định danh `member_code`, liên kết xác thực an toàn qua OTP, tra cứu hội viên tốc độ cao.
+- **FR-MS (Gói tập):** Quản lý danh mục gói, đăng ký gói, lưu trữ snapshot hợp đồng, quản lý vòng đời gói tập (pending, active, suspended, expired, cancelled).
+- **FR-AT (Điểm danh):** Kiểm tra điều kiện điểm danh tự động 6 bước, ghi nhật ký điểm danh bất biến, xử lý ngoại lệ sai chi nhánh / quá hạn / thao tác lặp.
+- **FR-PY (Tài chính & Thu chi):** Ghi nhận phiếu thu với Idempotency Key, xử lý thanh toán một phần/công nợ, hoàn tiền qua phiếu đảo ngược, đối soát doanh thu ca/ngày.
 
-| Nhu cầu | Chức năng tương ứng | Kết quả mong đợi |
+### 3.3. Yêu cầu Chức năng Phân hệ Workout & PT (Bảo toàn 100%)
+
+#### Nhóm Chức năng Workout Cá nhân (FR-01 đến FR-17)
+
+| Mã | Tên Yêu cầu | Mô tả Nghiệp vụ & Kỹ thuật Chi tiết |
 |---|---|---|
-| Cá nhân hóa trải nghiệm | Hồ sơ và onboarding | Thiết lập ban đầu phù hợp với người dùng |
-| Tìm bài tập | Exercise Library | Tra cứu nhanh theo nhóm cơ, thiết bị và độ khó |
-| Lập kế hoạch | Workout Plans | Tổ chức bài tập thành kế hoạch có cấu trúc |
-| Ghi nhận kết quả | Workout Session | Theo dõi hiệp, mức tạ, số lần lặp và thời gian nghỉ |
-| Theo dõi lịch sử | Workout History | Tra cứu các buổi tập đã hoàn thành |
-| Đánh giá tiến bộ | Progress Tracking | Xem xu hướng và thành tích theo thời gian |
-| Duy trì thói quen | Goals & Habits | Theo dõi mục tiêu và mức độ hoàn thành |
-| Quản lý phục hồi | Recovery | Ghi nhận tình trạng phục hồi do người dùng tự khai báo |
-| Không phụ thuộc mạng liên tục | Local Storage và Sync Queue | Lưu dữ liệu cục bộ và đồng bộ khi có mạng |
+| **FR-01** | Xác thực Người dùng | Đăng ký tài khoản, đăng nhập bằng email/mật khẩu, đăng xuất an toàn và quản lý phiên làm việc thông qua Supabase Auth. Lưu trữ thông tin xác thực nhạy cảm trong Expo SecureStore. |
+| **FR-02** | Quản lý Hồ sơ Cá nhân | Xem, chỉnh sửa thông tin cá nhân: Họ tên, ngày sinh, giới tính, chiều cao, cân nặng ban đầu và ảnh đại diện. |
+| **FR-03** | Khảo sát Ban đầu (Onboarding) | Thu thập mục tiêu tập luyện (tăng cơ, giảm mỡ, rèn sức bền), trình độ kinh nghiệm (mới tập, trung cấp, nâng cao) và số buổi tập dự kiến trong tuần. |
+| **FR-04** | Thư viện Bài tập | Tra cứu danh mục bài tập chuẩn; tìm kiếm theo tên bài tập; lọc bài tập đa tiêu chí: nhóm cơ chính/phụ, loại thiết bị dụng cụ và cấp độ khó; hiển thị hướng dẫn kỹ thuật chi tiết. |
+| **FR-05** | Kế hoạch Tập luyện (Workout Plans) | Tạo mới giáo án cá nhân, tùy biến danh sách bài tập, thiết lập số hiệp mục tiêu, mức tạ đề xuất, số reps và thời gian nghỉ giữa các hiệp. |
+| **FR-06** | Buổi tập Đang Diễn ra (Active Session) | Bắt đầu buổi tập từ giáo án có sẵn hoặc buổi tập tự do; tạm dừng, tiếp tục và kết thúc buổi tập; hỗ trợ chuyển trạng thái linh hoạt. |
+| **FR-07** | Ghi nhận Hiệp tập (Set Logging) | Ghi nhận nhanh mức tạ (kg/lbs quy đổi chuẩn về gram), số lần lặp (reps), kiểu hiệp (Warmup, Normal, Drop set, Failure) và đánh dấu hoàn thành hiệp bằng 1 chạm. |
+| **FR-08** | Đồng hồ Bấm giờ Nghỉ (Rest Timer) | Bấm giờ đếm ngược thời gian nghỉ giữa các hiệp; tính toán thời gian dựa trên mốc thời gian kết thúc dự kiến (`timestamp`) để không bị sai lệch khi ứng dụng chuyển xuống nền (background). |
+| **FR-09** | Tự động Lưu & Khôi phục (Auto-Save) | Tự động lưu tiến trình buổi tập theo thời gian thực vào SQLite; hỗ trợ khôi phục trọn vẹn phiên tập dở dang khi ứng dụng bị tắt đột ngột hoặc điện thoại hết pin. |
+| **FR-10** | Lịch sử Buổi tập (Workout History) | Xem danh sách các buổi tập đã hoàn thành theo dòng thời gian (ngày, tháng); xem chi tiết từng bài tập, tổng khối lượng tạ (volume) và thời lượng tập. |
+| **FR-11** | Theo dõi Tiến bộ (Progress Tracking) | Phân tích xu hướng tập luyện qua biểu đồ khối lượng (Volume Progression); thống kê kỷ lục cá nhân (Personal Record - PR) cho từng bài tập cụ thể. |
+| **FR-12** | Mục tiêu & Thói quen (Goals & Habits) | Thiết lập mục tiêu tần suất tập luyện hàng tuần; theo dõi chuỗi ngày tập liên tục (Streak) và tỷ lệ hoàn thành mục tiêu. |
+| **FR-13** | Tự Đánh giá Phục hồi (Recovery Check-in) | Cho phép người dùng tự đánh giá cảm nhận cơ thể (đau cơ, mức năng lượng, chất lượng giấc ngủ) theo thang điểm định tính; tuyệt đối không đưa ra chẩn đoán y tế. |
+| **FR-14** | Thông báo Nhắc nhở (Notifications) | Đặt lịch thông báo nhắc giờ tập theo thói quen; gửi thông báo hoàn thành đếm ngược thời gian nghỉ thông qua Expo Notifications. |
+| **FR-15** | Cài đặt Ứng dụng (App Settings) | Quản lý tùy chọn giao diện (Light Theme / Dark Theme / Hệ thống), đơn vị đo lường (kg/lbs), quyền riêng tư và xuất/xóa dữ liệu cá nhân. |
+| **FR-16** | Chế độ Ngoại tuyến Tuyệt đối (Offline-First) | Toàn bộ các thao tác cốt lõi (FR-04 đến FR-10) hoạt động trơn tru không cần kết nối Internet; đọc ghi trực tiếp trên SQLite cục bộ. |
+| **FR-17** | Hàng đợi Đồng bộ Đám mây (Sync Queue) | Đưa các thay đổi dữ liệu cục bộ vào hàng đợi đồng bộ (`sync_queue`), tự động đẩy lên Supabase Cloud khi thiết bị kết nối mạng trở lại với cơ chế Idempotency Key. |
 
-### 2.4. Nguyên tắc ưu tiên
+#### Nhóm Chức năng Huấn luyện viên Cá nhân (FR-WPT)
+- **FR-WPT-01 (Phân công & Bàn giao PT):** Hiển thị thông tin Trainer phụ trách; xử lý chuyển giao số buổi PT còn lại khi đổi huấn luyện viên; thu hồi quyền truy cập tức thì của Trainer cũ.
+- **FR-WPT-02 (Lịch hẹn PT):** Đặt lịch hẹn buổi tập cá nhân với PT; hỗ trợ dời lịch và thông báo xác nhận lịch hẹn.
+- **FR-WPT-03 (Khấu trừ Buổi tập PT):** Ghi nhận hoàn thành buổi tập với cơ chế xác thực 2 chiều; tự động trừ 1 buổi trong hợp đồng của hội viên.
+- **FR-WPT-04 (Mô hình Chấp thuận Chia sẻ Dữ liệu — Consent Model `[PROPOSED: BR-PT-03]`):** Hội viên chủ động cấp quyền chia sẻ lịch sử tập luyện cho Trainer phụ trách; có quyền thu hồi quyền xem dữ liệu bất kỳ lúc nào trên ứng dụng di động.
 
-Khi thiết kế tính năng, cần ưu tiên:
-
-- Giảm số lần chạm để hoàn thành thao tác thường xuyên.
-- Đặt thông tin quan trọng trong tầm nhìn và tầm với của ngón tay cái.
-- Hạn chế yêu cầu nhập lại dữ liệu đã có.
-- Bảo vệ dữ liệu buổi tập trước lỗi ứng dụng hoặc mất mạng.
-- Tránh hiển thị quá nhiều thông tin cùng lúc.
-- Không đưa ra kết luận y tế hoặc khuyến nghị tập luyện mang tính chẩn đoán chỉ dựa trên dữ liệu tự khai báo.
-
----
-
-## 3. Mục tiêu và phạm vi hệ thống
-
-### 3.1. Mục tiêu tổng quát
-
-Xây dựng ứng dụng di động giúp người dùng quản lý hoạt động tập luyện trong một hệ thống thống nhất, từ bước lựa chọn bài tập, thực hiện buổi tập đến lưu trữ và phân tích kết quả.
-
-### 3.2. Mục tiêu cụ thể
-
-- Cung cấp thư viện bài tập có khả năng tìm kiếm và lọc.
-- Cho phép tạo, chỉnh sửa và sử dụng kế hoạch tập luyện.
-- Hỗ trợ ghi nhận kết quả trong thời gian thực.
-- Tự động lưu tiến trình buổi tập.
-- Hiển thị lịch sử và các chỉ số tiến bộ.
-- Hỗ trợ mục tiêu, thói quen và nhắc nhở.
-- Cung cấp giao diện sáng và tối.
-- Tổ chức mã nguồn theo module để thuận tiện bảo trì.
-- Chuẩn bị cơ chế tích hợp backend và đồng bộ dữ liệu khi cần.
-
-### 3.3. Phạm vi phiên bản đầu tiên
-
-**Phạm vi cốt lõi (MVP):**
-
-1. Đăng ký, đăng nhập và quản lý hồ sơ.
-2. Onboarding và thiết lập ban đầu.
-3. Thư viện bài tập.
-4. Kế hoạch tập luyện.
-5. Ghi nhận buổi tập và đồng hồ nghỉ.
-6. Lưu trữ và xem lịch sử.
-7. Thống kê tiến bộ cơ bản.
-8. Mục tiêu và nhắc nhở cơ bản.
-9. Cài đặt giao diện sáng/tối.
-10. Lưu cục bộ và khôi phục buổi tập.
-
-**Phạm vi mở rộng:**
-
-- Phân tích chuyên sâu về hiệu suất.
-- Đồng bộ đa thiết bị và quản lý xung đột dữ liệu.
-- Tích hợp nguồn dữ liệu sức khỏe hoặc thiết bị bên ngoài.
-- Cá nhân hóa kế hoạch dựa trên lịch sử tập luyện.
-- Các tính năng nâng cao về phục hồi và thống kê.
-
-Các tính năng mở rộng chỉ nên triển khai sau khi những luồng cốt lõi hoạt động ổn định.
+### 3.4. Yêu cầu Phi chức năng Tổng thể (NFR)
+- **NFR-SEC-01 (Cách ly Tenant):** Dữ liệu giữa các phòng gym được cách ly; không thể truy vấn chéo dữ liệu giữa các tenant khác nhau.
+- **NFR-SEC-02 (Kiểm soát Quyền Server-side):** Toàn bộ quyền hạn dựa trên cơ sở dữ liệu vật lý; nhân viên bị đình chỉ bị chặn truy cập ngay tại request tiếp theo.
+- **NFR-DATA-01 (Toàn vẹn Dữ liệu Tài chính):** Giao dịch tài chính là append-only, hỗ trợ Idempotency Key chống ghi trùng lặp.
+- **NFR-PERF-01 (Hiệu năng Vận hành):** Tra cứu hội viên tại quầy phản hồi dưới 1 giây; thao tác điểm danh phản hồi dưới 500 ms trong điều kiện mạng ổn định.
+- **NFR-MOB-01 (Độc lập Ngoại tuyến):** Ứng dụng di động tự tập phản hồi ngay lập tức, không phụ thuộc độ trễ mạng Internet.
 
 ---
 
-## 4. Yêu cầu chức năng và phi chức năng
+## CHƯƠNG 4: KIẾN TRÚC HỆ THỐNG & NGUYÊN TẮC THIẾT KẾ
 
-### 4.1. Yêu cầu chức năng
+> **Nguyên tắc biên soạn:** Chương này mô tả các nguyên tắc kiến trúc cấp cao. Toàn bộ chi tiết kỹ thuật về DDL bảng, SQL, hàm RLS helper, Partial Index, RPC được chuyển và tham chiếu đến các tài liệu module kỹ thuật: [`docs/architecture.md`](./architecture.md), [`docs/admin-web.md`](./admin-web.md), [`docs/multi-tenancy.md`](./multi-tenancy.md), và [`docs/supabase-schema.md`](./supabase-schema.md).
 
-| Mã | Yêu cầu | Mô tả |
-|---|---|---|
-| FR-01 | Xác thực | Đăng ký, đăng nhập, đăng xuất và quản lý phiên |
-| FR-02 | Hồ sơ | Xem và cập nhật thông tin cá nhân |
-| FR-03 | Onboarding | Thu thập mục tiêu, kinh nghiệm và lựa chọn ban đầu |
-| FR-04 | Thư viện bài tập | Tìm kiếm, lọc và xem chi tiết bài tập |
-| FR-05 | Kế hoạch tập | Tạo, xem và chỉnh sửa kế hoạch |
-| FR-06 | Buổi tập | Bắt đầu, tạm dừng, tiếp tục và hoàn thành buổi tập |
-| FR-07 | Ghi nhận hiệp | Lưu số lần lặp, mức tạ và trạng thái hoàn thành |
-| FR-08 | Đồng hồ nghỉ | Bắt đầu, tạm dừng và kết thúc thời gian nghỉ |
-| FR-09 | Tự động lưu | Bảo toàn dữ liệu trong buổi tập đang diễn ra |
-| FR-10 | Lịch sử | Xem các buổi tập đã hoàn thành |
-| FR-11 | Theo dõi tiến bộ | Hiển thị thống kê và biểu đồ phù hợp |
-| FR-12 | Mục tiêu | Tạo và theo dõi mục tiêu tập luyện |
-| FR-13 | Phục hồi | Ghi nhận cảm nhận phục hồi theo lựa chọn của người dùng |
-| FR-14 | Thông báo | Nhắc lịch tập và các mục tiêu đã thiết lập |
-| FR-15 | Cài đặt | Quản lý giao diện, quyền riêng tư và tùy chọn ứng dụng |
-| FR-16 | Ngoại tuyến | Cho phép sử dụng các chức năng cốt lõi không cần mạng |
-| FR-17 | Đồng bộ | Đưa dữ liệu cục bộ lên máy chủ khi có kết nối và cấu hình backend phù hợp |
+### 4.1. Kiến trúc Tổng thể Đa tầng (Client-Server-Database)
+Hệ thống xây dựng theo mô hình dịch vụ đám mây tập trung phục vụ 2 nhóm máy trạm (clients):
+1. **Tầng Giao diện Người dùng (Clients):**
+   - *Admin Web Portal `[PROPOSED]`:* Xây dựng bằng Next.js App Router, phục vụ công tác điều hành và vận hành quầy tiếp tân.
+   - *Workout Mobile App `[APPROVED]`:* Xây dựng bằng React Native + Expo SDK 57, phục vụ hội viên và cộng đồng người tập thể hình.
+2. **Tầng Nền tảng Dữ liệu & Backend (Supabase Platform) `[APPROVED]`:**
+   - Dịch vụ Xác thực tập trung (Supabase Auth).
+   - Cơ sở dữ liệu quan hệ PostgreSQL với cơ chế phân quyền theo dòng (Row Level Security - RLS) gắn chặt với `gym_id`.
+   - Cổng Giao dịch Đột biến (Mutation Gateway) `[PROPOSED]`: Kết hợp Edge Functions (xử lý logic nghiệp vụ, mời nhân viên) và PostgreSQL RPC `SECURITY DEFINER` (xử lý các giao dịch kế toán và ghi chép đa bảng theo chuẩn ACID).
+   - Áp dụng nguyên tắc đặc quyền tối thiểu (Least Privilege): Thu hồi quyền ghi trực tiếp từ client lên các bảng quản lý đồng bộ.
 
-### 4.2. Yêu cầu phi chức năng
+### 4.2. Kiến trúc Bảo mật Phiên Web (Server-First Cookie SSR Architecture) `[PROPOSED]`
+- Quản lý phiên làm việc trên Admin Web bằng HTTP Cookies (`httpOnly: true, secure: true, sameSite: 'lax'`) thông qua `@supabase/ssr`.
+- Bảo vệ mã phiên bằng cách không lưu trữ token trong `localStorage` và cấu hình cấm JavaScript client truy cập trực tiếp cookie.
+- Phân quyền điều hướng trên Web được kiểm tra từ Middleware và Server Components máy chủ.
 
-**Hiệu năng**
-- Giao diện phản hồi nhanh với các thao tác thường xuyên.
-- Tránh tải lại toàn bộ màn hình khi chỉ thay đổi một hiệp tập.
-- Phân trang hoặc tải theo nhu cầu đối với dữ liệu lớn.
-
-**Độ tin cậy**
-- Dữ liệu buổi tập phải được lưu định kỳ.
-- Có thể khôi phục phiên tập chưa hoàn thành sau khi ứng dụng bị đóng.
-- Xử lý lỗi mạng mà không làm mất dữ liệu đã ghi nhận.
-
-**Bảo mật và quyền riêng tư**
-- Không lưu mật khẩu dạng văn bản thuần.
-- Sử dụng cơ chế xác thực phù hợp với backend.
-- Lưu thông tin xác thực nhạy cảm trong vùng lưu trữ bảo mật.
-- Chỉ yêu cầu quyền truy cập thiết bị khi chức năng thực sự cần.
-- Cung cấp phương án quản lý, xuất hoặc xóa dữ liệu theo phạm vi hệ thống hỗ trợ.
-
-**Khả năng bảo trì**
-- Có quy ước đặt tên thống nhất.
-- Tách giao diện, logic nghiệp vụ và tầng dữ liệu.
-- Có kiểm thử cho các chức năng quan trọng.
-- Dùng TypeScript để kiểm soát kiểu dữ liệu.
-
-**Khả năng tiếp cận**
-- Đảm bảo độ tương phản văn bản phù hợp.
-- Hỗ trợ phóng to chữ theo cài đặt hệ điều hành.
-- Không chỉ dùng màu sắc để biểu đạt trạng thái.
-- Đảm bảo các nút quan trọng có vùng chạm đủ lớn.
+### 4.3. Ứng dụng Di động Workout Mobile (Expo/React Native) `[APPROVED]`
+- Kiến trúc module hóa theo tính năng (Feature-based Modular Architecture).
+- Điều hướng dựa trên tệp với Expo Router.
+- Lưu trữ cục bộ hoàn chỉnh bằng Expo SQLite v1 (`gym-workout.db`).
+- Khử phụ thuộc bộ đếm JavaScript: Tính thời gian nghỉ dựa trên mốc thời gian (`timestamp`).
 
 ---
 
-## 5. Kiến trúc module tái sử dụng
+## CHƯƠNG 5: THIẾT KẾ DỮ LIỆU & CHIẾN LƯỢC MIGRATION TỔNG THỂ
 
-### 5.1. Nguyên tắc kiến trúc
+### 5.1. Phân tầng Cơ sở Dữ liệu & Danh mục Nhóm Migration Chuẩn hóa `[PROPOSED]`
+1. **Phân hệ Core Workout (Đã có):** Gồm 7 bảng phục vụ tập luyện cá nhân (`users`, `exercises`, `workout_plans`, `plan_exercises`, `workout_sessions`, `session_exercises`, `workout_sets`).
+2. **Phân hệ Multi-Tenant Gym Management (Mở rộng theo Phase):**
+   - *Nhóm GM-1 (Phòng gym & Nhân sự) `[PROPOSED]`:* `gyms`, `branches`, `gym_staff`.
+   - *Nhóm GM-2 (Hội viên) `[PROPOSED]`:* `gym_members`.
+   - *Nhóm GM-3 (Gói tập) `[PROPOSED]`:* `membership_plans`, `membership_plan_branches`, `memberships`.
+   - *Nhóm GM-3b (Payment Core Tối thiểu) `[PROPOSED]`:* Bảng `payment_transactions` tối thiểu (`id`, `gym_id`, `branch_id`, `member_id`, `membership_id`, `amount BIGINT`, `payment_method`, `status`, `idempotency_key`, `recorded_by`, `recorded_at`, `created_at`, `version`) phục vụ ghi nhận phiếu thu kích hoạt gói tập ngay trong Phase 4. Đã thống nhất đặt mã duy nhất là `GM-3b` để xóa bỏ hoàn toàn sự mơ hồ kỹ thuật.
+   - *Nhóm GM-4 (Điểm danh) `[PROPOSED]`:* `attendance_logs`.
+   - *Nhóm GM-5 (Tài chính Nâng cao & PT) `[PROPOSED]`:* Mở rộng `payment_transactions` (refunds, công nợ, đối soát), `pt_sessions`, `pt_member_assignments`.
 
-Ứng dụng được tổ chức theo hướng **feature-based modular architecture**: mỗi module nghiệp vụ chịu trách nhiệm cho một nhóm chức năng cụ thể.
+### 5.2. Đối chiếu Hiện trạng Cơ sở Dữ liệu Thực tế
+- **VERIFIED BASELINE (Kiểm tra tĩnh trong Source Code):** 6 bảng SQLite v1 trên ứng dụng di động (`exercises`, `workout_plans`, `plan_exercises`, `workout_sessions`, `session_exercises`, `workout_sets`). *(Bằng chứng: [`src/shared/storage/schema.ts`](../src/shared/storage/schema.ts#L10-L115))*.
+- **VERIFIED IN HISTORICAL TEST SUITES (Đã kiểm thử trong các phiên trước):** Toàn bộ bộ test Jest kiểm tra migration và repositories SQLite v1 đã đạt theo biên bản nghiệm thu trước đây. *(Bằng chứng: [`__tests__/storage-test.ts`](../__tests__/storage-test.ts); lưu ý trong phiên hiện tại chưa chạy lại lệnh `npm test` do tuân thủ nguyên tắc READ-ONLY)*.
+- **NOT VERIFIED INDEPENDENTLY (Trạng thái Supabase Cloud báo cáo bởi người dùng ngày 2026-10-22):** 4 file migration v1 cho 7 bảng core workout đã chạy thủ công trong SQL Editor; RLS bật trên cả 7 bảng; `service_role` và `anon` bị thu hồi quyền bảng. *(Chưa được kiểm chứng độc lập trong phiên làm việc; kiểm thử local T13 vẫn BLOCKED; không đánh đồng đây là quyết định đã phê duyệt hay verified production)*.
+- **Toàn bộ Phân hệ Gym Management (GM-1 đến GM-5):** Đang ở trạng thái **ĐẶC TẢ THIẾT KẾ (PROPOSED)**, chưa tạo file migration và chưa thực thi SQL.
 
-Kiến trúc tuân theo các nguyên tắc:
+---
 
-1. Mỗi module có trách nhiệm rõ ràng.
-2. Giao diện không trực tiếp phụ thuộc vào cách lưu trữ dữ liệu.
-3. Các thành phần dùng chung được đặt trong thư mục shared.
-4. Tái sử dụng thông qua component, hook, service và type.
-5. Các module trao đổi dữ liệu qua interface hoặc API đã xác định.
-6. Tránh để module nghiệp vụ phụ thuộc vòng lẫn nhau.
-7. Không đưa toàn bộ logic vào component màn hình.
+## CHƯƠNG 6: HỆ THỐNG THIẾT KẾ (DESIGN SYSTEM) & TRẢI NGHIỆM NGƯỜI DÙNG
 
-### 5.2. Cấu trúc thư mục đề xuất
+### 6.1. Design System Web Portal
+- Tối ưu hóa cho nghiệp vụ quầy lễ tân: Giao diện mật độ thông tin cao, hỗ trợ phím tắt tìm kiếm hội viên và quét điểm danh nhanh.
+- Thiết kế Dashboard phân cấp: Chủ chuỗi xem báo cáo tổng hợp dòng tiền; Quản lý xem chỉ số chi nhánh; Tiếp tân xem ca làm việc trực quan.
+
+### 6.2. Design System Mobile App (Bảo toàn 100%)
+
+#### Triết lý Thiết kế & Định vị
+- **Phong cách:** Minimalist Fitness + Performance — Tối ưu hóa sự tập trung, loại bỏ chi tiết thừa, ưu tiên thao tác một tay trong phòng tập.
+- **Quy chuẩn Tiếp cận:** Đạt chuẩn độ tương phản **WCAG 2.2 AA**, vùng chạm tối thiểu **44 × 44 px**, chiều cao nút bấm chính **48 px**, hệ thống khoảng cách spacing theo bội số **4/8 px**.
+
+#### Bảng màu Chuẩn hóa (Color Tokens)
+
+| Token | Dark Theme HEX | Light Theme HEX | Ứng dụng & Ý nghĩa Giao diện | Tỷ lệ Tương phản WCAG |
+|---|---|---|---|---|
+| `background` | `#121417` | `#F7F8FA` | Nền màn hình chính | Nền chuẩn |
+| `surface` | `#1C2025` | `#FFFFFF` | Nền thẻ (card), thanh điều hướng, modal | Phân tách lớp nội dung |
+| `surface-elevated` | `#292F36` | `#E8ECF1` | Thành phần nổi, chip, trường input | Tăng chiều sâu thị giác |
+| `text-primary` | `#F4F6F8` | `#171A1F` | Văn bản chính, tiêu đề, số đo tạ/reps | > 16:1 (Đạt AAA) |
+| `text-secondary` | `#B0B8C2` | `#525B66` | Văn bản phụ, nhãn chú thích, thời gian | > 6.4:1 (Đạt AA & AAA) |
+| `brand-primary` | `#FF6B35` | `#C94718` | Nút hành động chính (Primary CTA), điểm nhấn | > 4.7:1 (Đạt AA) |
+| `info` | `#65BFFF` | `#075EA8` | Thông tin, hướng dẫn, trạng thái đang chờ | > 6.5:1 (Đạt AA & AAA) |
+| `success` | `#57D68D` | `#167447` | Điểm danh thành công, hoàn thành hiệp, PR mới | > 5.8:1 (Đạt AA) |
+| `danger` | `#FF7777` | `#B42318` | Lỗi điểm danh, gói hết hạn, xóa dữ liệu | Cảnh báo rõ ràng |
+
+#### Typography & Spacing Tokens
+- **Typography:** Font **Inter** (hoặc System font) hỗ trợ đầy đủ tiếng Việt.
+  - `display`: 32 px / Bold (Số liệu PR nổi bật)
+  - `h1`: 28 px / Bold (Tiêu đề màn hình)
+  - `h2`: 24 px / Bold (Tiêu đề nhóm nội dung)
+  - `h3`: 20 px / Semi-bold (Tiêu đề thẻ bài tập)
+  - `title`: 18 px / Semi-bold (Tiêu đề thành phần)
+  - `body`: 16 px / Regular (Nội dung chính, số đo hiệp)
+  - `body-small`: 14 px / Regular (Nội dung phụ, hướng dẫn)
+  - `caption`: 12 px / Regular (Chú thích, mốc thời gian)
+- **Hệ thống Spacing (Đơn vị cơ sở 4 px):** `space-1` (4px), `space-2` (8px), `space-3` (12px), `space-4` (16px - padding thẻ), `space-5` (20px - lề màn hình), `space-6` (24px), `space-8` (32px).
+
+#### Cấu trúc Điều hướng 5 Tab (Mobile Bottom Navigation)
+1. **Home:** Lịch tập gần nhất, chỉ số tổng quan trong tuần, nút bắt đầu buổi tập nhanh.
+2. **Workouts:** Quản lý giáo án, danh sách kế hoạch tập luyện, lịch sử buổi tập.
+3. **Exercises:** Thư viện tra cứu bài tập, bộ lọc nhóm cơ và thiết bị.
+4. **Progress:** Biểu đồ thể tích khối lượng tạ (Volume), danh sách kỷ lục cá nhân (PR).
+5. **Profile / Gym:** Hồ sơ cá nhân, cài đặt giao diện, chuyển đổi mượt mà giữa Standalone Mode và Gym Member Mode (thẻ QR, chi nhánh, gói tập).
+
+---
+
+## CHƯƠNG 7: ĐẶC TẢ MVP GYM MANAGEMENT VÀ TIÊU CHÍ NGHIỆM THU PHÁT HÀNH
+
+### 7.1. Định nghĩa MVP: Chu trình Kinh doanh Khép kín (Closed Business Cycle)
+MVP Gym Management là một **Chu trình Kinh doanh Khép kín** hoàn chỉnh có thể vận hành và nghiệm thu thực tế:
 
 ```text
-src/
-├── app/
-│   ├── _layout.tsx
-│   ├── index.tsx
-│   ├── (auth)/
-│   │   ├── login.tsx
-│   │   └── register.tsx
-│   └── (tabs)/
-│       ├── index.tsx
-│       ├── workouts.tsx
-│       ├── exercises.tsx
-│       ├── progress.tsx
-│       └── profile.tsx
-│
-├── modules/
-│   ├── auth/
-│   │   ├── screens/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   └── types/
-│   ├── user-profile/
-│   ├── onboarding/
-│   ├── exercise-library/
-│   ├── workout-plans/
-│   ├── workout-session/
-│   ├── workout-history/
-│   ├── progress-tracking/
-│   ├── goals-habits/
-│   ├── recovery/
-│   ├── notifications/
-│   └── app-settings/
-│
-├── shared/
-│   ├── design-system/
-│   │   ├── tokens/
-│   │   ├── theme/
-│   │   └── components/
-│   ├── navigation/
-│   ├── api-client/
-│   ├── storage/
-│   ├── analytics/
-│   ├── validation/
-│   ├── config/
-│   └── testing/
-│
-└── types/
+[Khởi tạo Gym & Chi nhánh] ──► [Mời Nhân viên & Phân quyền] ──► [Tạo Gói tập] 
+            │
+            ▼
+[Tiếp nhận Hội viên] ──► [Bán gói & Thu phí (Payment Core GM-3b)] ──► [Điểm danh tại quầy] ──► [Đối soát Báo cáo]
 ```
 
-Đây là cấu trúc tham khảo. Các thư mục có thể được bổ sung dần theo nhu cầu thực tế, tránh tạo quá nhiều lớp trừu tượng khi dự án còn nhỏ.
+### 7.2. Phân định Payment Core và Payment Advanced `[PROPOSED]`
+- **Payment Core (Nhóm GM-3b — Sẵn sàng Phase 4 `[PROPOSED]`):**
+  - Ghi nhận phiếu thu tiền mặt/chuyển khoản với trạng thái `completed`.
+  - Hỗ trợ mã Idempotency Key chống ghi trùng lặp.
+  - Số tiền lưu bằng số nguyên đồng VND (`amount BIGINT` `[PROPOSED]`).
+  - Cập nhật liên kết trực tiếp với hợp đồng gói tập `membership_id` để kích hoạt gói từ `pending` sang `active` theo chính sách thanh toán đầy đủ 100%.
+- **Payment Advanced (Nhóm GM-5 — Phase 5 `[PROPOSED]`):**
+  - Quản lý công nợ phức tạp và lịch trình trả góp.
+  - Tích hợp cổng thanh toán trực tuyến tự động qua Webhook.
+  - Báo cáo phân tích doanh thu đa chiều và đối soát ngân hàng tự động.
 
-### 5.3. Các module nghiệp vụ
+### 7.3. Phân tách Độc lập các Cổng Nghiệm thu Phát hành `[PROPOSED]`
 
-| Module | Trách nhiệm | Thành phần chính |
+#### Cổng 1: Gym Management MVP Release Gate (Nghiệm thu sau Phase 5 `[PROPOSED]`)
+*Độc lập hoàn toàn với phân hệ PT; cho phép phát hành sớm hệ thống quản trị phòng gym cho các cơ sở không có nhu cầu PT:*
+
+| Mã Tiêu chí | Nhóm Kiểm định | Điều kiện Nghiệm thu Định lượng Bắt buộc |
 |---|---|---|
-| `auth` | Xác thực và quản lý phiên | LoginScreen, RegisterScreen, useAuth, authService |
-| `user-profile` | Quản lý hồ sơ cá nhân | ProfileScreen, ProfileForm, profileService |
-| `onboarding` | Thiết lập ban đầu | OnboardingScreen, GoalSelector, onboardingService |
-| `exercise-library` | Quản lý dữ liệu bài tập | ExerciseList, ExerciseCard, ExerciseFilter, exerciseService |
-| `workout-plans` | Quản lý kế hoạch tập | WorkoutPlanList, PlanDetail, planService |
-| `workout-session` | Xử lý buổi tập đang diễn ra | ActiveWorkoutScreen, SetLogger, RestTimer, sessionService |
-| `workout-history` | Truy vấn lịch sử | WorkoutHistoryScreen, WorkoutDetail, historyService |
-| `progress-tracking` | Phân tích tiến bộ | ProgressScreen, ProgressChart, progressService |
-| `goals-habits` | Quản lý mục tiêu và thói quen | GoalCard, HabitTracker, goalService |
-| `recovery` | Ghi nhận trạng thái phục hồi | RecoveryCheckIn, recoveryService |
-| `notifications` | Lập lịch thông báo | NotificationSettings, notificationService |
-| `app-settings` | Quản lý tùy chọn | SettingsScreen, ThemeSelector, settingsService |
+| **AC-REL-01** | **Tenant Isolation** | 100% các câu truy vấn thử nghiệm chéo giữa 2 tài khoản thuộc 2 phòng gym khác nhau bị từ chối; kết quả trả về rỗng hoặc lỗi phân quyền. |
+| **AC-REL-02** | **RBAC & Active Enforcement** | Nhân viên bị chuyển sang trạng thái `suspended` bị từ chối thực hiện mọi mutation và query nghiệp vụ ngay tại request tiếp theo. |
+| **AC-REL-03** | **Transaction Idempotency** | Gửi lặp 10 requests thanh toán hoặc điểm danh đồng thời với cùng Idempotency Key chỉ sinh ra duy nhất 1 bản ghi giao dịch trong cơ sở dữ liệu. |
+| **AC-REL-04** | **Attendance Consistency** | Động cơ kiểm tra điều kiện từ chối điểm danh chính xác 100% trong các ca kiểm thử: gói hết hạn, sai chi nhánh, gói bị tạm dừng, hoặc hết số lượt tập. |
+| **AC-REL-06** | **Mobile Regression Suite** | Toàn bộ bộ test suites tự động cho phân hệ tập luyện cá nhân (AC-01 đến AC-12) đạt tỷ lệ Pass 100%, không phát sinh lỗi nghiêm trọng (Blocker/Critical = 0). |
 
-### 5.4. Các module dùng chung
+#### Cổng 2: PT & Personal Training Integration Gate (Nghiệm thu sau Phase 6 `[PROPOSED]`)
+*Áp dụng nghiệm thu riêng tại Phase 6 khi phân hệ Huấn luyện viên cá nhân hoàn thành:*
 
-| Module | Trách nhiệm |
-|---|---|
-| `design-system` | Màu sắc, typography, spacing và component dùng chung |
-| `navigation` | Cấu hình điều hướng và các quy tắc chuyển màn hình |
-| `api-client` | Gửi yêu cầu HTTP, quản lý lỗi và chuẩn hóa phản hồi |
-| `storage` | Lưu dữ liệu cục bộ, quản lý cơ sở dữ liệu và hàng đợi đồng bộ |
-| `analytics` | Ghi nhận sự kiện sử dụng khi được phép |
-| `validation` | Kiểm tra dữ liệu đầu vào |
-| `config` | Quản lý cấu hình môi trường và các hằng số |
-| `testing` | Tiện ích kiểm thử, mock và dữ liệu mẫu |
+| Mã Tiêu chí | Nhóm Kiểm định | Điều kiện Nghiệm thu Định lượng Bắt buộc |
+|---|---|---|
+| **AC-REL-05** | **PT Privacy & Explicit Consent** | Huấn luyện viên bị từ chối truy cập dữ liệu tập luyện của hội viên khi chưa có bản ghi chấp thuận (Consent); thu hồi quyền có hiệu lực ngay ở request tiếp theo. |
+| **AC-REL-07** | **PT Scheduling & Consumption** | Đặt lịch PT không bị trùng giờ; hoàn thành buổi tập hợp lệ tự động khấu trừ chính xác 1 buổi trong `pt_sessions_remaining` của hội viên. |
 
-### 5.5. Phân chia trách nhiệm bên trong module
-
-Mỗi module có thể bao gồm các thành phần sau:
-
-- **Screens:** Màn hình giao tiếp với người dùng.
-- **Components:** Thành phần giao diện đặc thù của module.
-- **Hooks:** Đóng gói trạng thái và logic có thể tái sử dụng.
-- **Services:** Thực hiện nghiệp vụ hoặc giao tiếp với tầng dữ liệu.
-- **Types:** Khai báo kiểu dữ liệu và hợp đồng giao tiếp.
-- **Validation:** Kiểm tra dữ liệu nếu module có quy tắc riêng.
-
-Ví dụ, module `workout-session` có thể sử dụng `ActiveWorkoutScreen` để hiển thị buổi tập, `SetLogger` để nhập thông số hiệp, `useWorkoutSession` để quản lý trạng thái và `sessionService` để lưu dữ liệu.
-
-Không phải module nào cũng cần đầy đủ tất cả thư mục. Cấu trúc nên phản ánh nhu cầu thực tế của module.
+#### Cổng 3: Full Platform Production Release Gate (Phase 7 `[PROPOSED]`)
+*Áp dụng nghiệm thu tổng thể toàn nền tảng sau khi hoàn tất kiểm thử tải (Performance Testing), bảo mật chuyên sâu (Security Hardening), kiểm thử E2E đa vai trò và xác minh runtime trên cả iOS và Android.*
 
 ---
 
-## 6. Danh sách chức năng và công nghệ React Native/Expo
+### 7.4. Tiêu chí Nghiệm thu Chức năng Ứng dụng Di động (Bảo toàn 100% AC-01 đến AC-12)
 
-### 6.1. Công nghệ nền tảng
-
-| Công nghệ | Vai trò |
-|---|---|
-| React Native | Xây dựng giao diện ứng dụng iOS và Android |
-| Expo | Quản lý quy trình phát triển và tích hợp API thiết bị |
-| TypeScript | Kiểm soát kiểu dữ liệu và hỗ trợ bảo trì |
-| Expo Router | Điều hướng dựa trên cấu trúc tệp |
-| React Hooks | Quản lý trạng thái và logic giao diện |
-| Expo SecureStore | Lưu trữ thông tin nhạy cảm phù hợp với khả năng của nền tảng |
-| SQLite | Lưu trữ dữ liệu có cấu trúc trên thiết bị |
-| Expo Notifications | Quản lý thông báo và nhắc nhở |
-| Expo Haptics | Phản hồi rung khi có tương tác phù hợp |
-| Expo ImagePicker | Chọn hình ảnh từ thiết bị nếu cần |
-| Expo Camera | Tích hợp camera khi có chức năng sử dụng |
-| Expo Video | Phát video hướng dẫn bài tập |
-| Expo Network | Kiểm tra trạng thái kết nối mạng |
-| Expo FileSystem | Làm việc với tệp cục bộ |
-| Expo Sharing | Chia sẻ dữ liệu hoặc tệp được xuất |
-| AppState | Theo dõi trạng thái hoạt động của ứng dụng |
-| React Native Safe Area Context | Xử lý vùng an toàn của màn hình |
-
-Việc sử dụng từng thư viện cần căn cứ vào phiên bản Expo SDK đang triển khai và tài liệu tương ứng. Không phải chức năng nào cũng cần đưa vào MVP.
-
-### 6.2. Chức năng xác thực và hồ sơ
-
-**Chức năng:**
-- Đăng ký và đăng nhập.
-- Đăng xuất.
-- Khôi phục hoặc làm mới phiên theo cơ chế backend.
-- Xem và cập nhật hồ sơ.
-- Thiết lập mục tiêu và thông tin ban đầu.
-- Kiểm soát trạng thái đã hoàn thành onboarding.
-
-**Công nghệ liên quan:**
-- Expo Router.
-- React Hooks.
-- Expo SecureStore.
-- API client.
-- Validation.
-
-**Lưu ý:** SecureStore phù hợp với dữ liệu nhạy cảm có dung lượng nhỏ, chẳng hạn token. Dữ liệu nghiệp vụ lớn không nên được lưu trực tiếp trong SecureStore.
-
-### 6.3. Thư viện bài tập
-
-**Chức năng:**
-- Hiển thị danh sách bài tập.
-- Tìm kiếm theo tên.
-- Lọc theo nhóm cơ.
-- Lọc theo thiết bị.
-- Lọc theo độ khó.
-- Xem chi tiết và hướng dẫn thực hiện.
-- Phát video minh họa nếu có tài nguyên.
-
-**Công nghệ liên quan:**
-- React Native components.
-- Hooks để quản lý bộ lọc.
-- Expo Video.
-- SQLite hoặc API backend để lấy dữ liệu.
-
-### 6.4. Kế hoạch tập luyện
-
-**Chức năng:**
-- Xem danh sách kế hoạch.
-- Xem các buổi tập trong kế hoạch.
-- Thêm hoặc xóa bài tập.
-- Điều chỉnh thứ tự bài tập.
-- Tùy chỉnh số hiệp, số lần lặp và thời gian nghỉ.
-- Khởi tạo buổi tập từ một kế hoạch.
-
-**Công nghệ liên quan:**
-- React Hooks.
-- Expo Router.
-- SQLite.
-- API client khi cần đồng bộ.
-
-### 6.5. Buổi tập đang diễn ra
-
-Đây là module quan trọng nhất về trải nghiệm sử dụng vì người dùng thường thao tác nhanh và liên tục trong quá trình tập.
-
-**Chức năng:**
-- Bắt đầu buổi tập.
-- Hiển thị danh sách bài tập.
-- Ghi nhận số hiệp, số lần lặp và mức tạ.
-- Đánh dấu hiệp đã hoàn thành.
-- Bắt đầu và điều chỉnh thời gian nghỉ.
-- Tạm dừng hoặc tiếp tục.
-- Tự động lưu tiến trình.
-- Khôi phục buổi tập chưa hoàn thành.
-- Tổng kết khi kết thúc.
-
-**Công nghệ liên quan:**
-- SQLite để lưu dữ liệu cục bộ.
-- Expo Haptics cho phản hồi tương tác.
-- AppState để xử lý trạng thái ứng dụng.
-- Expo Notifications nếu cần nhắc thời gian nghỉ khi ứng dụng ở nền.
-- Expo Network để nhận biết thay đổi kết nối.
-
-**Nguyên tắc quan trọng:** Không phụ thuộc hoàn toàn vào bộ đếm thời gian chạy liên tục trong JavaScript. Với đồng hồ nghỉ, nên lưu thời điểm kết thúc dự kiến rồi tính thời gian còn lại khi giao diện cập nhật hoặc ứng dụng quay lại foreground. Điều này giúp giảm sai lệch khi ứng dụng bị đưa xuống nền.
-
-### 6.6. Lịch sử và theo dõi tiến bộ
-
-**Chức năng:**
-- Xem lịch sử theo ngày.
-- Xem chi tiết từng buổi tập.
-- Theo dõi khối lượng tập luyện.
-- Theo dõi mức tạ và số lần lặp.
-- Ghi nhận thành tích cá nhân (Personal Records — PR).
-- Hiển thị biểu đồ theo thời gian.
-
-**Công nghệ liên quan:**
-- SQLite hoặc API backend.
-- Thư viện biểu đồ tương thích với React Native/Expo.
-- TypeScript để định nghĩa dữ liệu thống kê.
-
-Các chỉ số phải được định nghĩa rõ ràng. Ví dụ, tổng khối lượng tập có thể được tính bằng tổng của `weight × reps` trên những hiệp hợp lệ. Cần quy định đơn vị, cách xử lý bài tập dùng trọng lượng cơ thể và cách loại trừ dữ liệu không hợp lệ để tránh kết quả thống kê gây hiểu nhầm.
-
-### 6.7. Mục tiêu, phục hồi và thông báo
-
-**Mục tiêu và thói quen:**
-- Tạo mục tiêu theo thời gian.
-- Theo dõi mức độ hoàn thành.
-- Ghi nhận thói quen tập luyện.
-
-**Phục hồi:**
-- Cho phép người dùng tự đánh giá trạng thái phục hồi.
-- Lưu lịch sử check-in.
-- Hiển thị dữ liệu theo thời gian.
-- Không sử dụng dữ liệu này như một chẩn đoán y tế.
-
-**Thông báo:**
-- Nhắc lịch tập theo lựa chọn của người dùng.
-- Cho phép bật/tắt từng loại nhắc nhở.
-- Xử lý quyền thông báo.
-- Cập nhật hoặc hủy lịch thông báo khi cài đặt thay đổi.
+| Mã Tiêu chí | Hạng mục Kiểm thử | Điều kiện Nghiệm thu Đo lường Được (Acceptance Criteria) |
+|---|---|---|
+| **AC-01** | Xác thực & Phiên làm việc | Đăng ký, đăng nhập thành công trả về JWT token hợp lệ lưu trong SecureStore; xử lý đúng mã lỗi khi sai mật khẩu; đăng xuất xóa sạch phiên. |
+| **AC-02** | Thư viện Bài tập | Tìm kiếm theo từ khóa phản hồi dưới 300ms; lọc theo nhóm cơ và thiết bị trả về chính xác 100% bài tập thỏa mãn điều kiện lọc. |
+| **AC-03** | Kế hoạch Tập luyện | Tạo kế hoạch mới lưu thành công vào SQLite; chỉnh sửa thứ tự bài tập và thông số hiệp được bảo toàn nguyên vẹn sau khi thoát màn hình. |
+| **AC-04** | Ghi nhận Hiệp tập | Nhập số kg và reps hợp lệ lưu ngay vào cơ sở dữ liệu cục bộ; hiển thị dấu tích xanh hoàn thành; không bị mất dữ liệu khi chuyển qua ứng dụng khác. |
+| **AC-05** | Đồng hồ Nghỉ (Rest Timer) | Đếm ngược chính xác; tính toán thời gian còn lại dựa trên `target_end_timestamp` khi ứng dụng quay lại từ background; gửi thông báo rung haptic khi hết giờ. |
+| **AC-06** | Tự động Lưu & Khôi phục | Khi ứng dụng bị tắt đột ngột (crash/kill process), mở lại ứng dụng hiển thị thông báo "Khôi phục buổi tập dở dang" với 100% số hiệp đã ghi nhận trước đó. |
+| **AC-07** | Độc lập Ngoại tuyến | Ngắt kết nối Wi-Fi/4G: Toàn bộ thao tác tạo kế hoạch, tra cứu bài tập, ghi hiệp buổi tập hoạt động bình thường, không hiển thị dialog lỗi mạng chặn người dùng. |
+| **AC-08** | Đồng bộ Hàng đợi Đám mây | Bật lại kết nối mạng: Các bản ghi trong `sync_queue` tự động gửi lên server theo thứ tự thời gian; xử lý idempotency chống tạo bản ghi trùng lặp. |
+| **AC-09** | Lịch sử Buổi tập | Buổi tập sau khi bấm "Hoàn thành" lập tức xuất hiện ở đầu danh sách Lịch sử; hiển thị đầy đủ tổng thời lượng, tổng khối lượng (volume) và danh sách bài tập. |
+| **AC-10** | Thống kê & Kỷ lục (PR) | Ghi nhận mức tạ cao nhất mới (PR) cho bài tập tự động kích hoạt badge chúc mừng; biểu đồ Volume cập nhật điểm dữ liệu mới chính xác theo công thức `Σ(weight × reps)`. |
+| **AC-11** | Giao diện Đa Theme | Chuyển đổi giữa Light Theme và Dark Theme cập nhật tức thì toàn bộ màn hình; không xảy ra hiện tượng chớp nháy màu (FOUC) hoặc sai mã màu token. |
+| **AC-12** | Quy chuẩn Accessibility | 100% các nút bấm chính đạt chiều cao ≥ 48px; vùng chạm tương tác ≥ 44×44px; độ tương phản văn bản đạt chuẩn WCAG 2.2 AA (văn bản thường ≥ 4.5:1). |
 
 ---
 
-## 7. Thiết kế kiến trúc dữ liệu và hoạt động ngoại tuyến
+### 7.5. Kịch bản Kiểm thử E2E Chu trình Kinh doanh Gym MVP `[PROPOSED]`
 
-### 7.1. Mô hình dữ liệu khái quát
-
-Các thực thể chính gồm:
-
-| Thực thể | Dữ liệu tiêu biểu | Quan hệ |
-|---|---|---|
-| User | ID, thông tin hồ sơ, tùy chọn | Có nhiều kế hoạch và buổi tập |
-| Exercise | ID, tên, nhóm cơ, thiết bị, độ khó | Có thể được sử dụng trong nhiều kế hoạch |
-| WorkoutPlan | ID, tên, mô tả | Chứa nhiều bài tập |
-| PlanExercise | Plan ID, Exercise ID, thứ tự, cấu hình | Liên kết kế hoạch với bài tập |
-| WorkoutSession | ID, thời gian bắt đầu/kết thúc, trạng thái | Thuộc về người dùng |
-| SessionExercise | Session ID, Exercise ID, thứ tự | Liên kết buổi tập với bài tập |
-| WorkoutSet | ID, số hiệp, mức tạ, số lần lặp, trạng thái | Thuộc về bài tập trong buổi tập |
-| Goal | ID, loại mục tiêu, giá trị mục tiêu, thời hạn | Thuộc về người dùng |
-| RecoveryCheckIn | ID, thời điểm, các chỉ số tự khai báo | Thuộc về người dùng |
-| AppSettings | Theme, tùy chọn thông báo và cấu hình | Thuộc về người dùng hoặc thiết bị |
-
-Đây là mô hình logic ban đầu. Cấu trúc bảng, khóa ngoại và quy tắc xóa cần được xác định chi tiết khi triển khai SQLite hoặc backend.
-
-### 7.2. Chiến lược lưu trữ
-
-Nên phân chia dữ liệu theo mức độ nhạy cảm và tính chất sử dụng:
-
-- **SecureStore:** Token hoặc thông tin xác thực cần được bảo vệ.
-- **SQLite:** Kế hoạch, bài tập, lịch sử, trạng thái buổi tập và dữ liệu nghiệp vụ cục bộ.
-- **Bộ nhớ ứng dụng:** Trạng thái giao diện tạm thời, bộ lọc hoặc dữ liệu không cần lưu lâu dài.
-- **Backend:** Dữ liệu tài khoản và dữ liệu cần đồng bộ giữa các thiết bị, tùy phạm vi triển khai.
-
-Không nên lưu tất cả dữ liệu nghiệp vụ trong AsyncStorage hoặc SecureStore. Cần chọn nơi lưu dựa trên kích thước, cấu trúc và yêu cầu bảo mật của dữ liệu.
-
-### 7.3. Quy trình hoạt động ngoại tuyến
+Nhằm đảm bảo tính sẵn sàng nghiệm thu độc lập cho phân hệ Gym Management trước khi đưa vào vận hành thương mại, kịch bản E2E kiểm thử toàn bộ chu trình kinh doanh khép kín được đề xuất triển khai:
 
 ```text
-Người dùng thao tác
-        |
-        v
-Kiểm tra và chuẩn hóa dữ liệu
-        |
-        v
-Lưu dữ liệu vào SQLite
-        |
-        v
-Cập nhật giao diện
-        |
-        v
-Đưa thay đổi vào hàng đợi đồng bộ
-        |
-        v
-Kiểm tra kết nối mạng
-        |
-        +---- Chưa có mạng ----> Giữ dữ liệu trong hàng đợi
-        |
-        +---- Có mạng --------> Gửi thay đổi lên backend
-                                      |
-                                      v
-                               Xác nhận kết quả
-                                      |
-                                      v
-                              Cập nhật trạng thái đồng bộ
+[BƯỚC 1: Gym Onboarding] ──► [BƯỚC 2: Staff RBAC] ──► [BƯỚC 3: Plan Creation]
+                                                             │
+                                                             ▼
+[BƯỚC 6: Shift Reconciliation] ◄── [BƯỚC 5: Check-in] ◄── [BƯỚC 4: Walk-in & Sell Plan]
 ```
 
-### 7.4. Nguyên tắc đồng bộ dữ liệu
-
-1. Ghi dữ liệu cục bộ trước khi phụ thuộc vào yêu cầu mạng.
-2. Gán ID ổn định cho các bản ghi cần đồng bộ.
-3. Sử dụng mã thao tác duy nhất hoặc cơ chế idempotency để hạn chế tạo bản ghi trùng khi gửi lại.
-4. Phân loại lỗi tạm thời và lỗi không thể tự khắc phục.
-5. Retry có giới hạn và sử dụng backoff phù hợp.
-6. Theo dõi trạng thái đồng bộ như `pending`, `synced` và `failed`.
-7. Xây dựng quy tắc xử lý xung đột nếu cùng dữ liệu bị sửa ở nhiều thiết bị.
-8. Không xóa dữ liệu cục bộ trước khi có xác nhận phù hợp từ backend.
-
-**Lưu ý:** SQLite chỉ cung cấp khả năng lưu trữ cục bộ, không tự động tạo ra cơ chế đồng bộ với máy chủ. Hàng đợi đồng bộ, API backend, xử lý xung đột và retry phải được triển khai riêng.
+| Bước | Hành động Thao tác (E2E Test Step) | Tác nhân (Actor) | Dữ liệu Đầu vào (Test Inputs) | Kết quả Kỳ vọng Đo lường Được (Expected Outcomes) |
+|---|---|---|---|---|
+| **E2E-01** | Đăng ký Gym & Khởi tạo Chi nhánh Cơ sở | Chủ phòng gym (Owner) | Tên Gym: "Titan Fitness", Slug: `titan-fitness`, Chi nhánh: "Cơ sở Quận 1" | Bản ghi `gyms` và `branches` được tạo thành công với trạng thái `active`; phân quyền Owner được xác lập trên Supabase Auth. |
+| **E2E-02** | Mời Nhân viên & Kích hoạt Tài khoản | Chủ phòng gym (Owner) & Tiếp tân | Email: `reception@titan.vn`, Vai trò: `receptionist`, Chi nhánh: Quận 1 | Tiếp tân nhận email mời, kích hoạt mật khẩu thành công; bản ghi `gym_staff` chuyển từ `invited` sang `active`; quyền bị giới hạn nghiêm ngặt tại Chi nhánh Quận 1. |
+| **E2E-03** | Khởi tạo Danh mục Gói tập | Quản lý (Manager) / Owner | Tên gói: "Gói 1 Tháng Full Ca", Thời hạn: 30 ngày, Giá: 500.000 VND (`500000`), Phạm vi: Chi nhánh Quận 1 | Bản ghi `membership_plans` được lưu trữ thành công; hiển thị sẵn sàng trên danh mục bán hàng tại quầy. |
+| **E2E-04** | Tiếp nhận Hội viên Walk-in & Bán gói tập | Tiếp tân (Receptionist) | Họ tên: "Nguyễn Văn A", SĐT: `0901234567`, Gói: "Gói 1 Tháng Full Ca" | Tạo hồ sơ `gym_members` mới với mã `member_code`; tạo hợp đồng `memberships` ở trạng thái `pending` kèm snapshot giá gói 500.000 VND. |
+| **E2E-05** | Thu phí & Kích hoạt Gói tập qua Payment Core `GM-3b` | Tiếp tân (Receptionist) | Phương thức: Tiền mặt (`cash`), Số tiền: 500.000 VND (`500000`), Idempotency Key: UUID v4 | Bản ghi `payment_transactions` được tạo với trạng thái `completed`; hợp đồng `memberships` lập tức chuyển từ `pending` sang `active`; xác lập ngày hết hạn đúng 30 ngày sau. |
+| **E2E-06** | Điểm danh Hội viên tại Quầy Tiếp tân | Tiếp tân & Hội viên | Nhập số điện thoại `0901234567` hoặc quét mã QR hội viên | Động cơ kiểm tra 6 bước vượt qua thành công trong < 500ms; bản ghi `attendance_logs` được tạo bất biến; quầy tiếp tân báo xanh cho phép vào tập. |
+| **E2E-07** | Thử nghiệm Ngoại lệ Điểm danh Sai Chi nhánh | Tiếp tân Chi nhánh Cơ sở 2 | Hội viên Nguyễn Văn A sang Chi nhánh Cơ sở 2 điểm danh | Động cơ kiểm tra phát hiện gói tập chỉ có hiệu lực tại Cơ sở Quận 1; từ chối điểm danh; màn hình quầy báo đỏ kèm thông báo vi phạm phạm vi chi nhánh. |
+| **E2E-08** | Kết ca & Đối soát Doanh thu Cuối ngày | Tiếp tân & Quản lý | Thực hiện lệnh "Kết ca làm việc" tại quầy | Báo cáo doanh thu ca hiển thị chính xác tổng tiền mặt thu được là 500.000 VND; khớp 100% giữa số liệu hệ thống và tiền mặt thực tế; khóa sổ ca thành công. |
 
 ---
 
-## 8. Thiết kế giao diện và bố cục màn hình
-
-### 8.1. Định hướng giao diện
-
-Giao diện theo phong cách **Minimalist Fitness + Performance**, tập trung vào sự rõ ràng và hiệu quả khi sử dụng.
-
-Các nguyên tắc:
-
-- Bố cục gọn, ưu tiên nội dung cần thiết.
-- Màu nền trung tính kết hợp màu nhấn có độ nhận diện cao.
-- Phân cấp thông tin bằng kích thước chữ, khoảng cách và độ tương phản.
-- Thẻ thông tin có cấu trúc nhất quán.
-- Trạng thái hoàn thành, cảnh báo và lỗi phải dễ nhận biết.
-- Hạn chế hiệu ứng trang trí gây phân tán sự chú ý.
-
-### 8.2. Cấu trúc điều hướng chính
-
-Thanh điều hướng dưới cùng đề xuất gồm năm mục:
-
-| Mục | Nội dung |
-|---|---|
-| Home | Tổng quan, lịch tập gần nhất và thông tin nổi bật |
-| Workouts | Kế hoạch tập và danh sách buổi tập |
-| Exercises | Thư viện bài tập |
-| Progress | Lịch sử và thống kê tiến bộ |
-| Profile | Hồ sơ, cài đặt và quyền riêng tư |
-
-Tên mục có thể được điều chỉnh theo kết quả kiểm thử khả năng sử dụng. Nếu năm mục gây chật trên thiết bị nhỏ, cần tối ưu nhãn và bố cục thay vì giảm vùng chạm.
-
-### 8.3. Bố cục màn hình chính
-
-Màn hình Home có thể bao gồm:
-
-1. Header với lời chào và truy cập hồ sơ.
-2. Thẻ kế hoạch hoặc buổi tập tiếp theo.
-3. Nút bắt đầu hoặc tiếp tục buổi tập.
-4. Tóm tắt hoạt động gần đây.
-5. Mục tiêu và tiến độ cơ bản.
-6. Thanh điều hướng dưới cùng.
-
-Thứ tự ưu tiên cần đặt hành động chính, chẳng hạn bắt đầu hoặc tiếp tục tập, ở vị trí dễ tiếp cận.
-
-### 8.4. Bố cục màn hình thư viện bài tập
-
-Các thành phần:
-
-- Thanh tìm kiếm.
-- Bộ lọc theo nhóm cơ, thiết bị và độ khó.
-- Danh sách hoặc lưới thẻ bài tập.
-- Thông tin tên bài tập và hình minh họa.
-- Màn hình chi tiết có hướng dẫn và video nếu có.
-
-Bộ lọc cần thể hiện rõ điều kiện đang áp dụng, đồng thời có cách xóa bộ lọc nhanh.
-
-### 8.5. Bố cục màn hình kế hoạch tập luyện
-
-Các thành phần:
-
-- Tên và mô tả kế hoạch.
-- Danh sách bài tập theo thứ tự.
-- Thông số cấu hình cho từng bài tập.
-- Thao tác thêm, sửa, xóa hoặc sắp xếp.
-- Nút bắt đầu buổi tập.
-
-Các thao tác chỉnh sửa cần có phản hồi rõ ràng để người dùng không vô tình mất cấu hình kế hoạch.
-
-### 8.6. Bố cục màn hình buổi tập
-
-Màn hình này cần được tối ưu cho thao tác bằng một tay:
-
-- Header hiển thị tên buổi tập và trạng thái.
-- Danh sách bài tập có thể cuộn.
-- Thẻ bài tập hiển thị các hiệp.
-- Trường nhập mức tạ và số lần lặp.
-- Nút hoàn thành hiệp có vùng chạm lớn.
-- Đồng hồ nghỉ dễ nhìn.
-- Khu vực hành động cố định cho thao tác chính khi phù hợp.
-- Thông tin lưu trạng thái hoặc lỗi lưu khi cần thiết.
-
-Tránh mở quá nhiều hộp thoại trong quá trình ghi nhận hiệp. Khi cần nhập số liệu, nên sử dụng bàn phím số và tránh làm mất nội dung đã nhập khi màn hình thay đổi trạng thái.
-
-### 8.7. Bố cục màn hình tiến bộ
-
-Các thành phần đề xuất:
-
-- Bộ lọc khoảng thời gian.
-- Thẻ tổng quan các chỉ số.
-- Biểu đồ tiến bộ.
-- Danh sách thành tích cá nhân.
-- Lịch sử các buổi tập liên quan.
-
-Mỗi biểu đồ phải có nhãn, đơn vị và khoảng thời gian rõ ràng. Không nên trình bày chỉ số thống kê khi chưa có đủ dữ liệu hoặc không có định nghĩa nhất quán.
-
-### 8.8. Bố cục màn hình hồ sơ và cài đặt
-
-Các nhóm nội dung:
-
-- Thông tin cá nhân.
-- Mục tiêu và tùy chọn.
-- Giao diện sáng/tối.
-- Cài đặt thông báo.
-- Quyền riêng tư và dữ liệu.
-- Đăng xuất.
-
-Các thao tác có ảnh hưởng lớn, như xóa dữ liệu, cần có bước xác nhận và thông tin rõ ràng về phạm vi dữ liệu bị xóa.
-
-### 8.9. Quy tắc layout mobile-first
-
-- Padding ngang màn hình: 16–20 px.
-- Khoảng cách giữa các thẻ: 12–16 px.
-- Padding bên trong thẻ: 16 px.
-- Kích thước vùng chạm: ưu tiên tối thiểu 44 × 44 px.
-- Chiều cao nút chính: khoảng 48 px.
-- Xử lý safe area ở cạnh trên và dưới.
-- Không để bàn phím che trường nhập hoặc nút hành động quan trọng.
-- Cho phép cuộn khi nội dung vượt chiều cao màn hình.
-- Ưu tiên thao tác một tay đối với các chức năng thường dùng.
+### 7.6. Phạm vi Nghiệp vụ Triển khai theo Giai đoạn (Deferred / Staged Scope)
+- Điểm danh bằng phần cứng mã QR động (Dynamic QR Hardware Token).
+- Tích hợp cổng thanh toán trực tuyến tự động (Online Payment Gateways / Webhooks).
+- Đặt lịch PT nâng cao trên ứng dụng di động.
+- Sáp nhập hồ sơ hội viên nâng cao có lịch sử tài chính (Advanced Profile Merge — ALIGN-01: DEFERRED).
+- Chế độ điểm danh khẩn cấp khi mất mạng quầy (Emergency Offline Queue).
 
 ---
 
-## 9. Design System và bảng phối màu
+## CHƯƠNG 8: LỘ TRÌNH TRIỂN KHAI TỔNG THỂ & MA TRẬN PHỤ THUỘC (UNIFIED ROADMAP)
 
-### 9.1. Mục tiêu của Design System
+### 8.1. Cấu trúc Lộ trình Tích hợp (Unified Roadmap) `[APPROVED]`
+- **Phase 0 — Chuẩn bị Yêu cầu & Kiến trúc:** Hoàn thiện Product Vision, thiết kế schema GM-1, chuẩn bị hồ sơ Gate P0.T07 & P0.T08. *(Hiện trạng: [ ] Chờ duyệt; Chưa bắt đầu Phase 1)*.
+- **Phase 1 (Mới) — Xác thực & Nền tảng RBAC:** Triển khai schema GM-1 (`gyms`, `branches`, `gym_staff`), RLS policies và luồng mời nhân sự.
+- **Phase 2 (Mới) — Quản lý Phòng gym & Chi nhánh:** Khởi tạo dự án Admin Web, giao diện quản trị gym, quản lý chi nhánh và nhân viên.
+- **Phase 3 (Mới) — Quản lý Hội viên (Member Management):** Schema GM-2, giao diện hội viên walk-in, luồng liên kết tài khoản an toàn qua OTP.
+- **Phase 4 (Mới) — Gói tập & Điểm danh (Membership & Attendance):** Schema GM-3 & GM-4, quản lý danh mục gói, đăng ký gói, điểm danh tại quầy. **Triển khai schema Payment Core tối thiểu `GM-3b` `[PROPOSED]` để phục vụ kích hoạt gói tập.**
+- **Phase 5 (Mới) — Tài chính & Báo cáo (Payments & Reporting):** Schema GM-5, hoàn thiện Payment Advanced, quản lý công nợ, đối soát ca. **Nghiệm thu Cổng 1: Gym Management MVP Release Gate.**
+- **Phase 6 (Mới) — Tập luyện & Huấn luyện viên cá nhân (Workout & PT):** Hoàn thiện đồng bộ dữ liệu workout core, phân công PT, lịch hẹn và mô hình consent. **Nghiệm thu Cổng 2: PT Integration Gate.**
+- **Phase 7 (Mới) — Kiểm thử Toàn diện & Phát hành Toàn nền tảng:** Kiểm thử tải, bảo mật, E2E toàn diện. **Nghiệm thu Cổng 3: Full Platform Production Release Gate.**
 
-Design System là hệ thống quy chuẩn giao diện dùng chung cho toàn bộ ứng dụng. Mục tiêu là giảm sự không nhất quán, tăng tốc độ phát triển và tạo điều kiện thay đổi giao diện tập trung.
+### 8.2. Ma trận Phụ thuộc Toàn diện (Dependency Matrix)
 
-Design System bao gồm:
-
-- Color tokens.
-- Typography tokens.
-- Spacing tokens.
-- Border radius.
-- Icon sizing.
-- Button.
-- Card.
-- Input.
-- Bottom Navigation.
-- Trạng thái loading, disabled, error và success.
-- Quy tắc hỗ trợ accessibility.
-
-### 9.2. Bảng màu Dark Theme
-
-| Token | HEX | Công dụng |
-|---|---|---|
-| `background` | `#121417` | Nền màn hình |
-| `surface` | `#1C2025` | Nền thẻ và khu vực nội dung |
-| `surface-elevated` | `#292F36` | Thành phần nổi hoặc vùng nhấn nhẹ |
-| `text-primary` | `#F4F6F8` | Văn bản chính |
-| `text-secondary` | `#B0B8C2` | Văn bản phụ |
-| `brand-primary` | `#FF6B35` | Nút chính và điểm nhấn |
-| `info` | `#65BFFF` | Thông tin và trạng thái cần chú ý |
-| `success` | `#57D68D` | Trạng thái thành công |
-| `danger` | `#FF7777` | Lỗi hoặc cảnh báo quan trọng |
-
-### 9.3. Bảng màu Light Theme
-
-| Token | HEX | Công dụng |
-|---|---|---|
-| `background` | `#F7F8FA` | Nền màn hình |
-| `surface` | `#FFFFFF` | Nền thẻ |
-| `surface-elevated` | `#E8ECF1` | Thành phần nổi hoặc vùng phân biệt |
-| `text-primary` | `#171A1F` | Văn bản chính |
-| `text-secondary` | `#525B66` | Văn bản phụ |
-| `brand-primary` | `#C94718` | Nút chính và điểm nhấn |
-| `info` | `#075EA8` | Thông tin và trạng thái cần chú ý |
-| `success` | `#167447` | Trạng thái thành công |
-| `danger` | `#B42318` | Lỗi hoặc cảnh báo quan trọng |
-
-Màu nhấn của hai theme có thể khác nhau nhằm duy trì độ tương phản với nền. Không nên mặc định dùng cùng một mã màu cho mọi theme nếu điều đó làm giảm khả năng đọc.
-
-### 9.4. Kiểm tra độ tương phản WCAG
-
-WCAG 2.2 quy định mức tương phản tối thiểu:
-
-- **Văn bản thông thường:** 4.5:1 theo WCAG AA.
-- **Văn bản lớn:** 3:1 theo WCAG AA.
-- **Thành phần giao diện và đối tượng đồ họa cần thiết để nhận biết:** thông thường cần 3:1 so với màu liền kề theo tiêu chí áp dụng.
-
-Bảng dưới đây ghi nhận các cặp màu đã được tính toán trong phương án thiết kế:
-
-| Theme | Màu chữ | Màu nền | Tỷ lệ tương phản | Đánh giá |
-|---|---|---|---:|---|
-| Dark | `#F4F6F8` | `#121417` | 17.03:1 | Đạt AA và AAA cho văn bản thường |
-| Dark | `#B0B8C2` | `#121417` | 9.21:1 | Đạt AA và AAA cho văn bản thường |
-| Dark | `#121417` | `#FF6B35` | 6.51:1 | Đạt AA và AAA cho văn bản thường |
-| Light | `#171A1F` | `#F7F8FA` | 16.41:1 | Đạt AA và AAA cho văn bản thường |
-| Light | `#525B66` | `#F7F8FA` | 6.49:1 | Đạt AA và AAA cho văn bản thường |
-| Light | `#FFFFFF` | `#C94718` | 4.77:1 | Đạt AA cho văn bản thường |
-| Light | `#FFFFFF` | `#075EA8` | 6.61:1 | Đạt AA và AAA cho văn bản thường |
-| Light | `#FFFFFF` | `#167447` | 5.80:1 | Đạt AA cho văn bản thường |
-
-Các tỷ lệ trên chỉ áp dụng cho đúng cặp màu được liệt kê. Cần kiểm tra thêm từng cặp màu thực tế, đặc biệt là văn bản trên thẻ, nhãn lỗi, placeholder, icon và các trạng thái disabled.
-
-Không nên dùng màu đơn thuần để truyền tải ý nghĩa. Ví dụ, trạng thái lỗi cần có biểu tượng hoặc thông báo chữ bên cạnh màu cảnh báo.
-
-### 9.5. Typography
-
-Font chữ đề xuất là **Inter** hoặc font hệ thống phù hợp với nền tảng. Font cần hỗ trợ đầy đủ ký tự tiếng Việt.
-
-| Token | Kích thước | Độ đậm | Ứng dụng |
-|---|---:|---:|---|
-| `display` | 32 px | 700 | Số liệu nổi bật hoặc tiêu đề đặc biệt |
-| `h1` | 28 px | 700 | Tiêu đề màn hình |
-| `h2` | 24 px | 700 | Tiêu đề khu vực lớn |
-| `h3` | 20 px | 600 | Tiêu đề thẻ hoặc nhóm nội dung |
-| `title` | 18 px | 600 | Tiêu đề thành phần |
-| `body` | 16 px | 400 | Nội dung chính |
-| `body-small` | 14 px | 400 | Nội dung phụ |
-| `label` | 14 px | 600 | Nhãn trường nhập |
-| `caption` | 12 px | 400 | Chú thích hoặc thông tin phụ |
-
-Quy tắc sử dụng:
-
-- Dùng `body` làm kích thước mặc định cho nội dung quan trọng.
-- Hạn chế sử dụng chữ 12 px cho thông tin cần đọc trong khi tập.
-- Dùng font weight để phân cấp thay vì chỉ dựa vào màu.
-- Hỗ trợ Dynamic Type hoặc cơ chế phóng to chữ tương ứng của React Native.
-- Kiểm tra hiện tượng tràn chữ khi tên bài tập hoặc nội dung dịch dài.
-
-### 9.6. Hệ thống spacing 4/8 px
-
-Spacing sử dụng đơn vị cơ sở 4 px, ưu tiên các bội số của 4 hoặc 8.
-
-| Token | Kích thước | Ứng dụng |
-|---|---:|---|
-| `space-1` | 4 px | Khoảng cách rất nhỏ |
-| `space-2` | 8 px | Khoảng cách giữa icon và nhãn |
-| `space-3` | 12 px | Khoảng cách giữa các thành phần gần nhau |
-| `space-4` | 16 px | Padding thẻ và khoảng cách tiêu chuẩn |
-| `space-5` | 20 px | Padding ngang màn hình rộng hơn |
-| `space-6` | 24 px | Khoảng cách giữa các nhóm nội dung |
-| `space-8` | 32 px | Khoảng cách giữa các khu vực lớn |
-| `space-10` | 40 px | Khoảng cách phân khu |
-| `space-12` | 48 px | Khoảng cách lớn hoặc bố cục đặc biệt |
-
-Không bắt buộc mọi khoảng cách phải dùng token. Tuy nhiên, các giá trị thông dụng cần thống nhất để tránh giao diện thiếu nhất quán.
-
-### 9.7. Border radius và kích thước icon
-
-| Thành phần | Giá trị đề xuất |
-|---|---|
-| Input nhỏ hoặc chip | 8–10 px |
-| Button và input chính | 10–12 px |
-| Card | 16 px |
-| Sheet hoặc khu vực lớn | 20–24 px |
-| Icon nhỏ | 16 px |
-| Icon thông thường | 20–24 px |
-| Icon lớn | 28–32 px |
-
-Các giá trị trên là token thiết kế, không phải giới hạn cứng. Có thể điều chỉnh khi có bằng chứng từ kiểm thử giao diện.
-
-### 9.8. Button
-
-**Thông số đề xuất:**
-
-- Chiều cao tiêu chuẩn: 48 px.
-- Chiều cao compact: tối thiểu khoảng 40 px; vẫn phải bảo đảm vùng chạm phù hợp.
-- Border radius: 12 px.
-- Padding ngang: 16–24 px.
-- Font: 16 px, weight 600.
-- Trạng thái: default, pressed, disabled, loading và error nếu cần.
-
-**Màu nút chính:**
-
-| Theme | Nền | Chữ |
-|---|---|---|
-| Dark | `#FF6B35` | `#121417` |
-| Light | `#C94718` | `#FFFFFF` |
-
-**Các loại nút:**
-
-- Primary: hành động chính, chẳng hạn bắt đầu buổi tập.
-- Secondary: hành động phụ, có thể dùng nền trung tính hoặc viền.
-- Text/Ghost: thao tác phụ ít nổi bật.
-- Destructive: thao tác cần cảnh báo, như xóa dữ liệu.
-
-Nút loading cần ngăn gửi thao tác lặp không mong muốn. Nút disabled phải có trạng thái nhận biết rõ, không chỉ dựa vào giảm độ sáng nếu độ tương phản không đạt.
-
-### 9.9. Card
-
-**Thông số đề xuất:**
-
-- Border radius: 16 px.
-- Padding: 16 px.
-- Khoảng cách giữa nội dung: 8–12 px.
-- Viền: 1 px khi cần phân tách.
-- Nền: `surface` hoặc `surface-elevated`.
-
-Card được sử dụng cho:
-
-- Bài tập.
-- Kế hoạch tập.
-- Thống kê tiến bộ.
-- Mục tiêu.
-- Lịch sử buổi tập.
-
-Mỗi card nên có một trọng tâm thông tin. Tránh đặt quá nhiều hành động ngang hàng trong cùng một card.
-
-### 9.10. Input
-
-**Thông số đề xuất:**
-
-- Chiều cao: 48–52 px.
-- Border radius: 10–12 px.
-- Padding ngang: 12–16 px.
-- Nhãn luôn hiển thị hoặc có cách thay thế tương đương dễ hiểu.
-- Trạng thái: default, focused, error, disabled và filled.
-
-Đối với trường nhập số lần lặp và mức tạ:
-
-- Sử dụng bàn phím số phù hợp.
-- Giữ lại giá trị khi người dùng chuyển giữa các trường.
-- Kiểm tra giá trị không hợp lệ.
-- Hiển thị thông báo lỗi cụ thể.
-- Tránh tự động đặt lại dữ liệu khi trạng thái màn hình thay đổi.
-
-### 9.11. Bottom Navigation
-
-**Thông số đề xuất:**
-
-- Số mục: 4–5.
-- Icon: 24 px.
-- Chiều cao vùng nội dung: khoảng 56–64 px, chưa tính phần safe area.
-- Vùng chạm: tối thiểu 44 × 44 px.
-- Mỗi mục có nhãn đi kèm icon.
-- Trạng thái active được thể hiện bằng màu và dấu hiệu thị giác bổ sung.
-
-Trong màn hình đang tập, có thể ẩn hoặc tùy chỉnh thanh điều hướng nếu thanh này làm giảm không gian thao tác. Việc điều hướng ra khỏi buổi tập cần có cơ chế bảo toàn trạng thái.
-
-### 9.12. Motion và phản hồi tương tác
-
-| Loại tương tác | Thời lượng tham khảo |
-|---|---:|
-| Phản hồi button | 100–180 ms |
-| Chuyển trạng thái nhẹ | 100–180 ms |
-| Bottom sheet hoặc panel | 180–250 ms |
-
-Dùng animation vừa đủ để phản hồi hành động, không làm chậm thao tác. Có thể sử dụng Expo Haptics cho các hành động phù hợp, nhưng cần cho phép người dùng tắt hoặc điều chỉnh nếu cần.
-
-### 9.13. Cấu trúc triển khai Design System
-
-```text
-src/shared/design-system/
-├── tokens/
-│   ├── colors.ts
-│   ├── typography.ts
-│   ├── spacing.ts
-│   ├── radius.ts
-│   └── sizes.ts
-├── theme/
-│   ├── light.ts
-│   ├── dark.ts
-│   ├── ThemeProvider.tsx
-│   └── useTheme.ts
-└── components/
-    ├── Button.tsx
-    ├── Card.tsx
-    ├── Input.tsx
-    ├── AppText.tsx
-    ├── Screen.tsx
-    ├── IconButton.tsx
-    └── BottomNavigation.tsx
-```
-
-Các component dùng chung nên nhận token từ theme thay vì khai báo trực tiếp mã HEX tại từng màn hình. Điều này giúp chuyển đổi Light/Dark Theme và thay đổi bảng màu dễ dàng hơn.
+| Phase Lộ trình | Nhóm Schema Supabase | Năng lực Nghiệp vụ Hệ thống (Business Capabilities) | Tiêu chí Nghiệm thu Tương ứng (Acceptance Criteria) | Điều kiện Tiên quyết (Prerequisites) |
+|---|---|---|---|---|
+| **Phase 0** | N/A (Thiết kế DDL) | Hồ sơ kiến trúc, Product Vision mới, thiết kế DDL GM-1 | Gate P0.T07 & P0.T08 Review | Phê duyệt từ Chủ dự án |
+| **Phase 1** | `GM-1` (`gyms`, `branches`, `gym_staff`) | Xác thực đa tenant, mời nhân viên, RBAC máy chủ | MT-01..05, RBAC-01..16, GM-01..06 | P0.T07 & P0.T08 Approved |
+| **Phase 2** | `GM-1` (Web integration) | Admin Web Portal, quản trị chuỗi chi nhánh | FR-GM-01..05, SSR-01..02 | Phase 1 Hoàn tất |
+| **Phase 3** | `GM-2` (`gym_members`) | Quản lý hội viên walk-in, liên kết tài khoản OTP | FR-MB-01..05, MB-01..05 | Phase 2 Hoàn tất |
+| **Phase 4** | `GM-3`, `GM-4` + `GM-3b` (Payment Core) | Bán gói tập, kích hoạt gói 100%, điểm danh tại quầy | FR-MS-01..05, FR-AT-01..03, CI-01..07 | Phase 3 + Payment Core Schema GM-3b |
+| **Phase 5** | `GM-5` (`payment_transactions` advanced) | Quản lý công nợ, hoàn tiền, đối soát doanh thu ca | FR-PY-01..04, PY-01..07, **Cổng 1: AC-REL-01..04, 06, E2E-01..08** | Phase 4 Hoàn tất |
+| **Phase 6** | `Core Sync` + `GM-5` (`pt_sessions`, assignments) | Tái sử dụng workout, phân công PT, consent | FR-WPT-01..04, **Cổng 2: AC-REL-05, AC-REL-07** | Phase 5 + Core Sync Readiness |
+| **Phase 7** | Toàn bộ Schemas | Kiểm thử tải, bảo mật, E2E toàn diện | **Cổng 3: Toàn bộ AC-REL + NFRs** | Phase 6 Hoàn tất |
 
 ---
 
-## 10. Khả năng tiếp cận và trải nghiệm sử dụng
+## CHƯƠNG 9: QUẢN TRỊ RỦI RO & DANH MỤC QUYẾT ĐỊNH
 
-### 10.1. Hỗ trợ sử dụng bằng một tay
+### 9.1. Ma trận Rủi ro Trọng yếu (R-MT-01 đến R-MT-14)
+- **Rò rỉ Dữ liệu Cross-Tenant (R-MT-01):** Áp dụng thiết kế Fail-closed mặc định; hàm kiểm tra quyền bắt buộc join bảng vật lý và kiểm tra trạng thái active.
+- **Leo thang Đặc quyền qua Client Metadata (R-MT-02):** Tuyệt đối không lưu trữ hoặc đọc quyền hạn từ `user_metadata`.
+- **Rò rỉ Mã phiên trên Web (R-MT-12):** Áp dụng kiến trúc Server-First Auth với Cookie `httpOnly: true`.
+- **Gán nhầm Chi nhánh Chéo phòng gym (R-MT-13):** Bắt buộc sử dụng Composite Foreign Key với `ON DELETE RESTRICT` để bảo vệ vết kiểm toán.
+- **Phòng gym Bị Khóa nhưng Nhân viên vẫn Truy cập (R-MT-14):** Hàm kiểm tra quyền bắt buộc kiểm tra đồng thời trạng thái hoạt động của phòng gym (`gyms.status = 'active'`).
 
-- Đặt các hành động thường dùng ở khu vực dễ chạm.
-- Giữ kích thước nút đủ lớn.
-- Hạn chế các thao tác yêu cầu độ chính xác cao.
-- Không đặt hành động nguy hiểm sát nút hoàn thành hiệp.
-- Tránh yêu cầu nhập quá nhiều thông tin trước khi bắt đầu tập.
+### 9.2. Decision Register Phân loại Chuẩn xác 5 Nhóm Trạng thái kèm Nguồn Bằng chứng
 
-### 10.2. Hỗ trợ người dùng có nhu cầu tiếp cận
+#### 1. Nhóm Quyết định Đã Phê duyệt (APPROVED DECISION)
+1. **Định vị Sản phẩm Multi-Tenant:** Gym Workout là Multi-Tenant Gym Management Platform; Gym Management là sản phẩm trọng tâm; Workout Mobile là app đa chế độ; PT Management là phân hệ chính thức theo giai đoạn; Một Unified Roadmap tổng thể. *(Bằng chứng: Nhiệm vụ phê duyệt ngày 2026-10-23)*.
+2. **Cấu trúc Tài liệu Báo cáo:** Chấp thuận về mặt nguyên tắc khung 10 chương và 8 nhóm quy trình nghiệp vụ. *(Bằng chứng: Nhiệm vụ phê duyệt ngày 2026-10-23)*.
+3. **Kiến trúc Dữ liệu Đám mây & Ngoại tuyến:** Supabase PostgreSQL làm backend dữ liệu và Expo SQLite làm nguồn dữ liệu cục bộ theo kiến trúc offline-first; UUID canonical; UTC timestamptz; đơn vị mức tạ là số nguyên gram (`weight_grams`). *(Bằng chứng: [`docs/risks-decisions.md`](./risks-decisions.md#L25-L40), xác nhận ngày 2026-10-21)*.
 
-- Sử dụng nhãn cho nút và icon khi cần.
-- Hỗ trợ screen reader bằng accessibility label và role phù hợp.
-- Đảm bảo thứ tự focus hợp lý.
-- Không truyền đạt trạng thái chỉ bằng màu.
-- Hỗ trợ tăng cỡ chữ.
-- Kiểm thử với độ tương phản và kích thước màn hình khác nhau.
+#### 2. Nhóm Hiện trạng Kỹ thuật Đã Kiểm chứng (VERIFIED BASELINE)
+1. **Expo SDK Baseline (Static Source Check):** Expo SDK 57 (`expo ~57.0.30`, `react-native 0.86.3`). *(Bằng chứng: [`package.json`](../package.json#L9) & `package-lock.json`)*.
+2. **SQLite Schema v1 (Static Source Check):** 6 bảng tập luyện cá nhân (`exercises`, `workout_plans`, `plan_exercises`, `workout_sessions`, `session_exercises`, `workout_sets`). *(Bằng chứng: [`src/shared/storage/schema.ts`](../src/shared/storage/schema.ts#L10-L115))*.
+3. **Kiểm thử Đơn vị Storage (Verified in Historical Test Suite):** Bộ test Jest kiểm tra migration, rollback, repositories CRUD đạt trong các phiên trước. *(Bằng chứng: [`__tests__/storage-test.ts`](../__tests__/storage-test.ts); lưu ý trong phiên hiện tại chưa chạy lệnh `npm test` do tuân thủ nguyên tắc READ-ONLY)*.
+4. **Điều hướng 5 Tab Android (Verified in Historical Runtime Test):** Expo Router tabs hoạt động trên Android emulator `Medium_Phone_API_37.0` (Android 17) qua Expo Go 57.0.9 trong phiên ngày 2026-10-18. *(Bằng chứng: [`docs/mindmap.md`](./mindmap.md#L28))*.
+5. **Design System v1 (Static Source Check):** Color tokens, typography, spacing, Button, Card, Input tồn tại và đồng bộ ThemeProvider. *(Bằng chứng: [`src/shared/design-system/`](../src/shared/design-system/))*.
 
-### 10.3. Trạng thái giao diện cần chuẩn hóa
+#### 3. Nhóm Chưa Kiểm chứng Độc lập / Báo cáo từ Người dùng (NOT VERIFIED INDEPENDENTLY)
+1. **Supabase Cloud Core Tables:** 7 bảng core workout trên dự án Supabase Cloud `gym-workout` được báo cáo chạy thủ công ngày 2026-10-22. *(Hiện trạng: Chưa được kiểm chứng độc lập trong phiên này; bài test T13 trên local disposable vẫn BLOCKED theo [`docs/supabase-schema.md`](./supabase-schema.md#L38); không đánh đồng đây là Verified Production)*.
+2. **Kiểm thử Runtime trên iOS:** Chưa kiểm thử runtime trên iOS do môi trường phát triển chạy trên Windows thiếu macOS/Xcode. *(Hiện trạng: BLOCKED theo [`docs/mindmap.md`](./mindmap.md#L28) và [`docs/risks-decisions.md`](./risks-decisions.md#L95))*.
 
-Mỗi màn hình có dữ liệu nên xem xét các trạng thái:
+#### 4. Nhóm Đề xuất Kỹ thuật Chờ Phê duyệt (PROPOSED — Gate P0.T07 & P0.T08)
+1. **D-MT-01:** Cấu trúc monorepo bằng `npm workspaces`.
+2. **D-MT-02:** Lựa chọn Next.js App Router cho Admin Web.
+3. **D-MT-03:** Quản lý phiên Web bằng Supabase SSR Server-First `httpOnly` Cookie.
+4. **D-MT-04:** Cổng giao dịch phân tách (Edge Functions + PostgreSQL RPC least privilege).
+5. **D-MT-11:** Phân quyền kiêm nhiệm đa chi nhánh qua 2 Partial Unique Indexes.
+6. **Schema GM-1 Design:** DDL 3 bảng `gyms`, `branches`, `gym_staff`, Composite FK `(branch_id, gym_id)`, `ON DELETE RESTRICT` và soft-deactivation `archived`.
+7. **Đề xuất Tách Schema Payment Core GM-3b:** Tách schema tối thiểu của `payment_transactions` (`GM-3b`) đưa vào Phase 4 phục vụ kích hoạt gói tập.
+8. **Chính sách Kích hoạt Gói tập Mặc định MVP:** Chỉ kích hoạt gói tập khi ghi nhận thanh toán đầy đủ 100%.
+9. **Phân tách Độc lập 3 Cổng Release:** Gym Management MVP Gate (sau Phase 5), PT Integration Gate (sau Phase 6), Full Platform Gate (Phase 7).
+10. **Kịch bản Kiểm thử E2E Chu trình Kinh doanh Gym MVP:** Bộ 8 bước E2E-01 đến E2E-08 kiểm chứng chu trình vận hành khép kín tại Cổng 1.
 
-- Loading.
-- Success.
-- Empty.
-- Error.
-- Offline.
-- Disabled.
-- Nội dung chưa đồng bộ.
-- Dữ liệu đang được lưu hoặc khôi phục.
+#### 5. Danh mục Business Rules Còn Mở (Open Business Rules Register — UNDECIDED)
 
-Ví dụ, khi lịch sử tập luyện chưa có dữ liệu, nên hiển thị trạng thái trống với hướng dẫn hành động tiếp theo thay vì một màn hình trắng.
-
----
-
-## 11. Kiểm thử và tiêu chí nghiệm thu
-
-### 11.1. Chiến lược kiểm thử
-
-**Unit testing**
-- Hàm tính tổng khối lượng tập.
-- Logic kiểm tra dữ liệu hiệp.
-- Bộ lọc bài tập.
-- Quy tắc hoàn thành mục tiêu.
-- Logic chuyển trạng thái buổi tập.
-
-**Component testing**
-- Button.
-- Input.
-- ExerciseCard.
-- SetLogger.
-- RestTimer.
-- Bottom Navigation.
-
-**Integration testing**
-- Lưu buổi tập vào SQLite.
-- Khôi phục phiên tập.
-- Đọc lịch sử.
-- Gửi và nhận dữ liệu qua API.
-- Đồng bộ dữ liệu sau khi có mạng.
-
-**End-to-end testing**
-- Đăng nhập và hoàn thành onboarding.
-- Chọn kế hoạch và bắt đầu tập.
-- Ghi nhận các hiệp và kết thúc buổi tập.
-- Kiểm tra buổi tập xuất hiện trong lịch sử.
-- Kiểm tra tiến bộ được cập nhật.
-- Kiểm tra dữ liệu sau khi ứng dụng được đóng và mở lại.
-
-### 11.2. Tiêu chí nghiệm thu chức năng
-
-| Mã | Tiêu chí | Điều kiện nghiệm thu |
-|---|---|---|
-| AC-01 | Xác thực | Trạng thái đăng nhập được xử lý đúng theo phản hồi backend |
-| AC-02 | Thư viện bài tập | Tìm kiếm và lọc trả về kết quả đúng điều kiện |
-| AC-03 | Kế hoạch | Có thể xem và chỉnh sửa cấu hình bài tập |
-| AC-04 | Ghi nhận hiệp | Dữ liệu hợp lệ được lưu và hiển thị nhất quán |
-| AC-05 | Đồng hồ nghỉ | Thời gian còn lại được tính chính xác theo thời điểm kết thúc dự kiến |
-| AC-06 | Tự động lưu | Buổi tập có thể được khôi phục sau khi ứng dụng bị đóng ngoài dự kiến |
-| AC-07 | Ngoại tuyến | Các thao tác cốt lõi được hỗ trợ không phụ thuộc kết nối liên tục |
-| AC-08 | Đồng bộ | Thay đổi được gửi lại khi có mạng, không tạo bản ghi trùng ngoài dự kiến |
-| AC-09 | Lịch sử | Buổi tập hoàn thành xuất hiện trong lịch sử |
-| AC-10 | Thống kê | Các chỉ số được tính theo công thức đã xác định |
-| AC-11 | Giao diện | Light/Dark Theme hiển thị đúng theo lựa chọn hoặc cấu hình |
-| AC-12 | Accessibility | Các cặp màu và vùng chạm đáp ứng yêu cầu thiết kế đã đặt ra |
-
-### 11.3. Kiểm thử trên thiết bị
-
-Cần kiểm tra trên:
-
-- Thiết bị Android có kích thước màn hình khác nhau.
-- Thiết bị iOS.
-- Thiết bị có cỡ chữ hệ thống tăng.
-- Trạng thái mất mạng và kết nối lại.
-- Ứng dụng chuyển sang nền rồi quay lại.
-- Bàn phím mở khi nhập dữ liệu.
-- Các trạng thái loading, lỗi và dữ liệu trống.
+| Mã Quy tắc | Nội dung Nghiệp vụ Cần Chốt | Khuyến nghị Kỹ thuật / Nghiệp vụ | Mốc Thời gian Cần Quyết định |
+|---|---|---|---|
+| **BR-PAY-01** | Chính sách kích hoạt gói khi khách còn nợ (Partial Payment) | Đề xuất mặc định MVP: Chỉ kích hoạt khi thanh toán 100%. Tùy chọn nâng cao: Cho phép nợ tối đa theo hạn mức. | **Trước nghiệm thu Phase 4** (Kéo sớm từ Phase 5) |
+| **BR-PAY-02** | Đơn vị tiền tệ chính thức trong cơ sở dữ liệu | Khuyến nghị dùng số nguyên đồng `amount BIGINT` (VND), không dùng số thập phân để tối ưu kế toán Việt Nam. | **Trước thiết kế Migration Phase 4 (GM-3b)** (Kéo sớm từ Phase 5) |
+| **BR-PT-01** | Chính sách xử lý khi hội viên hủy lịch muộn hoặc No-show | Cấu hình linh hoạt theo từng phòng gym: Cảnh cáo lần đầu không trừ buổi; từ lần vi phạm tiếp theo trừ buổi theo quy định. | **Phase 6** (PT) |
+| **BR-PT-02** | Cơ chế xác nhận hoàn thành buổi tập PT | Khuyến nghị xác thực 2 chiều: Trainer bấm hoàn thành + Hội viên quét QR hoặc nhập OTP trên máy Trainer để trừ buổi. | **Phase 6** (PT) |
+| **BR-PT-03** | Mô hình và phạm vi Consent chia sẻ dữ liệu cho PT | Hội viên chủ động lựa chọn cấp quyền chia sẻ (buổi tập PT, buổi tự tập, lịch sử cá nhân) và có quyền thu hồi bất cứ lúc nào. | **Phase 6** (PT) |
+| **BR-AT-01** | Giới hạn số lượt điểm danh trong 1 ngày lịch | Cấu hình theo loại gói tập: 1 lần/ngày đối với gói thường; không giới hạn đối với gói VIP; hoặc trừ theo lượt đối với gói mua buổi. | **Phase 4** (Attendance) |
+| **BR-AT-02** | Múi giờ xác định ngày lịch check-in của chi nhánh | Căn cứ theo múi giờ địa phương của cơ sở (`branches.timezone`, mặc định `Asia/Ho_Chi_Minh`) thay vì dùng ngày UTC để tránh lệch ca. | **Phase 4** (Attendance) |
+| **BR-AT-03** | Chế độ điểm danh khẩn cấp khi mất mạng quầy tiếp tân | Cho phép tiếp tân ghi nhận tạm vào danh sách điểm danh ngoại tuyến có đối soát lại khi mạng phục hồi (Emergency Offline Queue). | **Phase 4** (Attendance) |
+| **BR-MB-01** | Quy tắc phát sinh mã thẻ hội viên (`member_code`) | Cấu trúc đề xuất: `[Mã_Gym]-[Năm]-[Số_thứ_tự]` (Ví dụ: `GYM-2026-00001`) để in thẻ từ và tra cứu nhanh. | **Phase 3** (Members) |
+| **BR-MB-02** | Sáp nhập hồ sơ hội viên nâng cao có lịch sử tài chính | **DEFERRED (ALIGN-01):** Giai đoạn MVP duy trì độc lập cả 2 hồ sơ dưới cờ rà soát nội bộ; quy trình gộp giao dịch tài chính hoãn sang phase sau. | **Phase 3** (Members) |
+| **BR-REP-01** | Chiến lược lưu trữ báo cáo tài chính | Giai đoạn đầu tổng hợp trực tiếp từ bảng giao dịch; quy mô lớn chuyển sang Materialized Views hoặc bảng tổng hợp định kỳ cuối ngày. | **Phase 5** (Reporting) |
+| **BR-WEB-01** | Hạ tầng hosting cho cổng Admin Web | Triển khai trên nền tảng Serverless (Vercel) ở giai đoạn MVP; có thể đóng gói Docker chuyển sang máy chủ riêng khi cần. | **Phase 2** (Admin Web) |
 
 ---
 
-## 12. Kế hoạch triển khai
+### 9.4. Danh mục các Quyết định Chưa được Phê duyệt (NOT YET APPROVED)
+Dưới đây là bảng tổng hợp các hạng mục hiện đang ở trạng thái chờ duyệt trước khi thực thi mã nguồn hoặc schema:
 
-### Giai đoạn 1: Phân tích và thiết lập dự án
-
-- Xác định phạm vi MVP.
-- Hoàn thiện user flow và cấu trúc màn hình.
-- Khởi tạo React Native/Expo với TypeScript.
-- Cấu hình Expo Router.
-- Thiết lập quy tắc mã nguồn và kiểm thử.
-
-**Kết quả:** Dự án có cấu trúc cơ bản và có thể chạy trên thiết bị.
-
-### Giai đoạn 2: Xây dựng Design System
-
-- Khai báo color tokens.
-- Xây dựng typography và spacing.
-- Triển khai Light/Dark Theme.
-- Xây dựng Button, Card, Input và Bottom Navigation.
-- Kiểm tra khả năng tiếp cận.
-
-**Kết quả:** Các màn hình sử dụng chung một hệ thống giao diện.
-
-### Giai đoạn 3: Phát triển chức năng nền tảng
-
-- Xác thực.
-- Hồ sơ.
-- Onboarding.
-- Thư viện bài tập.
-- Kế hoạch tập luyện.
-
-**Kết quả:** Người dùng có thể thiết lập tài khoản và lựa chọn kế hoạch.
-
-### Giai đoạn 4: Phát triển luồng tập luyện
-
-- Màn hình buổi tập.
-- Ghi nhận hiệp.
-- Đồng hồ nghỉ.
-- Tự động lưu.
-- Khôi phục phiên tập.
-- Tổng kết buổi tập.
-
-**Kết quả:** Luồng tập luyện cốt lõi hoạt động ổn định.
-
-### Giai đoạn 5: Lịch sử và thống kê
-
-- Lịch sử buổi tập.
-- Chi tiết buổi tập.
-- Thành tích cá nhân.
-- Biểu đồ tiến bộ.
-- Mục tiêu và thói quen.
-
-**Kết quả:** Người dùng có thể theo dõi dữ liệu tập luyện theo thời gian.
-
-### Giai đoạn 6: Ngoại tuyến và đồng bộ
-
-- Hoàn thiện cơ sở dữ liệu SQLite.
-- Xây dựng hàng đợi đồng bộ.
-- Xử lý retry và lỗi mạng.
-- Xác định quy tắc xung đột dữ liệu.
-- Kiểm thử mất mạng và khôi phục.
-
-**Kết quả:** Dữ liệu cục bộ đáng tin cậy và có thể đồng bộ khi backend hỗ trợ.
-
-### Giai đoạn 7: Kiểm thử và hoàn thiện
-
-- Kiểm thử đơn vị, tích hợp và end-to-end.
-- Kiểm tra hiệu năng.
-- Kiểm tra quyền riêng tư.
-- Kiểm tra giao diện trên nhiều thiết bị.
-- Sửa lỗi và chuẩn bị bản phát hành.
-
-**Kết quả:** Phiên bản MVP sẵn sàng cho quá trình đánh giá và triển khai thử nghiệm.
+1. **Gate Task P0.T07:** Chưa phê duyệt chính thức (Đang chờ xem xét hồ sơ kiến trúc).
+2. **Gate Task P0.T08:** Đang hoàn thiện bước trình duyệt qua báo cáo này.
+3. **Các Lựa chọn Kiến trúc Mở (D-MT-01 đến D-MT-04, D-MT-11):** Chưa phê duyệt.
+4. **Thiết kế Schema DDL GM-1 và Toàn bộ Migrations GM-1..5:** Chưa phê duyệt.
+5. **Đề xuất Tách Schema Payment Core GM-3b:** Chưa phê duyệt.
+6. **Chính sách Kích hoạt Gói Tập 100%:** Chưa phê duyệt.
+7. **Toàn bộ Danh mục Quy tắc Kinh doanh Mở (BR-PAY, BR-PT, BR-AT, BR-MB...):** Chưa phê duyệt.
+8. **Phương án Phân tách 3 Release Gates Độc lập:** Chưa phê duyệt.
+9. **Mở khóa và Bắt đầu Phase 1:** **TUYỆT ĐỐI CHƯA BẮT ĐẦU** (Chờ duyệt xong Gate Phase 0).
 
 ---
 
-## 13. Rủi ro và phương án xử lý
+## CHƯƠNG 10: KẾT LUẬN VÀ ĐỀ XUẤT TIẾP THEO
 
-| Rủi ro | Ảnh hưởng | Phương án xử lý |
-|---|---|---|
-| Phạm vi dự án quá rộng | Kéo dài thời gian phát triển | Ưu tiên MVP và chia giai đoạn |
-| Module phụ thuộc lẫn nhau | Khó sửa đổi và kiểm thử | Quy định interface và ranh giới trách nhiệm |
-| Mất dữ liệu buổi tập | Ảnh hưởng trực tiếp đến trải nghiệm | Lưu cục bộ thường xuyên và khôi phục trạng thái |
-| Đồng bộ tạo dữ liệu trùng | Lịch sử sai lệch | ID ổn định, idempotency và kiểm soát trạng thái đồng bộ |
-| Xung đột giữa các thiết bị | Dữ liệu không nhất quán | Thiết kế quy tắc giải quyết xung đột |
-| Bộ đếm thời gian sai khi chạy nền | Ảnh hưởng thao tác | Tính thời gian từ timestamp thay vì phụ thuộc vòng lặp liên tục |
-| Giao diện thiếu nhất quán | Khó sử dụng và bảo trì | Xây dựng Design System dùng chung |
-| Tương phản màu không đạt | Khó đọc nội dung | Kiểm tra từng cặp màu thực tế |
-| Thống kê thiếu chính xác | Người dùng hiểu sai tiến bộ | Định nghĩa công thức và kiểm thử dữ liệu |
-| Quyền thiết bị bị từ chối | Chức năng liên quan không hoạt động | Xử lý quyền từ chối và cung cấp phương án thay thế |
-| Backend chưa hoàn thiện | Hạn chế chức năng tài khoản và đồng bộ | Tách tầng dữ liệu để có thể thay đổi nguồn dữ liệu |
+### 10.1. Đánh giá Mức độ Hoàn thiện
+1. **Mức độ Hoàn thiện Tài liệu (Documentation Maturity):**
+   - Tài liệu đã đạt mức độ hoàn thiện cao nhất, thống nhất tuyệt đối giữa Product Vision, 8 quy trình vận hành thực tế, ma trận phụ thuộc lộ trình và hệ thống phân loại bằng chứng.
+   - Bảo toàn 100% các giá trị cốt lõi của ứng dụng tập luyện di động cá nhân (17 yêu cầu chức năng FR-01..17, 12 tiêu chí nghiệm thu AC-01..12, Design System chuẩn WCAG 2.2 AA).
+   - Đã loại bỏ hoàn toàn các điểm mơ hồ kỹ thuật (tên migration `GM-3b`, tiền tệ `BIGINT VND`, mô hình consent dữ liệu PT, phân tách 3 cổng release).
+2. **Mức độ Kiểm chứng Triển khai Thực tế (Implementation Verification Level):**
+   - Hiện trạng thực tế đã kiểm chứng: Codebase React Native/Expo SDK 57 với 6 bảng SQLite v1 và bộ test Jest đã đạt trong các phiên trước.
+   - Toàn bộ phân hệ Gym Management (Admin Web, Schemas GM-1 đến GM-5, RLS Policies, Mutation Gateways, luồng liên kết tài khoản OTP và phân hệ PT) đang ở mức **Đặc tả Thiết kế (Design Specification)**.
 
----
-
-## 14. Kết luận
-
-Báo cáo đã tổng hợp định hướng phát triển ứng dụng quản lý tập luyện thể hình trên nền tảng React Native/Expo từ góc độ người dùng, chức năng, kiến trúc phần mềm, lưu trữ dữ liệu và thiết kế giao diện.
-
-Giải pháp đề xuất tập trung vào bốn nền tảng chính:
-
-1. **Trải nghiệm người dùng:** Hỗ trợ người mới bắt đầu và người đã có kinh nghiệm, ưu tiên thao tác nhanh trong quá trình tập luyện.
-2. **Kiến trúc module:** Tách biệt các nhóm chức năng nghiệp vụ và các thành phần dùng chung nhằm tăng khả năng tái sử dụng, kiểm thử và mở rộng.
-3. **Độ tin cậy dữ liệu:** Kết hợp SQLite, cơ chế tự động lưu và hàng đợi đồng bộ để hỗ trợ sử dụng ngoại tuyến.
-4. **Design System thống nhất:** Áp dụng Light/Dark Theme, bảng màu có kiểm tra độ tương phản, typography rõ ràng và hệ thống spacing theo đơn vị 4/8 px.
-
-Trong quá trình triển khai, cần ưu tiên hoàn thiện luồng từ lựa chọn kế hoạch đến ghi nhận, lưu trữ và xem lại buổi tập. Đây là luồng nghiệp vụ cốt lõi, ảnh hưởng trực tiếp đến tính hữu ích của ứng dụng.
-
-Sau khi các chức năng nền tảng đạt tiêu chí nghiệm thu, dự án có thể mở rộng sang phân tích nâng cao, cá nhân hóa và đồng bộ đa thiết bị. Cách tiếp cận theo từng giai đoạn giúp kiểm soát phạm vi, giảm rủi ro và duy trì chất lượng trong suốt quá trình phát triển.
-
----
-
-**Tài liệu tham chiếu kỹ thuật đề xuất**
-
-- React Native: https://reactnative.dev/
-- Expo: https://docs.expo.dev/
-- Expo Router: https://docs.expo.dev/router/introduction/
-- Expo SecureStore: https://docs.expo.dev/versions/latest/sdk/securestore/
-- Expo SQLite: https://docs.expo.dev/versions/latest/sdk/sqlite/
-- Expo Notifications: https://docs.expo.dev/versions/latest/sdk/notifications/
-- WCAG 2.2: https://www.w3.org/TR/WCAG22/
-
-*Ghi chú: Đây là tài liệu phân tích và thiết kế đề xuất. Các quyết định về backend, xác thực, mô hình dữ liệu chi tiết, thư viện biểu đồ và cơ chế đồng bộ cần được xác nhận trong giai đoạn triển khai kỹ thuật.*
+### 10.2. Đề xuất Hành động Tiếp theo
+- Kính trình Chủ dự án xem xét báo cáo tổng thể `docs/baocao.md` đã được cập nhật.
+- Xem xét phê duyệt các đề xuất kiến trúc tại Gate Task `P0.T07` và nghiệm thu nội dung báo cáo tại Gate Task `P0.T08`.
+- Sau khi có quyết định phê duyệt chính thức từ Chủ dự án, hệ thống mới tiến hành cập nhật trạng thái trong `docs/mindmap.md` và chính thức khởi động Phase 1 (Auth & Multi-Tenant RBAC Foundation).
