@@ -4,8 +4,8 @@
 > **Phiên bản:** Baseline Candidate v1.4 (Đã tích hợp Phạm vi Phê duyệt của Chủ Dự án)  
 > **Ngày cập nhật:** 2026-10-23  
 > **Trạng thái phê duyệt:**  
-> - **APPROVED (Chủ dự án đã phê duyệt):** Gym Management là Core Product; Workout Mobile hỗ trợ Dual-Mode (Standalone Workout & Gym Member Mode); PT Management là phân hệ chính thức triển khai theo giai đoạn; Một Unified Roadmap tổng thể; Cấu trúc báo cáo 10 chương và 8 nhóm quy trình nghiệp vụ.  
-> - **NOT YET APPROVED / PROPOSED / UNDECIDED (Chờ phê duyệt tại Gate P0.T07 / P0.T08 hoặc theo Phase):** Các lựa chọn kiến trúc chờ P0.T07 (D-MT-01 đến D-MT-04, D-MT-11); Thiết kế Schema GM-1 và các migration đề xuất; Tách Payment Core GM-3b sang Phase 4; Chính sách kích hoạt gói 100% thanh toán; Các quy tắc kinh doanh mở (BR-PAY, BR-PT, BR-AT, BR-MB...); Phương án phân tách 3 Release Gates; Chưa bắt đầu Phase 1.
+> - **APPROVED (Chủ dự án đã phê duyệt):** Gym Management là Core Product; Workout Mobile hỗ trợ Dual-Mode (Standalone Workout & Gym Member Mode); PT Management là phân hệ chính thức triển khai theo giai đoạn; Một Unified Roadmap tổng thể; Cấu trúc báo cáo 10 chương và 8 nhóm quy trình nghiệp vụ; Hồ sơ kiến trúc P0.T07 (D-MT-01..04, D-MT-11, APPROVED WITH CONDITIONS ngày 2026-10-23); Thiết kế Schema GM-1 và Migration DDL (P0.T08 APPROVED ngày 2026-10-25); Toàn bộ 6 Quyết định Chủ dự án OD-01 đến OD-06. Phase 0 chính thức HOÀN THÀNH.  
+> - **DEFERRED / STAGED SCOPE (Theo lộ trình từng Phase sau):** Tích hợp Webhook tự động (post-MVP); Cổng điểm danh phần cứng IoT (Phase 8); Tách Payment Core GM-3b sang Phase 4; Quy tắc kinh doanh mở theo từng phase (BR-PT, BR-MB-02...).
 
 ---
 
@@ -92,7 +92,7 @@ Hệ thống Gym Workout được định hướng phát triển thành **Nền 
 
 ## CHƯƠNG 2: MÔ HÌNH VẬN HÀNH & 8 QUY TRÌNH NGHIỆP VỤ END-TO-END
 
-> **Nguyên tắc biên soạn:** Phân tách rõ ràng giữa **Nguyên tắc nghiệp vụ (Business Rules)** và **Chi tiết triển khai kỹ thuật**. Chương này tập trung vào luồng thao tác, tác nhân, điều kiện kiểm tra nghiệp vụ và kết quả vận hành. Chi tiết về câu lệnh SQL, DDL bảng, định nghĩa hàm RLS helper, Partial Index, RPC và tham số kỹ thuật được trích xuất và tham chiếu sang các tài liệu chuyên biệt: [`docs/gym-management.md`](./gym-management.md), [`docs/member-management.md`](./member-management.md), [`docs/membership.md`](./membership.md), [`docs/attendance.md`](./attendance.md), [`docs/payments.md`](./payments.md), [`docs/multi-tenancy.md`](./multi-tenancy.md), và [`docs/supabase-schema.md`](./supabase-schema.md). Mọi quy tắc nghiệp vụ chưa được chủ dự án phê duyệt chính thức đều được đánh dấu tường minh là `[PROPOSED]` hoặc `[UNDECIDED]`.
+> **Nguyên tắc biên soạn:** Phân tách rõ ràng giữa **Nguyên tắc nghiệp vụ (Business Rules)** và **Chi tiết triển khai kỹ thuật**. Chương này tập trung vào luồng thao tác, tác nhân, điều kiện kiểm tra nghiệp vụ và kết quả vận hành. Chi tiết về câu lệnh SQL, DDL bảng, định nghĩa hàm RLS helper, Partial Index, RPC và tham số kỹ thuật được trích xuất và tham chiếu sang các tài liệu chuyên biệt: [`docs/supabase-schema.md`](./supabase-schema.md), [`docs/baocao.md`](./baocao.md), và [`docs/risks-decisions.md`](./risks-decisions.md). Mọi quy tắc nghiệp vụ chưa được chủ dự án phê duyệt chính thức đều được đánh dấu tường minh là `[PROPOSED]` hoặc `[UNDECIDED]`.
 
 ---
 
@@ -105,7 +105,7 @@ Hệ thống Gym Workout được định hướng phát triển thành **Nền 
 
 #### Nguyên tắc Nghiệp vụ Cốt lõi
 - **Bảo vệ Vết kiểm toán Kế toán (Audit Trail Protection):** Nghiêm cấm xóa vật lý bất kỳ chi nhánh nào nếu chi nhánh đó đã từng phát sinh nhân sự, hội viên, điểm danh hoặc giao dịch tài chính. Khi cơ sở dừng hoạt động, hệ thống áp dụng cơ chế **Lưu trữ mềm (Soft-Deactivation - archived)** nhằm lưu giữ toàn vẹn lịch sử đối soát và lập tức ngăn chặn các nghiệp vụ mới (bán gói, điểm danh) tại cơ sở đó.
-- **Ngăn chặn Gán nhầm Chi nhánh Chéo phòng gym:** Hệ thống bắt buộc kiểm tra tính toàn vẹn để đảm bảo nhân viên và hội viên chỉ được gán vào chi nhánh thuộc quyền sở hữu của chính phòng gym đó, không thể xảy ra tình trạng rò rỉ chéo tenant. *(Chi tiết kỹ thuật Composite Key tham chiếu [`docs/gym-management.md`](./gym-management.md)).*
+- **Ngăn chặn Gán nhầm Chi nhánh Chéo phòng gym:** Hệ thống bắt buộc kiểm tra tính toàn vẹn để đảm bảo nhân viên và hội viên chỉ được gán vào chi nhánh thuộc quyền sở hữu của chính phòng gym đó, không thể xảy ra tình trạng rò rỉ chéo tenant. *(Chi tiết kỹ thuật Composite Key tham chiếu [`docs/supabase-schema.md`](./supabase-schema.md)).*
 - **Cơ chế Khóa Phòng Gym khi Nợ cước / Vi phạm Điều khoản (`suspended`):** Khi phòng gym bị hệ thống đình chỉ dịch vụ, toàn bộ nhân viên chi nhánh (Manager, Receptionist, Trainer) lập tức bị ngắt quyền truy cập vào dữ liệu vận hành. Duy nhất tài khoản Owner được phép đăng nhập để xem thông báo nợ cước/lý do đình chỉ và thực hiện thanh toán gia hạn dịch vụ.
 
 ---
@@ -119,9 +119,9 @@ Hệ thống Gym Workout được định hướng phát triển thành **Nền 
 
 #### Nguyên tắc Nghiệp vụ Cốt lõi
 - **Nguyên tắc Xác thực Quyền lực Máy chủ (Server-Enforced RBAC):** Quyền hạn của nhân viên được tính toán trực tiếp từ cơ sở dữ liệu vật lý tại thời điểm thực thi câu lệnh. Nghiêm cấm sử dụng thông tin do ứng dụng client tự khai báo để phân quyền. Nhân viên có trạng thái `invited` hoặc `suspended` lập tức bị tước quyền truy cập dữ liệu nghiệp vụ ngay tại request tiếp theo.
-- **Quy tắc Kiêm nhiệm Đa chi nhánh và Loại trừ Lẫn nhau (Mutual Exclusivity) `[PROPOSED]`:**
+- **Quy tắc Kiêm nhiệm Đa chi nhánh và Loại trừ Lẫn nhau (Mutual Exclusivity) `[APPROVED - OD-02=A]`:**
   - Một nhân sự có thể kiêm nhiệm làm việc tại nhiều chi nhánh khác nhau với các vai trò tương ứng (ví dụ: làm Quản lý tại Cơ sở 1 và làm Huấn luyện viên tại Cơ sở 2).
-  - Phương án đề xuất phân quyền: Nhân sự cấp toàn gym (General Manager) nắm quyền bao trùm trên mọi chi nhánh. Nếu một nhân sự bị đình chỉ cấp toàn gym, toàn bộ quyền tại các chi nhánh lẻ sẽ tự động bị vô hiệu hóa ngay lập tức. *(Chi tiết kỹ thuật 2 Partial Unique Indexes tham chiếu [`docs/multi-tenancy.md`](./multi-tenancy.md)).*
+  - Phương án đề xuất phân quyền: Nhân sự cấp toàn gym (General Manager) nắm quyền bao trùm trên mọi chi nhánh. Nếu một nhân sự bị đình chỉ cấp toàn gym, toàn bộ quyền tại các chi nhánh lẻ sẽ tự động bị vô hiệu hóa ngay lập tức. *(Chi tiết kỹ thuật 2 Partial Unique Indexes tham chiếu [`docs/supabase-schema.md`](./supabase-schema.md)).*
 
 ---
 
@@ -144,19 +144,19 @@ Hệ thống Gym Workout được định hướng phát triển thành **Nền 
 #### Luồng Điểm danh Tiêu chuẩn
 1. **Nhận diện Hội viên:** Hội viên đọc số điện thoại/mã thẻ tại quầy, hoặc xuất trình mã QR từ ứng dụng di động.
 2. **Động cơ Kiểm tra Điều kiện Tự động (Pre-check-in Validation Engine):**
-   - [x] Hồ sơ hội viên có đang ở trạng thái Hoạt động (`active`)?
-   - [x] Hội viên có hợp đồng gói tập nào đang Hiệu lực (`active`)?
-   - [x] Thời điểm hiện tại có nằm trong thời hạn gói (`start_date` đến `end_date`)?
-   - [x] Chi nhánh hiện tại có nằm trong phạm vi được phép vào tập của gói (`access_scope`)?
-   - [x] Gói có bị giới hạn số lượt không? Nếu có, số buổi còn lại có lớn hơn 0?
-   - [x] Hội viên đã check-in trong khung giờ/ngày hôm nay chưa? `[UNDECIDED: Giới hạn số lượt/ngày tùy thuộc loại gói tập và cấu hình từng phòng gym — BR-AT-01]`.
+    - [x] Hồ sơ hội viên có đang ở trạng thái Hoạt động (`active`)?
+    - [x] Hội viên có hợp đồng gói tập nào đang Hiệu lực (`active`)?
+    - [x] Thời điểm hiện tại có nằm trong thời hạn gói (`start_date` đến `end_date`)?
+    - [x] Chi nhánh hiện tại có nằm trong phạm vi được phép vào tập của gói (`access_scope`)?
+    - [x] Gói có bị giới hạn số lượt không? Nếu có, số buổi còn lại có lớn hơn 0?
+    - [x] Hội viên đã check-in trong khung giờ/ngày hôm nay chưa? `[UNDECIDED: Giới hạn số lượt/ngày tùy thuộc loại gói tập và cấu hình từng phòng gym — BR-AT-01]`.
 3. **Ghi nhận Điểm danh:** Nếu toàn bộ điều kiện hợp lệ, hệ thống ghi nhận một lượt điểm danh vào nhật ký bất biến (`attendance_logs`), ghi nhận nhân viên thực hiện và trừ 1 lượt tập còn lại (nếu áp dụng).
 
 #### Xử lý các Ngoại lệ Thường gặp
 - **Gói hết hạn:** Giao diện quầy báo đỏ, từ chối vào tập, hiển thị ngày hết hạn và đề xuất nút "Gia hạn gói tập ngay".
 - **Sai chi nhánh:** Từ chối điểm danh, nêu rõ danh sách chi nhánh hợp lệ của gói; cung cấp tùy chọn bán vé tập lẻ trong ngày hoặc nâng cấp gói tập liên chi nhánh.
 - **Gói đang tạm dừng (Bảo lưu hoặc Nợ cước):** Từ chối điểm danh, yêu cầu liên hệ quản lý để mở khóa gói.
-- **Thao tác lặp (Bấm đúp chuột / Quét mã 2 lần):** Hệ thống chặn tự động trong khung thời gian ngắn (ví dụ: cửa sổ thời gian 15 phút tại cùng cơ sở `[PROPOSED]`), thông báo rõ lượt điểm danh hợp lệ vừa được ghi nhận trước đó. *(Chi tiết bảng nhật ký điểm danh tham chiếu [`docs/attendance.md`](./attendance.md)).*
+- **Thao tác lặp (Bấm đúp chuột / Quét mã 2 lần):** Hệ thống chặn tự động trong cửa sổ thời gian 60 phút tính từ lần check-in hợp lệ gần nhất của cùng một hội viên tại cùng chi nhánh (theo quyết định `OD-06`), thông báo rõ lượt điểm danh hợp lệ vừa được ghi nhận trước đó. *(Chi tiết bảng nhật ký điểm danh tham chiếu [`docs/supabase-schema.md`](./supabase-schema.md)).*
 
 ---
 
@@ -164,17 +164,17 @@ Hệ thống Gym Workout được định hướng phát triển thành **Nền 
 
 #### Luồng Nghiệp vụ Thu phí
 1. **Ghi nhận Thanh toán (Payment Core `GM-3b` — Phase 4 `[PROPOSED]`):** Tiếp tân/Quản lý tạo phiếu thu gắn với hợp đồng gói tập hoặc dịch vụ phòng gym. Chọn phương thức: Tiền mặt (`cash`), Chuyển khoản ngân hàng (`bank_transfer`), Quẹt thẻ POS (`pos`). Client sinh mã khóa duy nhất (Idempotency Key) để ngăn chặn thu tiền trùng lặp khi bấm đúp hoặc mạng gián đoạn.
-2. **Chuẩn hóa Kiểu dữ liệu Tiền tệ `[PROPOSED]`: Đề xuất lưu trữ số tiền bằng số nguyên đồng VND (`amount BIGINT`), không dùng số thập phân, phục vụ thị trường Việt Nam.** Hạn chốt quyết định kỹ thuật này được kéo về trước khi thiết kế migration Payment Core Phase 4.
+2. **Chuẩn hóa Kiểu dữ liệu Tiền tệ `[APPROVED - OD-05=A]`: Lưu trữ số tiền bằng số nguyên đồng VND (`amount BIGINT`), không dùng số thập phân, phục vụ thị trường Việt Nam.** Áp dụng xác nhận thanh toán thủ công tại quầy (Manual Counter Confirmation) ở giai đoạn MVP; hoãn tích hợp webhook tự động sang phase sau.
 3. **Xử lý Thanh toán Một phần & Công nợ (Payment Advanced — Phase 5 `[UNDECIDED]`):**
-   - Cho phép ghi nhận số tiền thực đóng nhỏ hơn tổng giá trị hợp đồng.
-   - Hệ thống ghi nhận số tiền còn nợ (`amount_due` - `amount_paid`).
-   - **Chính sách Kích hoạt Gói khi còn Nợ `[UNDECIDED: BR-PAY-01]`: Phương án mặc định MVP là CHỈ kích hoạt khi thanh toán 100%. Chính sách cho phép kích hoạt gói khi khách còn nợ (ví dụ: đóng trước X%, gia hạn trả nợ Y ngày) là quy tắc mở cần Chủ dự án quyết định trước khi nghiệm thu Phase 4.**
+    - Cho phép ghi nhận số tiền thực đóng nhỏ hơn tổng giá trị hợp đồng.
+    - Hệ thống ghi nhận số tiền còn nợ (`amount_due` - `amount_paid`).
+    - **Chính sách Kích hoạt Gói khi còn Nợ `[UNDECIDED: BR-PAY-01]`: Phương án mặc định MVP là CHỈ kích hoạt khi thanh toán 100%. Chính sách cho phép kích hoạt gói khi khách còn nợ (ví dụ: đóng trước X%, gia hạn trả nợ Y ngày) là quy tắc mở cần Chủ dự án quyết định trước khi nghiệm thu Phase 4.**
 4. **Xử lý Thanh toán Chờ xác nhận (Pending Verification) `[PROPOSED]`:**
-   - Giao dịch chuyển khoản chờ đối soát ngân hàng được ghi nhận ở trạng thái `pending_verification`.
-   - Gói tập tạm thời ở trạng thái Chờ kích hoạt (`pending_activation`). Quầy tiếp tân có thể cấp quyền tập tạm (Temporary Pass) theo thẩm quyền cho phép.
+    - Giao dịch chuyển khoản chờ đối soát ngân hàng được ghi nhận ở trạng thái `pending_verification`.
+    - Gói tập tạm thời ở trạng thái Chờ kích hoạt (`pending_activation`). Quầy tiếp tân có thể cấp quyền tập tạm (Temporary Pass) theo thẩm quyền cho phép.
 5. **Xử lý Giao dịch Thất bại & Gián đoạn Kết nối:**
-   - Giao dịch lỗi được ghi nhận `failed` kèm nguyên nhân; không kích hoạt gói tập.
-   - Khi mạng gián đoạn, client sử dụng Idempotency Key tra cứu trạng thái giao dịch trên server trước khi thử lại, ngăn ngừa thu tiền lặp 2 lần của khách hàng.
+    - Giao dịch lỗi được ghi nhận `failed` kèm nguyên nhân; không kích hoạt gói tập.
+    - Khi mạng gián đoạn, client sử dụng Idempotency Key tra cứu trạng thái giao dịch trên server trước khi thử lại, ngăn ngừa thu tiền lặp 2 lần của khách hàng.
 
 #### Tách biệt Quy trình Hoàn tiền và Điều chỉnh Quyền lợi Gói tập
 - **Quy trình 1: Giao dịch Tài chính Hoàn tiền (Financial Refund Transaction):**
@@ -186,7 +186,7 @@ Hệ thống Gym Workout được định hướng phát triển thành **Nền 
 
 #### Đối soát Doanh thu (Reconciliation)
 - Cuối ca/ngày, tiếp tân thực hiện kết ca, đối soát số tiền mặt thu được thực tế với bảng kê hệ thống.
-- Báo cáo phân quyền nghiêm ngặt: Tiếp tân chỉ xem ca của mình; Quản lý xem toàn chi nhánh; Chủ phòng gym xem tổng hợp chuỗi theo thời gian thực. *(Chi tiết kỹ thuật bảng tài chính tham chiếu [`docs/payments.md`](./payments.md)).*
+- Báo cáo phân quyền nghiêm ngặt: Tiếp tân chỉ xem ca của mình; Quản lý xem toàn chi nhánh; Chủ phòng gym xem tổng hợp chuỗi theo thời gian thực. *(Chi tiết kỹ thuật bảng tài chính tham chiếu [`docs/supabase-schema.md`](./supabase-schema.md) và [`docs/risks-decisions.md`](./risks-decisions.md)).*
 
 ---
 
@@ -335,20 +335,20 @@ Khách hàng ban đầu được tạo hồ sơ hội viên tại quầy lễ t�
 
 ## CHƯƠNG 4: KIẾN TRÚC HỆ THỐNG & NGUYÊN TẮC THIẾT KẾ
 
-> **Nguyên tắc biên soạn:** Chương này mô tả các nguyên tắc kiến trúc cấp cao. Toàn bộ chi tiết kỹ thuật về DDL bảng, SQL, hàm RLS helper, Partial Index, RPC được chuyển và tham chiếu đến các tài liệu module kỹ thuật: [`docs/architecture.md`](./architecture.md), [`docs/admin-web.md`](./admin-web.md), [`docs/multi-tenancy.md`](./multi-tenancy.md), và [`docs/supabase-schema.md`](./supabase-schema.md).
+> **Nguyên tắc biên soạn:** Chương này mô tả các nguyên tắc kiến trúc cấp cao. Toàn bộ chi tiết kỹ thuật về DDL bảng, SQL, hàm RLS helper, Partial Index, RPC được quy hoạch và tham chiếu đến: [`docs/supabase-schema.md`](./supabase-schema.md), [`docs/risks-decisions.md`](./risks-decisions.md), và [`docs/data-offline.md`](./data-offline.md).
 
 ### 4.1. Kiến trúc Tổng thể Đa tầng (Client-Server-Database)
 Hệ thống xây dựng theo mô hình dịch vụ đám mây tập trung phục vụ 2 nhóm máy trạm (clients):
 1. **Tầng Giao diện Người dùng (Clients):**
-   - *Admin Web Portal `[PROPOSED]`:* Xây dựng bằng Next.js App Router, phục vụ công tác điều hành và vận hành quầy tiếp tân.
-   - *Workout Mobile App `[APPROVED]`:* Xây dựng bằng React Native + Expo SDK 57, phục vụ hội viên và cộng đồng người tập thể hình.
+   - *Admin Web Portal `[APPROVED WITH CONDITIONS - D-MT-02]`:* Xây dựng bằng Next.js App Router, phục vụ công tác điều hành và vận hành quầy tiếp tân.
+   - *Workout Mobile App `[APPROVED]`:* Xây dựng bằng React Native + Expo SDK 57, phục vụ hội viên và cộng đồng người tập thể hình (hỗ trợ Dual-Mode: Standalone Workout & Gym Member Mode).
 2. **Tầng Nền tảng Dữ liệu & Backend (Supabase Platform) `[APPROVED]`:**
    - Dịch vụ Xác thực tập trung (Supabase Auth).
    - Cơ sở dữ liệu quan hệ PostgreSQL với cơ chế phân quyền theo dòng (Row Level Security - RLS) gắn chặt với `gym_id`.
-   - Cổng Giao dịch Đột biến (Mutation Gateway) `[PROPOSED]`: Kết hợp Edge Functions (xử lý logic nghiệp vụ, mời nhân viên) và PostgreSQL RPC `SECURITY DEFINER` (xử lý các giao dịch kế toán và ghi chép đa bảng theo chuẩn ACID).
+   - Cổng Giao dịch Đột biến (Mutation Gateway) `[APPROVED WITH CONDITIONS - D-MT-04, OD-04=A]`: Kết hợp Edge Functions (xử lý logic nghiệp vụ, mời nhân viên) và PostgreSQL RPC `SECURITY DEFINER` (có `SET search_path = public, pg_temp`, xử lý các giao dịch kế toán và ghi chép đa bảng theo chuẩn ACID).
    - Áp dụng nguyên tắc đặc quyền tối thiểu (Least Privilege): Thu hồi quyền ghi trực tiếp từ client lên các bảng quản lý đồng bộ.
 
-### 4.2. Kiến trúc Bảo mật Phiên Web (Server-First Cookie SSR Architecture) `[PROPOSED]`
+### 4.2. Kiến trúc Bảo mật Phiên Web (Server-First Cookie SSR Architecture) `[APPROVED WITH CONDITIONS - D-MT-03]`
 - Quản lý phiên làm việc trên Admin Web bằng HTTP Cookies (`httpOnly: true, secure: true, sameSite: 'lax'`) thông qua `@supabase/ssr`.
 - Bảo vệ mã phiên bằng cách không lưu trữ token trong `localStorage` và cấu hình cấm JavaScript client truy cập trực tiếp cookie.
 - Phân quyền điều hướng trên Web được kiểm tra từ Middleware và Server Components máy chủ.
@@ -532,7 +532,7 @@ Nhằm đảm bảo tính sẵn sàng nghiệm thu độc lập cho phân hệ G
 ## CHƯƠNG 8: LỘ TRÌNH TRIỂN KHAI TỔNG THỂ & MA TRẬN PHỤ THUỘC (UNIFIED ROADMAP)
 
 ### 8.1. Cấu trúc Lộ trình Tích hợp (Unified Roadmap) `[APPROVED]`
-- **Phase 0 — Chuẩn bị Yêu cầu & Kiến trúc:** Hoàn thiện Product Vision, thiết kế schema GM-1, chuẩn bị hồ sơ Gate P0.T07 & P0.T08. *(Hiện trạng: [ ] Chờ duyệt; Chưa bắt đầu Phase 1)*.
+- **Phase 0 — Chuẩn bị Yêu cầu & Kiến trúc:** Hoàn thiện Product Vision, thiết kế schema GM-1, nghiệm thu Gate P0.T07 (APPROVED WITH CONDITIONS) và khởi tạo file migration DDL GM-1 cho Gate P0.T08 (APPROVED). *(Hiện trạng: [x] HOÀN THÀNH (COMPLETED))*.
 - **Phase 1 (Mới) — Xác thực & Nền tảng RBAC:** Triển khai schema GM-1 (`gyms`, `branches`, `gym_staff`), RLS policies và luồng mời nhân sự.
 - **Phase 2 (Mới) — Quản lý Phòng gym & Chi nhánh:** Khởi tạo dự án Admin Web, giao diện quản trị gym, quản lý chi nhánh và nhân viên.
 - **Phase 3 (Mới) — Quản lý Hội viên (Member Management):** Schema GM-2, giao diện hội viên walk-in, luồng liên kết tài khoản an toàn qua OTP.
@@ -541,12 +541,21 @@ Nhằm đảm bảo tính sẵn sàng nghiệm thu độc lập cho phân hệ G
 - **Phase 6 (Mới) — Tập luyện & Huấn luyện viên cá nhân (Workout & PT):** Hoàn thiện đồng bộ dữ liệu workout core, phân công PT, lịch hẹn và mô hình consent. **Nghiệm thu Cổng 2: PT Integration Gate.**
 - **Phase 7 (Mới) — Kiểm thử Toàn diện & Phát hành Toàn nền tảng:** Kiểm thử tải, bảo mật, E2E toàn diện. **Nghiệm thu Cổng 3: Full Platform Production Release Gate.**
 
+#### Lộ trình Nâng cấp Từng bước từ Core Hiện có lên Gym Management Platform (Step-by-step Evolution)
+1. **Nền tảng Schema GM-1 tại cuối Phase 0 (P0.T08):** Đã hoàn tất file migration `20261025150000_gm1_tenant_branch_staff.sql` làm nền móng dữ liệu vững chắc cho Multi-Tenancy (bảng `gyms`, `branches`, `gym_staff`, RLS helper functions, partial indexes).
+2. **Ưu tiên Mobile Core để bảo toàn và phát huy tối đa Codebase hiện tại:**
+   - Khởi tạo SQLite v1 trong runtime ứng dụng di động thay vì chỉ chạy trong test suite in-memory.
+   - Kết nối Supabase Auth thực tế vào các màn hình Login / Register thay thế trạng thái scaffold.
+   - Hoàn thiện các màn hình Exercises / Workouts thay thế hoàn toàn `RoutePlaceholder`.
+   - Tạo tiền đề cho chế độ **Dual-Mode (Standalone Workout <-> Gym Member Mode)** và tính năng **PT giao giáo án tập luyện** ở các Phase tiếp theo.
+3. **Chuyển đổi Monorepo tại Pre-Phase 2 (OD-03=A):** Thực hiện tái cấu trúc sang `npm workspaces` với `apps/mobile`, `apps/admin-web`, `packages/shared-types` ngay trước khi triển khai code Admin Web (`P2.T01`), bảo đảm an toàn tuyệt đối cho baseline Expo SDK 57.
+
 ### 8.2. Ma trận Phụ thuộc Toàn diện (Dependency Matrix)
 
 | Phase Lộ trình | Nhóm Schema Supabase | Năng lực Nghiệp vụ Hệ thống (Business Capabilities) | Tiêu chí Nghiệm thu Tương ứng (Acceptance Criteria) | Điều kiện Tiên quyết (Prerequisites) |
 |---|---|---|---|---|
-| **Phase 0** | N/A (Thiết kế DDL) | Hồ sơ kiến trúc, Product Vision mới, thiết kế DDL GM-1 | Gate P0.T07 & P0.T08 Review | Phê duyệt từ Chủ dự án |
-| **Phase 1** | `GM-1` (`gyms`, `branches`, `gym_staff`) | Xác thực đa tenant, mời nhân viên, RBAC máy chủ | MT-01..05, RBAC-01..16, GM-01..06 | P0.T07 & P0.T08 Approved |
+| **Phase 0** | `GM-1` DDL Migration | Hồ sơ kiến trúc P0.T07, Product Vision mới, file migration GM-1 P0.T08 | Gate P0.T07 & P0.T08 Approved | **HOÀN THÀNH (2026-10-25)** |
+| **Phase 1** | `GM-1` (`gyms`, `branches`, `gym_staff`) | Xác thực đa tenant, mời nhân viên, RBAC máy chủ | MT-01..05, RBAC-01..16, GM-01..06 | Phase 0 Hoàn tất (Sẵn sàng) |
 | **Phase 2** | `GM-1` (Web integration) | Admin Web Portal, quản trị chuỗi chi nhánh | FR-GM-01..05, SSR-01..02 | Phase 1 Hoàn tất |
 | **Phase 3** | `GM-2` (`gym_members`) | Quản lý hội viên walk-in, liên kết tài khoản OTP | FR-MB-01..05, MB-01..05 | Phase 2 Hoàn tất |
 | **Phase 4** | `GM-3`, `GM-4` + `GM-3b` (Payment Core) | Bán gói tập, kích hoạt gói 100%, điểm danh tại quầy | FR-MS-01..05, FR-AT-01..03, CI-01..07 | Phase 3 + Payment Core Schema GM-3b |
@@ -569,38 +578,39 @@ Nhằm đảm bảo tính sẵn sàng nghiệm thu độc lập cho phân hệ G
 
 #### 1. Nhóm Quyết định Đã Phê duyệt (APPROVED DECISION)
 1. **Định vị Sản phẩm Multi-Tenant:** Gym Workout là Multi-Tenant Gym Management Platform; Gym Management là sản phẩm trọng tâm; Workout Mobile là app đa chế độ; PT Management là phân hệ chính thức theo giai đoạn; Một Unified Roadmap tổng thể. *(Bằng chứng: Nhiệm vụ phê duyệt ngày 2026-10-23)*.
-2. **Cấu trúc Tài liệu Báo cáo:** Chấp thuận về mặt nguyên tắc khung 10 chương và 8 nhóm quy trình nghiệp vụ. *(Bằng chứng: Nhiệm vụ phê duyệt ngày 2026-10-23)*.
-3. **Kiến trúc Dữ liệu Đám mây & Ngoại tuyến:** Supabase PostgreSQL làm backend dữ liệu và Expo SQLite làm nguồn dữ liệu cục bộ theo kiến trúc offline-first; UUID canonical; UTC timestamptz; đơn vị mức tạ là số nguyên gram (`weight_grams`). *(Bằng chứng: [`docs/risks-decisions.md`](./risks-decisions.md#L25-L40), xác nhận ngày 2026-10-21)*.
+2. **Cấu trúc Tài liệu Báo cáo:** Chấp thuận về mặt nguyên tắc khung 10 chương và 8 nhóm quy trình nghiệp vụ; khóa cứng 8 file tài liệu cốt lõi trong `docs/`. *(Bằng chứng: Nhiệm vụ phê duyệt ngày 2026-10-23, cập nhật 2026-10-25)*.
+3. **Kiến trúc Dữ liệu Đám mây & Ngoại tuyến:** Supabase PostgreSQL làm backend dữ liệu và Expo SQLite làm nguồn dữ liệu cục bộ theo kiến trúc offline-first; UUID canonical; UTC timestamptz; đơn vị mức tạ là số nguyên gram (`weight_grams`). *(Bằng chứng: [`docs/risks-decisions.md`](./risks-decisions.md), xác nhận ngày 2026-10-21)*.
+4. **Hồ sơ Kiến trúc P0.T07 (D-MT-01..04, D-MT-11) — APPROVED WITH CONDITIONS (2026-10-23):**
+   - **D-MT-01 (Monorepo):** Cấu trúc monorepo `npm workspaces` (`apps/mobile`, `apps/admin-web`, `packages/shared-types`). Di chuyển tại Pre-Phase 2 trước `P2.T01` (OD-03=A).
+   - **D-MT-02 (Admin Web Framework):** Next.js App Router + TypeScript, Server Components mặc định.
+   - **D-MT-03 (Web Auth):** Supabase SSR `@supabase/ssr` Server-First, HTTP cookie `httpOnly: true, secure: true, sameSite: 'lax'`.
+   - **D-MT-04 (Mutation Gateway & Execution):** PostgreSQL RPC `SECURITY DEFINER` (`SET search_path = public, pg_temp`) + Edge Functions orchestration (OD-04=A). Thu hồi 100% direct DML từ client.
+   - **D-MT-11 (Multi-Branch Staff Assignment):** Bảng `gym_staff` đơn lẻ, 2 Partial Unique Indexes (`WHERE status = 'active'`), Composite FK `(branch_id, gym_id)` với `ON DELETE RESTRICT` (Zero Hard Delete OD-02=A).
+5. **OD-01 đến OD-06 (Owner Decisions Đã Xác nhận):**
+   - **OD-01 = A:** Mời nhân viên qua Supabase Auth Admin API (`inviteUserByEmail`) từ Edge Function an toàn.
+   - **OD-02 = A:** Mutual Exclusivity giữa quyền Toàn Gym active và Chi nhánh active. Không xóa vật lý bản ghi lịch sử phân công (`DELETE`).
+   - **OD-03 = A:** Chuyển đổi monorepo bằng npm workspaces tại Pre-Phase 2 (trước `P2.T01`).
+   - **OD-04 = A (Audit & Mutation Boundary):** RPC `SECURITY DEFINER` có `SET search_path = public, pg_temp`. Không tạo bảng `security_incident_logs` riêng trong DB ở MVP để tránh mất log khi rollback; audit log nghiệp vụ lưu qua metadata (`created_at`, `updated_at`, `revoked_at`, `revoked_by`), security log ghi qua Supabase Platform/Edge Logs.
+   - **OD-05 = A (Payment Evidence MVP):** Sử dụng đơn vị tiền tệ `BIGINT` (VND). MVP áp dụng xác nhận thanh toán thủ công tại quầy (Manual Counter Confirmation); hoãn webhook tự động sang phase sau.
+   - **OD-06 = A (Attendance Check-in Window):** Chống duplicate check-in trong cửa sổ **60 phút** tính từ lần check-in hợp lệ gần nhất của cùng hội viên tại cùng chi nhánh.
+6. **Schema GM-1 & Migration DDL (Gate P0.T08 — APPROVED 2026-10-25):** Hoàn tất file migration `20261025150000_gm1_tenant_branch_staff.sql` tạo 3 bảng `gyms`, `branches`, `gym_staff`, RLS helper functions `is_gym_owner`, `is_active_staff`, và fail-closed policies.
 
 #### 2. Nhóm Hiện trạng Kỹ thuật Đã Kiểm chứng (VERIFIED BASELINE)
 1. **Expo SDK Baseline (Static Source Check):** Expo SDK 57 (`expo ~57.0.30`, `react-native 0.86.3`). *(Bằng chứng: [`package.json`](../package.json#L9) & `package-lock.json`)*.
 2. **SQLite Schema v1 (Static Source Check):** 6 bảng tập luyện cá nhân (`exercises`, `workout_plans`, `plan_exercises`, `workout_sessions`, `session_exercises`, `workout_sets`). *(Bằng chứng: [`src/shared/storage/schema.ts`](../src/shared/storage/schema.ts#L10-L115))*.
-3. **Kiểm thử Đơn vị Storage (Verified in Historical Test Suite):** Bộ test Jest kiểm tra migration, rollback, repositories CRUD đạt trong các phiên trước. *(Bằng chứng: [`__tests__/storage-test.ts`](../__tests__/storage-test.ts); lưu ý trong phiên hiện tại chưa chạy lệnh `npm test` do tuân thủ nguyên tắc READ-ONLY)*.
-4. **Điều hướng 5 Tab Android (Verified in Historical Runtime Test):** Expo Router tabs hoạt động trên Android emulator `Medium_Phone_API_37.0` (Android 17) qua Expo Go 57.0.9 trong phiên ngày 2026-10-18. *(Bằng chứng: [`docs/mindmap.md`](./mindmap.md#L28))*.
-5. **Design System v1 (Static Source Check):** Color tokens, typography, spacing, Button, Card, Input tồn tại và đồng bộ ThemeProvider. *(Bằng chứng: [`src/shared/design-system/`](../src/shared/design-system/))*.
+3. **Kiểm thử Đơn vị & Tích hợp (Verified Test Suites):** Toàn bộ 8 test suites trong `__tests__/` đạt 25/25 tests pass (`npm test`) và `npx tsc --noEmit` đạt 0 lỗi.
+4. **Điều hướng 5 Tab Android (Verified in Historical Runtime Test):** Expo Router tabs hoạt động trên Android emulator `Medium_Phone_API_37.0` qua Expo Go trong phiên ngày 2026-10-18.
+5. **Design System v1 (Static Source Check):** Color tokens, typography, spacing, components UI dùng chung đạt chuẩn WCAG 2.2 AA. *(Bằng chứng: [`src/shared/design-system/`](../src/shared/design-system/))*.
 
 #### 3. Nhóm Chưa Kiểm chứng Độc lập / Báo cáo từ Người dùng (NOT VERIFIED INDEPENDENTLY)
-1. **Supabase Cloud Core Tables:** 7 bảng core workout trên dự án Supabase Cloud `gym-workout` được báo cáo chạy thủ công ngày 2026-10-22. *(Hiện trạng: Chưa được kiểm chứng độc lập trong phiên này; bài test T13 trên local disposable vẫn BLOCKED theo [`docs/supabase-schema.md`](./supabase-schema.md#L38); không đánh đồng đây là Verified Production)*.
-2. **Kiểm thử Runtime trên iOS:** Chưa kiểm thử runtime trên iOS do môi trường phát triển chạy trên Windows thiếu macOS/Xcode. *(Hiện trạng: BLOCKED theo [`docs/mindmap.md`](./mindmap.md#L28) và [`docs/risks-decisions.md`](./risks-decisions.md#L95))*.
+1. **Supabase Cloud Core Tables:** 7 bảng core workout trên dự án Supabase Cloud `gym-workout` được báo cáo chạy thủ công ngày 2026-10-22. *(Hiện trạng: Chưa được kiểm chứng độc lập trên môi trường Production; bài test T13 trên local disposable vẫn theo dõi theo [`docs/supabase-schema.md`](./supabase-schema.md))*.
+2. **Kiểm thử Runtime trên iOS:** Chưa kiểm thử runtime trên iOS do môi trường phát triển chạy trên Windows thiếu macOS/Xcode. *(Hiện trạng: Theo dõi theo [`docs/mindmap.md`](./mindmap.md) và [`docs/risks-decisions.md`](./risks-decisions.md))*.
 
-#### 4. Nhóm Đề xuất Kỹ thuật Chờ Phê duyệt (PROPOSED — Gate P0.T07 & P0.T08)
-1. **D-MT-01:** Cấu trúc monorepo bằng `npm workspaces`.
-2. **D-MT-02:** Lựa chọn Next.js App Router cho Admin Web.
-3. **D-MT-03:** Quản lý phiên Web bằng Supabase SSR Server-First `httpOnly` Cookie.
-4. **D-MT-04:** Cổng giao dịch phân tách (Edge Functions + PostgreSQL RPC least privilege).
-5. **D-MT-11:** Phân quyền kiêm nhiệm đa chi nhánh qua 2 Partial Unique Indexes.
-6. **Schema GM-1 Design:** DDL 3 bảng `gyms`, `branches`, `gym_staff`, Composite FK `(branch_id, gym_id)`, `ON DELETE RESTRICT` và soft-deactivation `archived`.
-7. **Đề xuất Tách Schema Payment Core GM-3b:** Tách schema tối thiểu của `payment_transactions` (`GM-3b`) đưa vào Phase 4 phục vụ kích hoạt gói tập.
-8. **Chính sách Kích hoạt Gói tập Mặc định MVP:** Chỉ kích hoạt gói tập khi ghi nhận thanh toán đầy đủ 100%.
-9. **Phân tách Độc lập 3 Cổng Release:** Gym Management MVP Gate (sau Phase 5), PT Integration Gate (sau Phase 6), Full Platform Gate (Phase 7).
-10. **Kịch bản Kiểm thử E2E Chu trình Kinh doanh Gym MVP:** Bộ 8 bước E2E-01 đến E2E-08 kiểm chứng chu trình vận hành khép kín tại Cổng 1.
-
-#### 5. Danh mục Business Rules Còn Mở (Open Business Rules Register — UNDECIDED)
+#### 4. Danh mục Business Rules Còn Mở (Open Business Rules Register — UNDECIDED)
 
 | Mã Quy tắc | Nội dung Nghiệp vụ Cần Chốt | Khuyến nghị Kỹ thuật / Nghiệp vụ | Mốc Thời gian Cần Quyết định |
 |---|---|---|---|
-| **BR-PAY-01** | Chính sách kích hoạt gói khi khách còn nợ (Partial Payment) | Đề xuất mặc định MVP: Chỉ kích hoạt khi thanh toán 100%. Tùy chọn nâng cao: Cho phép nợ tối đa theo hạn mức. | **Trước nghiệm thu Phase 4** (Kéo sớm từ Phase 5) |
-| **BR-PAY-02** | Đơn vị tiền tệ chính thức trong cơ sở dữ liệu | Khuyến nghị dùng số nguyên đồng `amount BIGINT` (VND), không dùng số thập phân để tối ưu kế toán Việt Nam. | **Trước thiết kế Migration Phase 4 (GM-3b)** (Kéo sớm từ Phase 5) |
+| **BR-PAY-01** | Chính sách kích hoạt gói khi khách còn nợ (Partial Payment) | Đề xuất mặc định MVP: Chỉ kích hoạt khi thanh toán 100%. Tùy chọn nâng cao: Cho phép nợ tối đa theo hạn mức. | **Trước nghiệm thu Phase 4** |
 | **BR-PT-01** | Chính sách xử lý khi hội viên hủy lịch muộn hoặc No-show | Cấu hình linh hoạt theo từng phòng gym: Cảnh cáo lần đầu không trừ buổi; từ lần vi phạm tiếp theo trừ buổi theo quy định. | **Phase 6** (PT) |
 | **BR-PT-02** | Cơ chế xác nhận hoàn thành buổi tập PT | Khuyến nghị xác thực 2 chiều: Trainer bấm hoàn thành + Hội viên quét QR hoặc nhập OTP trên máy Trainer để trừ buổi. | **Phase 6** (PT) |
 | **BR-PT-03** | Mô hình và phạm vi Consent chia sẻ dữ liệu cho PT | Hội viên chủ động lựa chọn cấp quyền chia sẻ (buổi tập PT, buổi tự tập, lịch sử cá nhân) và có quyền thu hồi bất cứ lúc nào. | **Phase 6** (PT) |
@@ -614,18 +624,13 @@ Nhằm đảm bảo tính sẵn sàng nghiệm thu độc lập cho phân hệ G
 
 ---
 
-### 9.4. Danh mục các Quyết định Chưa được Phê duyệt (NOT YET APPROVED)
-Dưới đây là bảng tổng hợp các hạng mục hiện đang ở trạng thái chờ duyệt trước khi thực thi mã nguồn hoặc schema:
+### 9.4. Danh mục các Hạng mục Triển khai theo Giai đoạn (DEFERRED / STAGED SCOPE)
+Dưới đây là các hạng mục được bảo lưu và triển khai theo đúng phân kỳ lộ trình:
 
-1. **Gate Task P0.T07:** Chưa phê duyệt chính thức (Đang chờ xem xét hồ sơ kiến trúc).
-2. **Gate Task P0.T08:** Đang hoàn thiện bước trình duyệt qua báo cáo này.
-3. **Các Lựa chọn Kiến trúc Mở (D-MT-01 đến D-MT-04, D-MT-11):** Chưa phê duyệt.
-4. **Thiết kế Schema DDL GM-1 và Toàn bộ Migrations GM-1..5:** Chưa phê duyệt.
-5. **Đề xuất Tách Schema Payment Core GM-3b:** Chưa phê duyệt.
-6. **Chính sách Kích hoạt Gói Tập 100%:** Chưa phê duyệt.
-7. **Toàn bộ Danh mục Quy tắc Kinh doanh Mở (BR-PAY, BR-PT, BR-AT, BR-MB...):** Chưa phê duyệt.
-8. **Phương án Phân tách 3 Release Gates Độc lập:** Chưa phê duyệt.
-9. **Mở khóa và Bắt đầu Phase 1:** **TUYỆT ĐỐI CHƯA BẮT ĐẦU** (Chờ duyệt xong Gate Phase 0).
+1. **Webhook Thanh toán Tự động:** Hoãn sang giai đoạn sau MVP (MVP dùng xác nhận thủ công tại quầy OD-05).
+2. **Cổng Kiểm soát Phần cứng IoT / Dynamic QR:** Hoãn sang Phase 8 (MVP dùng check-in thủ công tại quầy và QR quầy).
+3. **Sáp nhập Hồ sơ Tài chính Phức tạp (BR-MB-02):** Hoãn sang giai đoạn nâng cao sau MVP.
+4. **Các quy tắc kinh doanh PT (BR-PT-01..03):** Chốt tại Phase 6.
 
 ---
 
@@ -633,14 +638,14 @@ Dưới đây là bảng tổng hợp các hạng mục hiện đang ở trạng
 
 ### 10.1. Đánh giá Mức độ Hoàn thiện
 1. **Mức độ Hoàn thiện Tài liệu (Documentation Maturity):**
-   - Tài liệu đã đạt mức độ hoàn thiện cao nhất, thống nhất tuyệt đối giữa Product Vision, 8 quy trình vận hành thực tế, ma trận phụ thuộc lộ trình và hệ thống phân loại bằng chứng.
-   - Bảo toàn 100% các giá trị cốt lõi của ứng dụng tập luyện di động cá nhân (17 yêu cầu chức năng FR-01..17, 12 tiêu chí nghiệm thu AC-01..12, Design System chuẩn WCAG 2.2 AA).
-   - Đã loại bỏ hoàn toàn các điểm mơ hồ kỹ thuật (tên migration `GM-3b`, tiền tệ `BIGINT VND`, mô hình consent dữ liệu PT, phân tách 3 cổng release).
-2. **Mức độ Kiểm chứng Triển khai Thực tế (Implementation Verification Level):**
-   - Hiện trạng thực tế đã kiểm chứng: Codebase React Native/Expo SDK 57 với 6 bảng SQLite v1 và bộ test Jest đã đạt trong các phiên trước.
-   - Toàn bộ phân hệ Gym Management (Admin Web, Schemas GM-1 đến GM-5, RLS Policies, Mutation Gateways, luồng liên kết tài khoản OTP và phân hệ PT) đang ở mức **Đặc tả Thiết kế (Design Specification)**.
+   - Toàn bộ tài liệu dự án đã được thu gọn và khóa cứng vào đúng **8 file Single Source of Truth cốt lõi**.
+   - Thống nhất tuyệt đối giữa Product Vision, 8 quy trình vận hành E2E, kiến trúc hệ thống và các quyết định của Chủ dự án (OD-01 đến OD-06).
+   - Bảo toàn 100% giá trị cốt lõi của ứng dụng di động cá nhân, làm bệ phóng cho chế độ Dual-Mode và PT Management.
+2. **Nghiệm thu Hoàn thành Phase 0 (Phase 0 Review Gate):**
+   - **Gate Task P0.T07:** Đã được Chủ dự án ký duyệt chính thức (APPROVED WITH CONDITIONS ngày 2026-10-23).
+   - **Gate Task P0.T08:** Đã được Chủ dự án ký duyệt và hoàn tất khởi tạo file migration DDL GM-1 `20261025150000_gm1_tenant_branch_staff.sql` (APPROVED ngày 2026-10-25).
+   - **Trạng thái Phase 0:** **HOÀN THÀNH (COMPLETED)**.
 
 ### 10.2. Đề xuất Hành động Tiếp theo
-- Kính trình Chủ dự án xem xét báo cáo tổng thể `docs/baocao.md` đã được cập nhật.
-- Xem xét phê duyệt các đề xuất kiến trúc tại Gate Task `P0.T07` và nghiệm thu nội dung báo cáo tại Gate Task `P0.T08`.
-- Sau khi có quyết định phê duyệt chính thức từ Chủ dự án, hệ thống mới tiến hành cập nhật trạng thái trong `docs/mindmap.md` và chính thức khởi động Phase 1 (Auth & Multi-Tenant RBAC Foundation).
+- Trình Chủ dự án và Technical Advisor nghiệm thu toàn bộ kết quả tái cấu trúc tài liệu và file migration GM-1 trên nhánh `docs/reorganize-workflow-and-rules`.
+- Sau khi được chấp thuận merge vào `main`, sẵn sàng chính thức khởi động **Phase 1: Multi-Tenant Authentication & RBAC Foundation**.

@@ -1,6 +1,41 @@
 # Design System — Single Source of Truth
 
-Nguồn: `baocao.md`, mục 8–10. Màu HEX chỉ được định nghĩa trong `color-palette.md`; không tạo bảng màu khác ở đây.
+## 1. Color Palette (Bảng màu Chuẩn Dark & Light Theme)
+
+### Bảng màu Dark Theme
+| Token | HEX | Công dụng |
+|---|---|---|
+| `background` | `#121417` | Nền màn hình |
+| `surface` | `#1C2025` | Nền thẻ và khu vực nội dung |
+| `surface-elevated` | `#292F36` | Thành phần nổi hoặc vùng nhấn nhẹ |
+| `text-primary` | `#F4F6F8` | Văn bản chính |
+| `text-secondary` | `#B0B8C2` | Văn bản phụ |
+| `brand-primary` | `#FF6B35` | Nút chính và điểm nhấn |
+| `info` | `#65BFFF` | Thông tin và trạng thái cần chú ý |
+| `success` | `#57D68D` | Trạng thái thành công |
+| `danger` | `#FF7777` | Lỗi hoặc cảnh báo quan trọng |
+
+### Bảng màu Light Theme
+| Token | HEX | Công dụng |
+|---|---|---|
+| `background` | `#F7F8FA` | Nền màn hình |
+| `surface` | `#FFFFFF` | Nền thẻ |
+| `surface-elevated` | `#E8ECF1` | Thành phần nổi hoặc vùng phân biệt |
+| `text-primary` | `#171A1F` | Văn bản chính |
+| `text-secondary` | `#525B66` | Văn bản phụ |
+| `brand-primary` | `#C94718` | Nút chính và điểm nhấn |
+| `info` | `#075EA8` | Thông tin và trạng thái cần chú ý |
+| `success` | `#167447` | Trạng thái thành công |
+| `danger` | `#B42318` | Lỗi hoặc cảnh báo quan trọng |
+
+### Tiêu chuẩn Tương phản WCAG 2.2 AA
+- Văn bản thông thường: Tối thiểu 4.5:1.
+- Văn bản lớn: Tối thiểu 3.0:1.
+- Active tab text dùng `textPrimary` trên cả hai theme để đảm bảo độ tương phản AA.
+
+---
+
+## 2. Typography & Spacing System
 
 ### 9.5. Typography
 
@@ -241,3 +276,27 @@ Triển khai palette, theme, tokens và component UI dùng chung theo đặc t�
 | 2026-10-18 | Ghi nhận kiểm tra khả năng tiếp cận T05: 44pt control targets, safe-area/scroll behavior, font scaling, contrast thresholds và giới hạn runtime device checks. | Phản ánh kết quả đo được và minh bạch các kiểm thử cần thiết bị thật. | Jest: 5 suites, 13 tests; typecheck/lint/dependency check và static exports đạt; chưa đo runtime font enlargement hoặc native tab hit regions trong phiên này. |
 
 ---
+
+## Kiến trúc Điều hướng & Routes Mobile (Hợp nhất từ navigation.md & theme.md)
+
+### 1. Cấu trúc Điều hướng Expo Router
+- `src/app/_layout.tsx`: Root Stack bọc toàn bộ ứng dụng bằng `AppThemeProvider`, đồng bộ scheme với React Navigation ThemeProvider và quản lý splash overlay.
+- `src/app/index.tsx`: Route gốc, tự động redirect vào nhóm tab chính `/(tabs)`.
+- `src/app/(tabs)/_layout.tsx`: Gắn component `BottomNavigation` vào layout các tabs.
+- `src/app/(tabs)/*.tsx`: 5 màn hình chính MVP:
+  - `index.tsx`: Màn hình Home (Tổng quan tập luyện / Thẻ hội viên).
+  - `workouts.tsx`: Màn hình Kế hoạch tập luyện (Workouts).
+  - `exercises.tsx`: Thư viện bài tập (Exercise Library).
+  - `progress.tsx`: Thống kê tiến độ (Progress / Charts).
+  - `profile.tsx`: Hồ sơ cá nhân và cài đặt ứng dụng.
+- `src/app/(auth)/*.tsx`: Nhóm route xác thực độc lập:
+  - `_layout.tsx`: Stack layout cho Auth.
+  - `login.tsx`: Điểm vào giao diện đăng nhập.
+  - `register.tsx`: Điểm vào giao diện đăng ký.
+- `src/components/route-placeholder.tsx`: Component placeholder chung hiển thị trong lúc các feature đang trong lộ trình phát triển.
+
+### 2. Cấu trúc Theme Provider & Hỗ trợ Web SSR
+- `src/shared/design-system/theme-provider.tsx`: Cung cấp `AppThemeProvider` quản lý theme context (`mode`, `scheme`, `colors`, `setMode`). Ném lỗi rõ ràng nếu `useAppTheme` được gọi ngoài provider.
+- `src/hooks/use-color-scheme.ts`: Đọc `useColorScheme` của React Native cho iOS/Android.
+- `src/hooks/use-color-scheme.web.ts`: Dùng `useSyncExternalStore` để giữ render đầu tiên ở SSR là Light theme nhằm chống mismatch hydration; sau hydration tự động đồng bộ theo theme của trình duyệt.
+- `src/shared/design-system/components/bottom-navigation.tsx`: Triển khai thanh điều hướng 5 tab NativeTabs với tokenized icons, màu sắc chuẩn và nhãn luôn hiển thị trên Android.

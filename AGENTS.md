@@ -21,7 +21,12 @@ npx expo-doctor             # diagnose dependency and config issues
 npx expo install --fix      # fix incompatible package versions
 ```
 
-Run lint and typecheck before declaring any task done.
+Run test, lint, and typecheck before declaring any task done:
+```bash
+npm test
+npx tsc --noEmit
+npm run lint
+```
 
 ## Navigation & Routing
 
@@ -34,16 +39,32 @@ Run lint and typecheck before declaring any task done.
 Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
 Docs: https://docs.expo.dev/eas/index.md
 
-## Rules
+## Native & Security Rules
 
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
-
-## Gym Workout workspace
-
-- Follow [`rule.md`](./docs/rule.md) and [`mindmap.md`](./docs/mindmap.md) for the project workflow; use [`architecture.md`](./docs/architecture.md), [`tech-stack.md`](./docs/tech-stack.md), and the relevant module document under [`docs/`](./docs/) as the current project references.
-- This workspace currently uses Expo SDK 57, Expo Router routes under `src/app/`, SQLite storage under `src/shared/storage/`, Jest tests under `__tests__/`, and npm via `package-lock.json`. Confirm actual installed packages in `package.json`; architecture documents may also describe planned work.
-- The local `android/` directory is Git-ignored and is not tracked as project source. Treat it as generated native output; do not edit or remove it manually. Configure native behavior through `app.json` and config plugins.
 - Supabase migrations are prepared but not applied or runtime-verified. Never execute SQL, connect to or mutate Supabase Cloud, or reset a database without explicit approval for that operation.
-- Do not delete or clean files based only on being untracked, ignored, or apparently unused; inspect references and distinguish generated files from data/configuration first.
+
+## Gym Workout Workspace Steel Rules
+
+- **Strict 8-File Documentation Lock:** The project documentation is strictly locked to **EXACTLY 8 core files** under `docs/`:
+  1. [`docs/rule.md`](./docs/rule.md) (Working rules, Git workflow, technical safety)
+  2. [`docs/mindmap.md`](./docs/mindmap.md) (Unified Roadmap 9 Phase, 96-task audit matrix, Work Log)
+  3. [`docs/baocao.md`](./docs/baocao.md) (Product Vision, 8 E2E business flows, overall architecture)
+  4. [`docs/risks-decisions.md`](./docs/risks-decisions.md) (Decision Register OD-01..06, D-MT & risks)
+  5. [`docs/supabase-schema.md`](./docs/supabase-schema.md) (PostgreSQL Schema, GM-1..5 DDL, RLS & RBAC Multi-Tenancy)
+  6. [`docs/data-offline.md`](./docs/data-offline.md) (Offline-First architecture, sync contract, SQLite v1 code status)
+  7. [`docs/design-system.md`](./docs/design-system.md) (Design system, Dark/Light palette, ThemeProvider, navigation)
+  8. [`docs/testing-acceptance.md`](./docs/testing-acceptance.md) (Testing strategy, 8 test suites in `__tests__/`, acceptance criteria)
+  - **NO OTHER `.md` FILES:** The rule of creating `[tenmodule].md` is **ABOLISHED**. Strictly FORBIDDEN to create any new `.md` files in `docs/` or `.bak`, `.tmp`, `-copy` files anywhere.
+- **Focus Roadmap & Single Task Rule:**
+  - Before starting any session, MUST read `docs/rule.md` and `docs/mindmap.md`.
+  - Only work on **EXACTLY 1 task** currently at `[ ]` that was assigned. No spreading across multiple modules.
+  - When completing the task, MUST update status to `[x]` and log summary (Files modified, key logic, test results) into `## 5. NHẬT KÝ CẬP NHẬT TÀI LIỆU & WORK LOG` in `docs/mindmap.md`.
+- **Strict Git Feature Branch Workflow:**
+  - **NEVER** work or commit directly on `main`.
+  - Every new task must branch off `main` following format: `feat/<task-id>-<desc>` or `fix/...`, `docs/...`.
+  - **NEVER** create `backup/...` branches.
+  - Only commit after verifying all session requirements and passing `npm test` + `npx tsc --noEmit`.
+  - **NEVER** merge into `main` without explicit approval from the Project Owner.
