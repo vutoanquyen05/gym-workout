@@ -101,7 +101,7 @@ Ghi nhận lịch sử tại thời điểm Phase 1.T02, trước khi Supabase P
 Ghi nhận trạng thái triển khai tại thời điểm Phase 3.T01; các quyết định đích Supabase–SQLite được chốt sau đó không thay đổi SQLite v1.
 
 - **Đã triển khai:** Schema SQLite version 1 cho exercise, plan, plan exercise, workout session, session exercise và workout set; migration có transaction/rollback và từ chối schema mới hơn; typed repositories dùng bind parameters.
-- **Quyết định trong phạm vi local:** IDs text ngẫu nhiên, timestamp UTC ISO-8601, khối lượng gắn đơn vị từng set, FK/delete semantics giữ snapshot lịch sử. Chi tiết được ghi trong `storage.md` và `data-offline.md`.
+- **Quyết định trong phạm vi local:** IDs text ngẫu nhiên, timestamp UTC ISO-8601, khối lượng gắn đơn vị từng set, FK/delete semantics giữ snapshot lịch sử. Chi tiết được ghi trong `data-offline.md`.
 - **Giới hạn:** Đây không phải schema/hợp đồng backend; chưa thêm user/profile/auth, goals, recovery, outbox hoặc logic đồng bộ. Đơn vị chuẩn hóa thống kê và các thực thể còn lại tiếp tục mở.
 - **Kiểm chứng:** Jest chạy migration trên SQLite thật, bao gồm idempotence, schema version guard, rollback, parameter binding, FK và snapshot; typecheck và Expo lint đạt.
 
@@ -243,14 +243,16 @@ Hướng dẫn Supabase chính thức được kiểm tra chỉ dẫn chạy loc
 
 > Ngày **2026-10-23**, Chủ dự án đã chính thức ký duyệt thông qua hồ sơ kiến trúc **P0.T07 (Decision: APPROVED WITH CONDITIONS)**. Quyết định này ở cấp độ kiến trúc (Architecture Approval), KHÔNG phải quyền triển khai hệ thống hay mở Phase 1. Quá trình triển khai bắt buộc tuân thủ 5 điều kiện kiểm soát `AC-P0T07-01..05` và 3 Owner Decisions đã chốt (`OD-01=A, OD-02=A, OD-03=A`).
 
-#### 1. Bảng 5 Quyết định Kiến trúc Đã Phê duyệt (D-MT-01/02/03/04/11)
+#### 1. Bảng 7 Quyết định Kiến trúc Đã Phê duyệt (D-MT-01/02/03/04/05/06/11)
 
 | # | Quyết định | Lựa chọn Đã Phê duyệt có Điều kiện | Cơ sở Kỹ thuật & Rủi ro đã Giải quyết | Trạng thái |
 |---|---|---|---|---|
 | D-MT-01 | Monorepo vs. Tách repo | **npm workspaces**: Cấu trúc monorepo với `apps/mobile`, `apps/admin-web`, `packages/shared-types`. | Tận dụng npm workspaces có sẵn; **di chuyển tại Pre-Phase 2, ngay trước P2.T01 (OD-03=A)**; bảo toàn 100% baseline SDK 57 và SQLite. | APPROVED WITH CONDITIONS (2026-10-23) |
 | D-MT-02 | Framework Admin Web | **Next.js App Router + TypeScript**: Server Components làm mặc định, Tailwind CSS hoặc CSS Modules. | Hỗ trợ SSR bảo mật, tối ưu SEO/dashboard render, tương thích kiến trúc Server-First Auth với Supabase SSR, tải trang nhanh và quản lý layout phân cấp (gym/branch). | APPROVED WITH CONDITIONS (2026-10-23) |
 | D-MT-03 | Web Auth & Session Management | **Supabase SSR (`@supabase/ssr`) — Kiến trúc Server-First**: Cookie `httpOnly`, `secure`, `sameSite: 'lax'`. | Khắc phục rủi ro XSS của `localStorage`. Tuyệt đối không dùng `createBrowserClient` trên Client Components; Middleware điều phối refresh; bắt buộc có integration test cho session lifecycle. | APPROVED WITH CONDITIONS (2026-10-23) |
-| D-MT-04 | Mutation Gateway & Execution Privileges | **Direct Self-Authorizing PostgreSQL RPC (`SECURITY DEFINER`) + Edge Functions cho Orchestration**. | RPC tự kiểm tra authorization và tenant scope từ caller JWT; ghim cứng `SET search_path = ''`; thu hồi 100% direct DML từ client; Edge Functions xử lý orchestration và Admin API (OD-01=A). | APPROVED WITH CONDITIONS (2026-10-23) |
+| D-MT-04 | Mutation Gateway & Execution Privileges | **Direct Self-Authorizing PostgreSQL RPC (`SECURITY DEFINER`) + Edge Functions cho Orchestration (OD-04=A)**. | RPC tự kiểm tra authorization và tenant scope từ caller JWT; ghim cứng `SET search_path = public, pg_temp`; thu hồi 100% direct DML từ client; Edge Functions xử lý orchestration và Admin API (OD-01=A). Không tạo bảng `security_incident_logs` riêng trong DB ở MVP để tránh mất log khi rollback transaction; audit log nghiệp vụ lưu qua metadata (`created_at`, `updated_at`, `revoked_at`, `revoked_by`), security logs ghi qua Supabase Platform/Edge Logs. | APPROVED WITH CONDITIONS (2026-10-23, cập nhật 2026-10-25) |
+| D-MT-05 | Đơn vị tiền tệ payments & chứng từ | **`BIGINT` (VND) + Xác nhận Thủ công tại quầy (OD-05=A)**. | Lưu trữ số nguyên đồng (VND), không dùng số thập phân để tối ưu kế toán. Ở giai đoạn MVP áp dụng xác nhận thanh toán thủ công tại quầy (Manual Counter Confirmation); hoãn tích hợp webhook tự động sang phase sau. | APPROVED (2026-10-25) |
+| D-MT-06 | Check-in window chống trùng | **Cửa sổ 60 phút chống duplicate check-in (OD-06=A)**. | Ngăn chặn check-in trùng lặp trong vòng 60 phút tính từ lần check-in hợp lệ gần nhất của cùng một hội viên tại cùng chi nhánh. | APPROVED (2026-10-25) |
 | D-MT-11 | Multi-branch Staff Assignment & Uniqueness | **Multi-row trong `gym_staff` kết hợp 2 Partial Unique Indexes + Composite FK `(branch_id, gym_id)` với `ON DELETE RESTRICT`**. | Khắc phục lỗi SQL `NULL != NULL`; áp dụng **Mutual Exclusivity trên active assignments (OD-02=A)**; bảo tồn 100% lịch sử (Soft-Revocation); ngăn chặn cross-tenant ở DB engine. | APPROVED WITH CONDITIONS (2026-10-23) |
 
 #### 2. Sổ Đăng ký Quyết định của Chủ Dự án Đã Xác nhận (Confirmed Owner Decisions)
@@ -258,12 +260,15 @@ Hướng dẫn Supabase chính thức được kiểm tra chỉ dẫn chạy loc
 - **OD-01 = A:** Mời nhân viên sử dụng Supabase Auth Admin API (`inviteUserByEmail`) qua Edge Function bảo mật (không dùng custom token hay gửi trực tiếp từ client).
 - **OD-02 = A:** Áp dụng Mutual Exclusivity giữa quyền Toàn Gym active và quyền Chi nhánh active trong cùng gym. Tuyệt đối không xóa vật lý bản ghi lịch sử phân công (`DELETE`).
 - **OD-03 = A:** Thực hiện chuyển đổi monorepo bằng npm workspaces tại mốc **Pre-Phase 2 (ngay trước khi thực thi `P2.T01`)**. Không di chuyển thư mục trong Phase 0 hoặc Phase 1.
+- **OD-04 = A (Audit & Mutation Boundary):** Mọi thao tác ghi (mutation) đi qua PostgreSQL RPC (`SECURITY DEFINER`) có `SET search_path = public, pg_temp`. Không tạo bảng `security_incident_logs` riêng trong DB ở MVP (tránh mất log khi transaction rollback); lịch sử nghiệp vụ lưu qua metadata (`created_at`, `updated_at`, `revoked_at`, `revoked_by`), còn lỗi bảo mật/truy cập trái phép ghi nhận qua Supabase Platform/Edge Logs.
+- **OD-05 = A (Payment Evidence MVP):** Sử dụng đơn vị tiền tệ `BIGINT` (VND). Ở giai đoạn MVP, áp dụng xác nhận thanh toán thủ công tại quầy (Manual Counter Confirmation). Hoãn tích hợp Webhook tự động sang Phase sau.
+- **OD-06 = A (Attendance Check-in Window):** Chống quét trùng lặp (duplicate check-in) trong cửa sổ **60 phút** tính từ lần check-in hợp lệ gần nhất của cùng một hội viên tại cùng chi nhánh.
 
 #### 3. Bắt buộc Tuân thủ 5 Điều kiện Phê duyệt (Approval Conditions)
 
 - **`AC-P0T07-01 (Session Security)`**: Cookie bắt buộc `httpOnly`, `secure` và `sameSite: 'lax'`. Không mặc định in-memory Single-Flight Map đồng bộ được nhiều serverless instances; không coi GoTrue refresh reuse interval là bảo đảm tuyệt đối 100%. Bắt buộc kiểm thử integration test cho concurrent refresh, OAuth callback, logout, cookie rotation và graceful degradation khi phiên hết hạn. Không tuyên bố đã PASS khi chưa có kết quả kiểm thử thực tế.
-- **`AC-P0T07-02 (RPC Security & Idempotency)`**: RPC thực thi authorization dựa trên caller JWT (`auth.uid()`), kiểm tra gym, branch và object scope; không tin tưởng client-supplied identity. Thu hồi 100% direct client DML. Kiểm soát chặt chẽ `GRANT EXECUTE`, quyền sở hữu hàm thuộc `postgres`, ghim `search_path = ''`. Cơ chế idempotency bắt buộc có `action_name`, `request_hash`, unique constraint và xử lý an toàn trước concurrent twin requests. Audit logging cho các mutation nhạy cảm.
-- **`AC-P0T07-03 (Staff Assignment Integrity)`**: Mutual Exclusivity chỉ áp dụng cho active assignments (`status = 'active'`). Cho phép nhiều branch-scoped assignments nếu không có gym-wide active assignment. Không hard-delete lịch sử; mọi thay đổi vai trò đều chuyển sang soft-revocation (`status = 'revoked'`). Advisory lock là cơ chế cooperative lock, chỉ hiệu quả khi mọi mutation path tuân thủ cùng locking protocol. Các thay đổi GM-1 DDL (thêm status filter vào indexes, thêm `revoked_at/revoked_by`) phải được thẩm định riêng tại Gate P0.T08.
+- **`AC-P0T07-02 (RPC Security & Idempotency)`**: RPC thực thi authorization dựa trên caller JWT (`auth.uid()`), kiểm tra gym, branch và object scope; không tin tưởng client-supplied identity. Thu hồi 100% direct client DML. Kiểm soát chặt chẽ `GRANT EXECUTE`, quyền sở hữu hàm thuộc `postgres`, ghim `search_path = public, pg_temp`. Cơ chế idempotency bắt buộc có `action_name`, `request_hash`, unique constraint và xử lý an toàn trước concurrent twin requests. Audit logging cho các mutation nhạy cảm.
+- **`AC-P0T07-03 (Staff Assignment Integrity)`**: Mutual Exclusivity chỉ áp dụng cho active assignments (`status = 'active'`). Cho phép nhiều branch-scoped assignments nếu không có gym-wide active assignment. Không hard-delete lịch sử; mọi thay đổi vai trò đều chuyển sang soft-revocation (`status = 'revoked'`). Advisory lock là cơ chế cooperative lock, chỉ hiệu quả khi mọi mutation path tuân thủ cùng locking protocol.
 - **`AC-P0T07-04 (Staff Invitation)`**: Edge Function bắt buộc xác thực quyền caller (Owner/Manager). Không để lộ `service_role` credentials ra client. Xử lý phân nhánh rành mạch giữa New User (`inviteUserByEmail`) và Existing User (thông báo riêng), xử lý duplicate (`409 Conflict`), expired links (24h) và retry backoff. Không giả định tồn tại phương thức SDK chưa xác minh trên hosted runtime; kiểm chứng hành vi API thực tế trước khi nghiệm thu P1.T04.
 - **`AC-P0T07-05 (Monorepo Migration)`**: Tuyệt đối không di chuyển thư mục tại Phase 0 hoặc Phase 1. Chỉ migration tại Pre-Phase 2 trước P2.T01. Bảo toàn nguyên vẹn Expo SDK 57, Metro config, TypeScript aliases, SQLite storage, npm lockfile và CI runners. Bắt buộc chạy smoke tests (`lint`, `test`, `expo export`) trước khi nghiệm thu migration.
 
@@ -273,8 +278,6 @@ Hướng dẫn Supabase chính thức được kiểm tra chỉ dẫn chạy loc
 
 | # | Quyết định | Lựa chọn dự kiến | Tác động nếu chọn sai | Phase cần chốt | Trạng thái |
 |---|---|---|---|---|---|
-| D-MT-05 | Đơn vị tiền tệ payments | VND đồng nguyên (`bigint`) vs. xu (`bigint / 100`) | Ảnh hưởng toàn bộ bảng `payment_transactions`, format hiển thị và rounding | Phase 5 (Payments) | Mở |
-| D-MT-06 | Check-in window | 1 lần/ngày calendar vs. window 30–60 phút | Ảnh hưởng unique constraint `attendance_logs` và logic phạt/check-in lại | Phase 4 (Attendance) | Mở |
 | D-MT-07 | QR check-in hardware & design | Expo Camera (mobile) vs. Web camera (quầy lễ tân) | Ảnh hưởng luồng check-in, dynamic QR token TTL và phần cứng tại quầy | Phase 4 (Attendance) | Mở |
 | D-MT-08 | Quy tắc sinh `member_code` | UUID prefix + sequence (`GYM-YYYY-XXXXX`) vs. số ngẫu nhiên | Ảnh hưởng trải nghiệm đọc mã thẻ của hội viên và tốc độ tìm kiếm tại quầy | Phase 3 (Members) | Mở |
 | D-MT-09 | Chiến lược lưu trữ báo cáo | On-the-fly aggregation query vs. Materialized Views/Bảng tổng hợp | Ảnh hưởng tải database khi quy mô phòng gym và số giao dịch tăng cao | Phase 5 (Reporting) | Mở |
@@ -303,35 +306,32 @@ Hướng dẫn Supabase chính thức được kiểm tra chỉ dẫn chạy loc
 
 ---
 
-### Trạng thái Blockers trước khi phê duyệt Phase 0 và bắt đầu Phase 1
+### Trạng thái Blockers Phase 0
 
 - [x] **P0.T07 — Phê duyệt kiến trúc mới:** **APPROVED WITH CONDITIONS (2026-10-23)**
-  - Đã ghi nhận chính thức 5 quyết định kiến trúc D-MT-01/02/03/04/11 và 3 quyết định của Chủ dự án OD-01/02/03=A.
+  - Đã ghi nhận chính thức 7 quyết định kiến trúc D-MT-01/02/03/04/05/06/11 và 6 quyết định của Chủ dự án OD-01..06.
   - Quá trình triển khai bắt buộc tuân thủ 5 điều kiện kiểm soát kỹ thuật `AC-P0T07-01..05`.
-  - Giữ nguyên trạng thái tài liệu; không phải quyền mở Phase 1 hay triển khai hệ thống.
-- [ ] **P0.T08 — Chờ chủ dự án phê duyệt chi tiết schema GM-1 và thứ tự migration:**
-  - Bảng `gyms`, `branches`, `gym_staff` cùng các ràng buộc tính toàn vẹn (Composite FK `(branch_id, gym_id)` với `ON DELETE RESTRICT` bảo vệ audit trail, chuẩn hóa `branches.status TEXT CHECK (status IN ('active', 'suspended', 'archived'))`, soft-deactivation `status = 'archived'`, 2 partial unique indexes có status filter theo đề xuất P0.T07).
-  - Hệ thống RLS policies fail-closed và các helper functions `is_gym_owner`, `is_active_staff` (kiểm tra trạng thái gym active, pinned search path, execute grants, STABLE optimization).
-  - Cơ chế phân quyền Owner khi gym `suspended`: chỉ cho phép đọc thông tin trạng thái và thanh toán gia hạn qua RPC chuyên biệt; khóa toàn bộ quyền nghiệp vụ thông thường.
-  - Kế hoạch migration thực thi trong các Atomic Transactions (`BEGIN; ... COMMIT;`), kích hoạt RLS và thu hồi quyền ngay lập tức sau `CREATE TABLE` (fail-closed mặc định).
-  - Mô hình phân quyền thực thi Edge Functions và PostgreSQL RPC (`SECURITY DEFINER`).
-  - Thứ tự migration GM-1 năm bước và kịch bản rollback nghịch đảo chi tiết.
+- [x] **P0.T08 — Phê duyệt chi tiết schema GM-1 và khởi tạo file migration DDL:** **APPROVED & COMPLETED (2026-10-25)**
+  - Bảng `gyms`, `branches`, `gym_staff` cùng các ràng buộc tính toàn vẹn (Composite FK `(branch_id, gym_id)` với `ON DELETE RESTRICT` bảo vệ audit trail, chuẩn hóa `branches.status TEXT CHECK (status IN ('active', 'suspended', 'archived'))`, soft-deactivation `status = 'archived'`, 2 partial unique indexes có status filter `WHERE status = 'active'`).
+  - Hệ thống RLS policies fail-closed và các helper functions `is_gym_owner`, `is_active_staff` (kiểm tra trạng thái gym active, pinned `search_path = public, pg_temp`, execute grants, STABLE optimization).
+  - Khóa ngoại `gyms.owner_id` và `gym_staff.user_id` tham chiếu `auth.users(id)` với `ON DELETE RESTRICT` (Zero Hard Delete).
+  - Cập nhật `gym_staff.status` có thêm trạng thái `revoked` và các trường `revoked_at`, `revoked_by`.
+  - File migration DDL `20261025150000_gm1_tenant_branch_staff.sql` đã được tạo và sẵn sàng áp dụng.
 
 ---
 
-### Tác động và Trạng thái tài liệu hiện tại
+### Tác động và Trạng thái 8 File Cốt lõi
 
-| Tài liệu | Trạng thái cập nhật cho P0.T07 & P0.T08 |
+| Tài liệu | Vai trò & Trạng thái cập nhật |
 |---|---|
-| `supabase-schema.md` | Đã hoàn tất đặc tả chi tiết DDL GM-1, Composite FK, 2 partial unique indexes, RLS helper functions (kiểm tra `gyms.status = 'active'`), fail-closed policies, least-privilege model, và kịch bản rollback. |
-| `multi-tenancy.md` | Đã hoàn tất giải pháp Composite FK chống cross-tenant branch assignment, phân tích coexistence/mutual exclusivity của quyền toàn gym và chi nhánh, ma trận vòng đời trạng thái gym và active status enforcement. |
-| `gym-management.md` | Đã đồng bộ chi tiết schema GM-1, Composite FK, các ràng buộc dữ liệu, và mô hình kiêm nhiệm nhiều chi nhánh. |
-| `auth.md` | Đã bổ sung phân tích sâu về Supabase SSR session & cookie security, 4 ranh giới kiểm thử an toàn phiên SSR Server-First (concurrent refresh race condition, cookie chunking, multi-tab logout). |
-| `admin-web.md` | Đã cập nhật cấu trúc Next.js App Router, cơ chế Server-First SSR auth cookies an toàn, các giới hạn kiểm thử phiên và tích hợp Gateway RPC/Edge Functions. |
-| `architecture.md` | Đã cập nhật tổng thể kiến trúc hệ thống, ranh giới client-server, và least-privilege mutation gateway. |
-| `testing-acceptance.md` | Đã bổ sung đầy đủ test cases cho cross-tenant mutation (MT-06), suspended/invited staff (RBAC-13, RBAC-14), multi-branch access (RBAC-15, RBAC-16), constraints GM-1 (GM-01 đến GM-06), kiểm thử bảo mật (SEC-01, SEC-02), và kiểm thử phiên SSR (SSR-01, SSR-02). |
-| `risks-decisions.md` | Đã phân tách rành mạch các quyết định chuẩn bị duyệt P0.T07 vs. quyết định mở tương lai; bổ sung rủi ro SSR cookie R-MT-12, rủi ro cross-tenant FK R-MT-13, và rủi ro gym lockdown R-MT-14. |
-| `mindmap.md` | Đã cập nhật mô tả trạng thái sẵn sàng phê duyệt cho P0.T07 và P0.T08, giữ nguyên trạng thái `[ ]` chờ duyệt. |
+| `docs/rule.md` | Bộ quy tắc thép AI Agent, Strict Git Feature Branch Workflow, cố định 8 file cốt lõi. |
+| `docs/mindmap.md` | Lộ trình Unified Roadmap 9 Phase, hoàn tất Phase 0, ma trận 96 task và Work Log. |
+| `docs/baocao.md` | Tầm nhìn sản phẩm, 8 quy trình E2E, kiến trúc hệ thống tổng thể, đồng bộ quyết định OD-01..06. |
+| `docs/risks-decisions.md` | Sổ bộ quyết định kiến trúc OD-01..06, D-MT và ma trận rủi ro R-MT-01..14. |
+| `docs/supabase-schema.md` | Toàn bộ schema PostgreSQL, migrations GM-1..5, RLS & RBAC Multi-Tenancy. |
+| `docs/data-offline.md` | Kiến trúc Offline-First, hợp đồng đồng bộ dữ liệu hai chiều và hiện trạng code SQLite v1. |
+| `docs/design-system.md` | Hệ thống thiết kế UI, Color Palette Dark/Light HEX, Theme Provider và Routes mobile. |
+| `docs/testing-acceptance.md` | Chiến lược kiểm thử tự động, danh mục 8 test suites trong `__tests__/` và tiêu chí nghiệm thu AC. |
 
 ---
 

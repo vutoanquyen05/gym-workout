@@ -205,7 +205,7 @@ Các kiểm tra dữ liệu ghi/negative-write, kiểm thử constraints/FKs the
 
 ## Tác động và đề xuất schema mở rộng — Multi-Tenant Gym Management (2026-10-23)
 
-> **Trạng thái: THIẾT KẾ CHI TIẾT GM-1 — CHƯA TẠO FILE SQL VÀ CHƯA APPLY MIGRATION.** Phần này ghi nhận đặc tả kỹ thuật chi tiết nhóm bảng GM-1 phục vụ Gate P0.T08. Không thay đổi 7 bảng core hiện tại và không chạy SQL trên database Cloud/Local.
+> **Trạng thái: ĐÃ TẠO FILE MIGRATION THỰC TẾ GM-1 (`20261025150000_gm1_tenant_branch_staff.sql`) — SẴN SÀNG TRIỂN KHAI LOCAL/CLOUD THEO GATE P0.T08.** Phần này ghi nhận đặc tả kỹ thuật chi tiết nhóm bảng GM-1 phục vụ Gate P0.T08. Không thay đổi 7 bảng core hiện tại và không chạy SQL trên database Cloud/Local.
 
 ### Nguyên tắc bất biến
 
@@ -271,17 +271,19 @@ CREATE INDEX branches_status_idx ON public.branches (gym_id, status);
 ```sql
 CREATE TABLE public.gym_staff (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  gym_id UUID NOT NULL REFERENCES public.gyms(id) ON DELETE CASCADE,
+  gym_id UUID NOT NULL REFERENCES public.gyms(id) ON DELETE RESTRICT,
   branch_id UUID,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
   role TEXT NOT NULL CHECK (role IN ('owner', 'manager', 'receptionist', 'trainer')),
-  status TEXT NOT NULL DEFAULT 'invited' CHECK (status IN ('invited', 'active', 'suspended')),
+  status TEXT NOT NULL DEFAULT 'invited' CHECK (status IN ('invited', 'active', 'suspended', 'revoked')),
   invited_at TIMESTAMPTZ DEFAULT timezone('utc', now()),
   activated_at TIMESTAMPTZ,
+  revoked_at TIMESTAMPTZ,
+  revoked_by UUID REFERENCES auth.users(id) ON DELETE RESTRICT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now()),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now()),
   -- Composite Foreign Key: Ngăn chặn triệt để gán chi nhánh chéo tenant (Cross-Tenant Branch Assignment)
-  -- Sử dụng ON DELETE RESTRICT thay vì CASCADE để bảo vệ toàn vẹn lịch sử nhân sự và audit trail
+  -- Sử dụng ON DELETE RESTRICT thay vì CASCADE để bảo vệ toàn vẹn lịch sử nhân sự và audit trail (Zero Hard Delete OD-02=A)
   CONSTRAINT fk_gym_staff_branch_gym FOREIGN KEY (branch_id, gym_id)
     REFERENCES public.branches(id, gym_id) ON DELETE RESTRICT
 );
@@ -324,17 +326,17 @@ Kiến trúc GM-1 sử dụng hai **Partial Unique Indexes** bổ trợ nhau:
 
 1. **Quyền toàn Gym (`branch_id IS NULL`):**
    ```sql
-   -- Đảm bảo mỗi user chỉ có duy nhất 1 bản ghi quyền toàn gym (Owner hoặc General Manager)
+   -- Đảm bảo mỗi user chỉ có duy nhất 1 bản ghi quyền toàn gym active (Owner hoặc General Manager)
    CREATE UNIQUE INDEX gym_staff_gym_user_null_branch_idx
    ON public.gym_staff (gym_id, user_id)
-   WHERE branch_id IS NULL;
+   WHERE branch_id IS NULL AND status = 'active';
    ```
 2. **Quyền Chi nhánh cụ thể (`branch_id IS NOT NULL`):**
    ```sql
-   -- Đảm bảo trong một chi nhánh, mỗi user chỉ có duy nhất 1 vai trò được phân công
+   -- Đảm bảo trong một chi nhánh, mỗi user chỉ có duy nhất 1 vai trò active được phân công
    CREATE UNIQUE INDEX gym_staff_gym_branch_user_idx
    ON public.gym_staff (gym_id, branch_id, user_id)
-   WHERE branch_id IS NOT NULL;
+   WHERE branch_id IS NOT NULL AND status = 'active';
    ```
 
 #### 2. Phân tích trường hợp nhân viên đồng thời có quyền toàn gym và quyền chi nhánh (Coexistence vs. Mutual Exclusivity)
@@ -347,7 +349,7 @@ Kiến trúc GM-1 sử dụng hai **Partial Unique Indexes** bổ trợ nhau:
 - **Rủi ro xung đột nghiệp vụ & Bảo mật:**
   1. *Xung đột trạng thái đình chỉ:* Nếu nhân viên bị đình chỉ tại Chi nhánh A (`status = 'suspended'`) nhưng dòng toàn gym vẫn `active`, nhân viên đó vẫn truy cập được Chi nhánh A thông qua quyền toàn gym!
   2. *Mâu thuẫn vai trò:* Hệ thống UI/Audit sẽ ghi nhận vai trò nào khi người đó check-in hội viên tại Chi nhánh A?
-- **Khuyến nghị kiến trúc chuẩn hóa (Enforce Mutual Exclusivity tại RPC Gateway):**
+- **Khuyến nghị kiến trúc chuẩn hóa (Enforce Mutual Exclusivity tại RPC Gateway - OD-02=A):**
   - **Quy tắc phân quyền:** Trong một gym, một user chỉ nên ở một trong hai trạng thái: hoặc là **Nhân sự cấp Gym** (`branch_id IS NULL`, role Owner/General Manager), hoặc là **Nhân sự cấp Chi nhánh** (`branch_id IS NOT NULL`, role Branch Manager/Receptionist/Trainer).
   - **Thực thi tại RPC Gateway (`fn_gm_assign_staff`):**
     - Khi cấp quyền toàn gym (`branch_id IS NULL`), hệ thống tự động xóa hoặc nâng cấp toàn bộ các dòng chi nhánh lẻ của user đó trong gym.
@@ -397,9 +399,13 @@ $$;
 REVOKE ALL ON FUNCTION public.is_gym_owner(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.is_gym_owner(UUID) TO authenticated;
 
--- 2. Kiểm tra user hiện tại có phải Staff active tại Gym (và Branch nếu cung cấp)
+-- 2. Kiểm tra user hiện tại có phải Staff active tại Gym (và Branch nếu cung cấp, kèm role allowlist tùy chọn)
 -- BẮT BUỘC KIỂM TRA ĐỒNG THỜI: gyms.status = 'active' VÀ gym_staff.status = 'active'
-CREATE OR REPLACE FUNCTION public.is_active_staff(check_gym_id UUID, check_branch_id UUID DEFAULT NULL)
+CREATE OR REPLACE FUNCTION public.is_active_staff(
+  check_gym_id UUID,
+  check_branch_id UUID DEFAULT NULL,
+  allowed_roles TEXT[] DEFAULT NULL
+)
 RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
@@ -421,12 +427,16 @@ AS $$
           OR check_branch_id IS NULL -- Không yêu cầu branch cụ thể, chỉ cần là staff của gym
           OR s.branch_id = check_branch_id -- Quyền đúng chi nhánh yêu cầu
         )
+        AND (
+          allowed_roles IS NULL -- Không lọc vai trò (bất kỳ role active nào)
+          OR s.role = ANY(allowed_roles) -- Khớp vai trò nằm trong danh sách được cấp phép
+        )
     );
 $$;
 
 -- Thu hồi quyền từ PUBLIC và chỉ cấp quyền EXECUTE cho authenticated
-REVOKE ALL ON FUNCTION public.is_active_staff(UUID, UUID) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.is_active_staff(UUID, UUID) TO authenticated;
+REVOKE ALL ON FUNCTION public.is_active_staff(UUID, UUID, TEXT[]) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_active_staff(UUID, UUID, TEXT[]) TO authenticated;
 ```
 
 #### 2. Đánh giá An toàn RLS Helper Functions & Chống Leo thang Đặc quyền (Privilege Escalation)
@@ -632,7 +642,7 @@ DROP POLICY IF EXISTS branches_select_policy ON public.branches;
 DROP POLICY IF EXISTS gyms_select_policy ON public.gyms;
 
 -- 3. Xóa các RLS Helper Functions
-DROP FUNCTION IF EXISTS public.is_active_staff(UUID, UUID);
+DROP FUNCTION IF EXISTS public.is_active_staff(UUID, UUID, TEXT[]);
 DROP FUNCTION IF EXISTS public.is_gym_owner(UUID);
 
 -- 4. Xóa các bảng theo thứ tự quan hệ phụ thuộc (Child -> Parent)
@@ -649,18 +659,104 @@ COMMIT;
 
 ---
 
+## Thiết kế Multi-Tenancy, RBAC & Permission Matrix (Hợp nhất từ multi-tenancy.md)
+
+### 1. Mô hình Tenant & Cô lập Dữ liệu
+- **Gym (Tenant cấp cao nhất):** Mỗi phòng gym là một tenant độc lập; dữ liệu bị cô lập hoàn toàn giữa các gym qua `gym_id`.
+- **Branch (Đơn vị vận hành):** Mỗi gym có một hoặc nhiều chi nhánh (`branches`); nhân viên và hội viên có thể được phân công theo chi nhánh.
+- **Owner (Chủ sở hữu gym):** Quản trị toàn bộ gym; không nhất thiết gắn với chi nhánh cụ thể.
+- **Người dùng đa tenant:** Một tài khoản `auth.users` có thể đóng nhiều vai trò tại các gym khác nhau (Member tại Gym A, Trainer tại Gym B, Owner tại Gym C). Bảng `gym_staff` và `gym_members` dùng `gym_id` để phân biệt. Không dùng `user_metadata` cho quyết định phân quyền.
+
+### 2. Các Vai trò trong Hệ thống (RBAC Roles)
+- `owner`: Sở hữu phòng gym; toàn quyền quản trị gym, tài chính và phân quyền.
+- `manager`: Quản lý vận hành toàn gym hoặc một/nhiều chi nhánh cụ thể.
+- `receptionist`: Tiếp tân phụ trách check-in, quản lý hội viên cơ bản và thu phí tại chi nhánh.
+- `trainer`: Huấn luyện viên phụ trách lịch PT và buổi tập của hội viên được phân công.
+- `member`: Hội viên sử dụng ứng dụng di động; chỉ truy cập dữ liệu của chính mình.
+
+### 3. Ma trận Phân quyền Toàn diện (RBAC Permission Matrix)
+*Ký hiệu: ✅ Được phép, ❌ Không được phép, 🔐 Chỉ dữ liệu của mình/được giao, 🔶 Giới hạn theo chi nhánh phân công.*
+
+#### Gym & Branch
+| Nghiệp vụ | Owner | Manager | Receptionist | Trainer | Member |
+|---|---|---|---|---|---|
+| Xem thông tin gym | ✅ | 🔶 | 🔶 | 🔶 | 🔶 |
+| Sửa thông tin gym | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Tạo/sửa/xóa branch | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Xem branch | ✅ | 🔶 | 🔶 | 🔶 | 🔶 |
+
+#### Staff Management
+| Nghiệp vụ | Owner | Manager | Receptionist | Trainer | Member |
+|---|---|---|---|---|---|
+| Mời nhân viên | ✅ | 🔶 (rec/trainer) | ❌ | ❌ | ❌ |
+| Xem nhân viên | ✅ | 🔶 | ❌ | ❌ | ❌ |
+| Sửa vai trò nhân viên | ✅ | 🔶 (cấp dưới) | ❌ | ❌ | ❌ |
+| Đình chỉ/xóa nhân viên | ✅ | 🔶 (cấp dưới) | ❌ | ❌ | ❌ |
+
+#### Member Management
+| Nghiệp vụ | Owner | Manager | Receptionist | Trainer | Member |
+|---|---|---|---|---|---|
+| Tạo hồ sơ hội viên | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Xem danh sách hội viên | ✅ | 🔶 | 🔶 | 🔶 (được giao) | ❌ |
+| Sửa hồ sơ hội viên | ✅ | ✅ | 🔶 | ❌ | 🔐 (của mình) |
+| Xem lịch sử hội viên | ✅ | 🔶 | 🔶 | 🔶 (được giao) | 🔐 |
+| Đình chỉ/xóa hội viên | ✅ | ✅ | ❌ | ❌ | ❌ |
+
+#### Membership & Attendance
+| Nghiệp vụ | Owner | Manager | Receptionist | Trainer | Member |
+|---|---|---|---|---|---|
+| Tạo danh mục gói tập | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Đăng ký gói cho hội viên | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Gia hạn gói | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Tạm dừng/hủy gói | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Xem gói của mình | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Check-in thủ công tại quầy | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Xem lịch check-in | ✅ | 🔶 | 🔶 | ❌ | 🔐 |
+| Check-in bằng QR (Phase sau) | — | — | ✅ | — | 🔐 |
+
+#### Payments & Finances
+| Nghiệp vụ | Owner | Manager | Receptionist | Trainer | Member |
+|---|---|---|---|---|---|
+| Ghi nhận thanh toán | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Xem báo cáo doanh thu | ✅ | 🔶 | ❌ | ❌ | ❌ |
+| Hoàn tiền | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Xem lịch sử giao dịch của mình | ✅ | ✅ | ✅ | ✅ | 🔐 |
+
+#### Workout & PT
+| Nghiệp vụ | Owner | Manager | Receptionist | Trainer | Member |
+|---|---|---|---|---|---|
+| Xem dữ liệu workout cá nhân | ✅ | ❌ | ❌ | 🔶 (được giao) | 🔐 |
+| Tạo lịch PT | ✅ | ✅ | ❌ | ✅ (của mình) | ❌ |
+| Đặt lịch PT | ✅ | ✅ | ✅ | ❌ | 🔐 |
+| Phân công PT | ✅ | ✅ | ❌ | ❌ | ❌ |
+
+### 4. Ma trận Trạng thái Gym & Nhân viên (Lifecycle State Access)
+| Trạng thái Gym (`gyms.status`) | Trạng thái Nhân viên (`gym_staff.status`) | Vai trò | Quyền truy cập hệ thống |
+|---|---|---|---|
+| **`active`** | `active` | Owner | Toàn quyền cấu hình gym, quản lý chi nhánh, nhân sự, hội viên, doanh thu |
+| **`active`** | `active` | Manager (toàn gym) | Toàn quyền vận hành tất cả chi nhánh |
+| **`active`** | `active` | Manager (chi nhánh) | Quản lý hội viên, gói tập, check-in, báo cáo chi nhánh được gán |
+| **`active`** | `active` | Receptionist / Trainer | Quyền giới hạn theo chi nhánh phân công (check-in, PT sessions) |
+| **`active`** | `suspended` | Bất kỳ vai trò | **BỊ TỪ CHỐI HOÀN TOÀN** (`is_active_staff = false`) |
+| **`active`** | `invited` | Bất kỳ vai trò | **BỊ TỪ CHỐI** (chờ xác nhận và kích hoạt) |
+| **`suspended`** | Bất kỳ | Owner | **Chỉ đọc trang Hồ sơ Gym và Trang Thanh toán Gia hạn**; không thao tác nghiệp vụ |
+| **`suspended`** | Bất kỳ | Staff (toàn bộ) | **BỊ KHÓA TRUY CẬP HOÀN TOÀN** (`is_active_staff = false` do `gyms.status != 'active'`) |
+| **`archived`** | Bất kỳ | Toàn bộ người dùng | **BỊ KHÓA HOÀN TOÀN** |
+
+---
+
 ### Lộ trình migration tổng thể cho gym management
 
 | Nhóm | Nội dung | Trạng thái | Điều kiện tiên quyết |
 |---|---|---|---|
-| **GM-1** | `gyms`, `branches`, `gym_staff`, composite FK (RESTRICT), partial indexes, helper functions & RLS | **Thiết kế chi tiết hoàn tất** | Chờ phê duyệt P0.T07 & P0.T08 |
+| **GM-1** | `gyms`, `branches`, `gym_staff`, composite FK (RESTRICT), partial indexes, helper functions & RLS | **Đã tạo migration file** (`20261025150000_gm1_tenant_branch_staff.sql`) | Hoàn thành Gate P0.T08 |
 | **GM-2** | `gym_members` & member linking flow | Thiết kế tổng quan | Sau khi GM-1 sẵn sàng |
 | **GM-3** | `membership_plans`, `memberships` | Thiết kế tổng quan | Sau GM-2 |
 | **GM-4** | `attendance_logs` | Thiết kế tổng quan | Sau GM-3 |
-| **GM-5** | `payment_transactions` & idempotency | Thiết kế tổng quan | Sau GM-3 & chốt D-MT-05 |
+| **GM-5** | `payment_transactions` & idempotency | Thiết kế tổng quan | Sau GM-3 & chốt OD-05 |
 | **GM-6** | RPC Mutation Gateway & Edge Functions hoàn chỉnh | Thiết kế tổng quan | Cùng nhịp với các nhóm bảng tương ứng |
 
-> **Cam kết an toàn:** Không tạo file SQL hay chạy migration nào trong Phase 0. Mọi bước chuẩn bị trên hoàn toàn ở mức đặc tả tài liệu.
+> **Cam kết an toàn:** Migration GM-1 được tạo sẵn dưới dạng file migration SQL độc lập (`supabase/migrations/20261025150000_gm1_tenant_branch_staff.sql`), tuân thủ Zero Hard Delete `OD-02=A` và Fail-Closed. Tuyệt đối không tự ý áp dụng hay kết nối Supabase Cloud khi chưa có phê duyệt runtime.
 
 ---
 
@@ -670,6 +766,8 @@ COMMIT;
 |---|---|---|---|
 | 2026-10-21 | Tạo bản thiết kế review thay thế proposal SQL ban đầu; giới hạn rollout đầu vào 7 bảng. | Khắc phục mâu thuẫn giữa SQL nháp với ownership/version/outbox contract. | Cập nhật thiết kế; không chạy SQL. |
 | 2026-10-22 | Sửa constraint và ghi nhận trạng thái kiểm tra bảng Cloud. | Đồng bộ tiến độ kiểm thử bảng core. | 7 bảng core đạt kiểm tra table-level grant. |
+| 2026-10-23 | Final Pre-Approval Verification: Chuẩn hóa schema `branches.status TEXT CHECK (status IN ('active', 'suspended', 'archived'))` thay cho `is_active BOOLEAN`; đồng bộ index `branches_status_idx`; làm rõ cơ chế soft-deactivation chuyển trạng thái `archived`. | Đạt tính nhất quán 100% giữa các bảng tenant, branch và staff trước khi phê duyệt P0.T08. | Schema GM-1 nhất quán hoàn toàn. |
+| 2026-10-25 | Hoàn tất migration file GM-1 (`20261025150000_gm1_tenant_branch_staff.sql`), chuẩn hóa `ON DELETE RESTRICT` (`OD-02=A`), status `'revoked'`, cột `revoked_at`/`revoked_by`, 2 partial unique indexes `WHERE status = 'active'`, helper function `is_active_staff` hỗ trợ `allowed_roles TEXT[]`. | Đóng Gate P0.T08 theo chỉ đạo Owner. | Đã tạo migration file GM-1, RLS fail-closed, sẵn sàng triển khai. |
 | 2026-10-23 | Đề xuất schema mở rộng cho Phase II Multi-Tenant Gym Management. | Khởi tạo phân kỳ roadmap mới. | Tài liệu thiết kế mức đặc tả. |
 | 2026-10-23 | Chi tiết hóa schema GM-1, partial unique indexes giải quyết uniqueness multi-branch, RLS helper functions, và phân quyền Edge Functions/RPC least privilege. | Chuẩn bị phê duyệt P0.T07 và chốt thiết kế GM-1 cho P0.T08 theo chỉ đạo chủ dự án. | Hoàn thiện đặc tả kỹ thuật chi tiết GM-1; không tạo migration file hay chạy SQL. |
 | 2026-10-23 | Final GM-1 Schema Security Review: Bổ sung Composite Foreign Key `(branch_id, gym_id)` chống cross-tenant branch assignment; phân tích coexistence và mutual exclusivity; kiểm tra `gyms.status = 'active'` trong `is_active_staff`; ma trận trạng thái vòng đời gym; quy định rõ thứ tự migration 5 bước và kịch bản rollback nghịch đảo. | Đảm bảo tính toàn vẹn dữ liệu và an toàn bảo mật tuyệt đối trước phê duyệt P0.T08. | Tài liệu thiết kế GM-1 hoàn thiện; sẵn sàng cho Gate P0.T08. |

@@ -1,60 +1,79 @@
-# RULE.md — AI AGENT WORKING RULES
+# RULE.md — AI AGENT WORKING RULES (BỘ QUY TẮC THÉP)
 
-## 1. Quy tắc khởi động phiên làm việc
+## 1. Quy tắc khởi động phiên làm việc & Ranh giới bắt buộc
 
-- Trước khi thực hiện bất kỳ task nào, Agent **BẮT BUỘC** đọc đầy đủ `docs/rule.md` và `docs/mindmap.md`.
-- Phải xác định phase hiện tại, mục tiêu và các bước tiếp theo theo `mindmap.md`.
-- Nếu thiếu file hoặc không thể đọc file, phải dừng thực hiện và thông báo vấn đề. Không được tự ý bỏ qua quy tắc.
+- Trước khi thực hiện bất kỳ công việc nào, AI Agent **BẮT BUỘC** đọc đầy đủ `docs/rule.md` và `docs/mindmap.md`.
+- Phải xác định chính xác Phase hiện tại, mục tiêu và task duy nhất cần thực thi.
+- Nếu thiếu file hoặc thông tin chưa rõ ràng, phải **DỪNG LẠI NGAY LẬP TỨC** và báo cáo Owner. Tuyệt đối không tự ý suy đoán hay bỏ qua quy tắc.
 
-## 2. Quy tắc tài liệu module
+## 2. Cố định 8 File Tài liệu Cốt lõi & Bãi bỏ Quy tắc tạo File Module
 
-- Mỗi module phải có một file tài liệu riêng theo định dạng `[tenmodule].md` trong `docs/`, tương ứng với tên module.
-- Nếu file chưa tồn tại, **BẮT BUỘC** tạo file trước khi phát triển hoặc chỉnh sửa module.
-- File tài liệu phải bao gồm:
-  - **Mục đích:** Chức năng và phạm vi của module.
-  - **Kiến trúc/Cấu trúc:** Thành phần, tổ chức mã nguồn và quan hệ phụ thuộc.
-  - **Lịch sử phát triển:** Các giai đoạn và thay đổi quan trọng.
-  - **Nhật ký chỉnh sửa:** Thời gian, nội dung thay đổi, lý do và kết quả của từng lần sửa đổi.
+- **BÃI BỎ HOÀN TOÀN QUY TẮC TẠO FILE `[tenmodule].md`:** Tuyệt đối **CẤM** tạo thêm bất kỳ file `.md` mới nào trong thư mục `docs/`.
+- Toàn bộ tri thức, đặc tả và kiến trúc của dự án chỉ được lưu trữ trong **đúng 8 file Single Source of Truth (SSOT)** sau:
+  1. `docs/rule.md`: Bộ quy tắc làm việc, kỷ luật Git branch workflow, tiêu chuẩn an toàn kỹ thuật.
+  2. `docs/mindmap.md`: Lộ trình tổng thể Unified Roadmap 9 Phase (Phase 0–8), ma trận 96 task và Work Log.
+  3. `docs/baocao.md`: Tầm nhìn sản phẩm (Product Vision), 8 chu trình nghiệp vụ E2E, kiến trúc hệ thống đa nền tảng.
+  4. `docs/risks-decisions.md`: Sổ bộ quyết định kiến trúc (Decision Register OD-01..06, D-MT) và ma trận rủi ro.
+  5. `docs/supabase-schema.md`: Toàn bộ Schema PostgreSQL, migrations DDL GM-1..5, RLS policies và mô hình RBAC Multi-Tenancy.
+  6. `docs/data-offline.md`: Kiến trúc Offline-First, hợp đồng đồng bộ dữ liệu hai chiều và thực tế triển khai SQLite v1.
+  7. `docs/design-system.md`: Toàn bộ Design System, bảng màu Dark/Light HEX, Theme Provider, Navigation và Routes mobile.
+  8. `docs/testing-acceptance.md`: Chiến lược kiểm thử tự động, danh mục 8 test suites `__tests__/` và tiêu chí nghiệm thu AC.
+- Tuyệt đối **CẤM** tạo file tạm, file sao lưu như `.bak`, `.tmp`, `-copy`, `.old` trong toàn bộ repository.
 
-## 3. Quy tắc trước khi chỉnh sửa
+## 3. Kỷ luật Tập trung Lộ trình (Focus Roadmap & Single Task Rule)
 
-- Trước khi viết mới, sửa đổi, tái cấu trúc hoặc xóa bất kỳ code nào thuộc module, Agent **BẮT BUỘC** đọc đầy đủ file `[tenmodule].md` tương ứng.
-- Phải nắm rõ mục đích, kiến trúc, các phụ thuộc và lịch sử thay đổi trước khi thực hiện.
-- Nếu chưa xác định được module hoặc thiếu thông tin cần thiết, phải kiểm tra và làm rõ trước khi tiếp tục.
+- Trong mỗi phiên làm việc, AI Agent chỉ được phép thực hiện **DUY NHẤT 1 task** đang ở trạng thái chưa hoàn thành `[ ]` đầu tiên được giao hoặc chỉ định theo lộ trình.
+- Tuyệt đối không sửa lan man sang các module khác ngoài phạm vi của task hiện tại.
+- Mọi đề xuất mở rộng ngoài task đang làm phải được ghi nhận dưới dạng ghi chú đề xuất, không tự ý can thiệp mã nguồn.
 
-## 4. Quy tắc sau khi chỉnh sửa
+## 4. Quy trình Ghi nhận Tự động (Auto-Logging & Work Log)
 
-- Sau mỗi lần hoàn thành thay đổi đối với module, Agent **BẮT BUỘC** cập nhật file `[tenmodule].md` tương ứng.
-- Ghi nhận đầy đủ nội dung thay đổi, lý do, file bị ảnh hưởng, kết quả kiểm tra và lỗi còn tồn tại (nếu có).
-- Tài liệu phải phản ánh đúng trạng thái thực tế của code, không ghi nhận những thay đổi chưa được thực hiện hoặc xác minh.
+- Khi hoàn thành task, AI Agent **BẮT BUỘC** cập nhật trạng thái từ `[ ]` thành `[x]` tại mục task tương ứng trong `docs/mindmap.md`.
+- Ghi tóm tắt chi tiết kết quả thực hiện vào mục `## 5. NHẬT KÝ CẬP NHẬT TÀI LIỆU & WORK LOG` ở cuối file `docs/mindmap.md`, bao gồm:
+  - **Mã Task & Tiêu đề:** (Ví dụ: `P0.T08 — Final GM-1 Schema Review`).
+  - **Files đã sửa đổi:** Đường dẫn chi tiết các file source code và docs.
+  - **Logic chính đã triển khai:** Các thay đổi kiến trúc, thuật toán hoặc ràng buộc dữ liệu.
+  - **Kết quả kiểm thử:** Trạng thái pass của `npm test`, `npx tsc --noEmit` và `npm run lint`.
 
-## 5. Nguyên tắc tuân thủ
+## 5. Kỷ luật Nhánh Git Nghiêm ngặt (Strict Git Feature Branch Workflow)
 
-- Các quy tắc trên là **BẮT BUỘC**, áp dụng cho mọi task và mọi phiên làm việc.
-- Không được bỏ qua, tự ý vô hiệu hóa hoặc thay thế quy trình này.
-- Không hoàn tất task khi tài liệu module chưa được cập nhật tương ứng.
-- Ưu tiên tính nhất quán giữa code, tài liệu module và lộ trình trong `docs/mindmap.md`.
+- **CẤM TUYỆT ĐỐI** làm việc hoặc commit trực tiếp trên nhánh `main`.
+- Mọi công việc/task mới bắt buộc phải rẽ nhánh mới từ nhánh `main` cập nhật nhất theo quy ước chuẩn:
+  - Tính năng mới: `feat/<ma-task>-<mo-ta-ngan>` (Ví dụ: `feat/p1-t01-gm1-tables`).
+  - Sửa lỗi: `fix/<ma-task>-<mo-ta-ngan>` (Ví dụ: `fix/auth-session-leak`).
+  - Tài liệu/Quy trình: `docs/<mo-ta-ngan>` (Ví dụ: `docs/reorganize-workflow-and-rules`).
+- **CẤM** tạo nhánh có tiền tố `backup/...` (Ví dụ: `backup/phase0-...`).
+- **Điều kiện Commit:** Chỉ được chạy `git commit` khi đã hoàn thành 100% yêu cầu trong phiên và bắt buộc vượt qua 2 lệnh kiểm tra chất lượng:
+  1. `npm test` (Tất cả test suites đều PASS).
+  2. `npx tsc --noEmit` (Không có bất kỳ lỗi type TypeScript nào).
+- **Quyền Merge:** Tuyệt đối không tự ý merge nhánh tính năng vào `main`. Quyền merge chỉ được thực hiện sau khi có lệnh nghiệm thu rõ ràng từ Project Owner.
 
-## 6. Quy tắc kỹ thuật của project
+## 6. Quy chuẩn Kỹ thuật của Dự án
 
-- Đây là ứng dụng Expo/React Native đa nền tảng. Đọc phiên bản `expo` trong `package.json` và tài liệu Expo đúng phiên bản trước khi thay đổi API Expo/React Native; không suy diễn API từ phiên bản khác.
-- Dùng Expo Router cho điều hướng: route và layout ở `src/app/`; component, hook, storage và tiện ích không phải route ở ngoài thư mục này.
-- `package.json` và lockfile là nguồn xác nhận dependency thực tế. Project hiện dùng npm (`package-lock.json`); không coi thư viện/API được đề xuất trong tài liệu là đã cài hoặc đã tích hợp.
-- Phân biệt rõ nội dung đã triển khai, scaffold, thiết kế đã duyệt và kế hoạch tương lai trong tài liệu. Trước khi ghi nhận trạng thái, đối chiếu source, config, test và trạng thái triển khai thực tế.
-- Cấu hình native đặt trong `app.json` và config plugin. Thư mục `android/` hiện có trên máy nhưng bị Git ignore; xem đây là output native cục bộ, không sửa tay hoặc xóa nếu chưa được duyệt. Không tạo thư mục native bằng tay khi chưa có.
-- Supabase migrations trong `supabase/migrations/` chưa đồng nghĩa đã được kiểm thử hoặc apply. Không chạy SQL, kết nối/đổi Cloud project, reset database hoặc áp dụng migration nếu task chưa có phê duyệt thực thi rõ ràng.
-- Không cấp quyền ghi trực tiếp cho client để né mutation gateway/version/receipt contract. Mọi thay đổi RLS, grants, role hoặc privilege boundary cần theo tài liệu Supabase và được duyệt; các blocker hiện hành nằm trong `supabase-schema.md` và `risks-decisions.md`.
-- Không xóa file, thư mục, dependency hoặc artifact chỉ dựa trên tên, trạng thái Git hay kết quả tìm kiếm import. Trước thao tác dọn dẹp phải phân biệt cache có thể tái tạo với source, native config, secret, dữ liệu và file chưa commit; cần phê duyệt nếu có nguy cơ mất dữ liệu hoặc trạng thái.
+- **Expo SDK 57:** Ứng dụng di động xây dựng trên Expo SDK 57 (`~57.0.30`) và React Native `0.86.3`. Luôn đối chiếu phiên bản `package.json` và tài liệu chính thức Expo SDK 57; không suy diễn API từ các phiên bản cũ.
+- **Expo Router:** Toàn bộ điều hướng mobile nằm trong `src/app/` (routes, layouts). Các components, hooks, storage, utils dùng chung nằm ngoài thư mục `src/app/`.
+- **Thực tế Dependencies:** `package.json` và `package-lock.json` là nguồn xác thực dependency duy nhất. Không coi thư viện được đề xuất trong tài liệu kế hoạch là đã cài đặt.
+- **Bảo vệ Native Output:** Thư mục `android/` là output sinh tự động của Continuous Native Generation (CNG) và bị Git ignore. Không sửa tay, không xóa và không tạo thủ công thư mục native. Mọi cấu hình native thực hiện qua `app.json` và Expo config plugins.
+- **An toàn Tuyệt đối Supabase Cloud:**
+  - Migrations trong `supabase/migrations/` là mã nguồn phiên bản, không tự động apply lên Cloud.
+  - Tuyệt đối **CẤM** tự ý chạy lệnh SQL, kết nối/thay đổi Cloud project, reset database hoặc áp dụng migration nếu chưa có phê duyệt bằng văn bản từ Owner.
+  - Không cấp quyền ghi (DML) trực tiếp cho client trên các bảng core để bảo vệ mutation gateway, versioning và receipt contract.
 
-## 7. Kiểm tra và cập nhật tài liệu
+## 7. Kiểm tra và Nghiệm thu trước khi Kết thúc Task
 
-- Dùng các script hiện có trong `package.json`; test/lint dự án chạy bằng `npm test` và `npm run lint`. Chạy kiểm tra phù hợp nhất với thay đổi và ghi đúng kết quả; không khẳng định đã chạy khi chưa chạy.
-- Khi thay đổi module, cập nhật tài liệu module và nhật ký theo các mục 2–4. Khi thay đổi quyết định kiến trúc hoặc trạng thái phase, cập nhật tài liệu chuẩn tương ứng và `mindmap.md` nếu trạng thái roadmap thực sự đổi.
-- Với thay đổi chỉ tài liệu, không chạy SQL, build hoặc test không liên quan; rà soát diff để tránh ghi nhận nội dung chưa được xác minh.
+- Trước khi tuyên bố hoàn tất bất kỳ task nào, Agent bắt buộc phải chạy:
+  ```bash
+  npm test              # Toàn bộ test suites pass
+  npx tsc --noEmit      # Typecheck TypeScript không lỗi
+  npm run lint          # Linting tuân thủ Expo flat config
+  ```
+- Ghi nhận trung thực kết quả kiểm tra vào Work Log; không khẳng định đã chạy khi chưa thực thi.
+
+---
 
 ## Nhật ký cập nhật quy tắc
 
-| Ngày | Thay đổi | Lý do |
+| Ngày | Nội dung thay đổi | Lý do |
 |---|---|---|
-| 2026-10-22 | Bổ sung baseline Expo/Router/npm, cách phân biệt trạng thái triển khai với kế hoạch, quy tắc native output, phê duyệt Supabase và an toàn dọn dẹp. | Đồng bộ hướng dẫn với cấu trúc/config hiện tại và các quyết định bảo mật đã ghi nhận. |
-| 2026-10-22 | Chuyển tài liệu dự án vào `docs/`; giữ các entrypoint agent và README ở root. | Gom tài liệu có cấu trúc mà không làm mất khả năng tự nhận diện `AGENTS.md`/`CLAUDE.md` của công cụ. |
+| 2026-10-22 | Bổ sung baseline Expo/Router/npm, quy tắc native output, phê duyệt Supabase và an toàn dọn dẹp. | Đồng bộ hướng dẫn với cấu trúc dự án thực tế. |
+| 2026-10-25 | Ban hành Bộ Quy tắc Thép: Bãi bỏ quy tắc tạo file `[tenmodule].md`, thu gọn tài liệu về đúng 8 file SSOT cốt lõi, áp dụng Strict Git Feature Branch Workflow (`feat/...`, cấm commit trên `main`, cấm nhánh `backup/...`), và Focus Roadmap 1 task kèm Auto-Logging vào `mindmap.md`. | Chấm dứt tình trạng phân mảnh tài liệu (25 files -> 8 files), thiết lập kỷ luật code và quy trình quản trị chuyên nghiệp. |

@@ -206,6 +206,29 @@ Mọi bài RLS cần chạy dưới role/JWT từng tình huống (`anon`, A, B)
 
 ---
 
+## Hạ tầng Kiểm thử Tự động & 8 Test Suites Thực tế (Hợp nhất từ testing.md)
+
+### 1. Cấu hình & Công cụ Kiểm thử
+- **Preset:** `jest-expo` tích hợp trong `package.json`, TypeScript definitions khai báo trong `tsconfig.json`.
+- **UI Testing:** React Native Testing Library (`@testing-library/react-native`) cho việc kiểm thử component native.
+- **SQLite Engine Testing:** Sử dụng `node:sqlite` in-memory database để kiểm thử migration và repositories trên SQLite thật trong môi trường Node.js mà không cần thiết bị.
+- **Lệnh thực thi:**
+  - `npm test`: Chạy toàn bộ test suites 1 lần.
+  - `npm run test:watch`: Chạy test ở chế độ theo dõi thay đổi.
+  - `npm run lint`: Chạy Expo flat config ESLint.
+
+### 2. Danh mục 8 Test Suites Hiện hành trong `__tests__/`
+1. `__tests__/auth-provider-test.tsx`: Kiểm thử lifecycle session Supabase Auth, phục hồi session khi khởi chạy, xử lý lỗi và local logout.
+2. `__tests__/auth-storage-test.ts`: Kiểm thử adapter tích hợp `expo-secure-store` cho Supabase client storage trên mobile.
+3. `__tests__/color-accessibility-test.ts`: Đo lường và kiểm chứng độ tương phản WCAG 2.2 AA (4.5:1 text thường, 3:1 UI elements) và touch target tối thiểu 44pt.
+4. `__tests__/design-components-test.tsx`: Kiểm tra hành vi và trợ năng của các component UI dùng chung (`AppText`, `Button`, `Card`, `Input`, `IconButton`, `FeedbackState`).
+5. `__tests__/design-tokens-test.ts`: Kiểm chứng tính toàn vẹn của hệ thống scale design tokens (Typography, Spacing, Radius, Sizes) và khả năng tương thích ngược.
+6. `__tests__/route-placeholder-test.tsx`: Smoke test cho component hiển thị placeholder màn hình điều hướng.
+7. `__tests__/storage-test.ts`: Kiểm thử toàn diện schema SQLite version 1, migration runner, rollback transaction, foreign key constraints và CRUD repositories.
+8. `__tests__/theme-provider-test.tsx`: Kiểm tra chuyển đổi Light/Dark mode theo hệ điều hành (system scheme) và thiết lập tường minh (manual override).
+
+---
+
 ## Nhật ký chỉnh sửa
 
 | Thời gian | Nội dung | Lý do | Kết quả |

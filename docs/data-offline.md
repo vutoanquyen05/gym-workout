@@ -398,3 +398,30 @@ Không chạy kiểm kê trên dữ liệu nào. Counts, `PRAGMA user_version`, 
 - Không cần sync contract cho gym management data (server-authoritative, no offline).
 - Mutation gateway thiết kế cho workout cũng phục vụ gym management write operations.
 - SQLite v2 migration (Phase 3.T09) không bị ảnh hưởng bởi gym management schema.
+
+---
+
+## Hiện trạng Triển khai Code Thực tế — SQLite v1 (Hợp nhất từ storage.md)
+
+### 1. Cấu trúc Mã nguồn Thực tế (`src/shared/storage/`)
+- `src/shared/storage/schema.ts`: Chứa migration SQL tuần tự và hằng số `CURRENT_SCHEMA_VERSION = 1`.
+- `src/shared/storage/database.ts`: Kích hoạt SQLite pragmas (`foreign_keys = ON`, `wal`), đọc `PRAGMA user_version`, chạy migration trong transaction và chặn database có schema version mới hơn code.
+- `src/shared/storage/types.ts`: Định nghĩa TypeScript types cho domain models và database rows.
+- `src/shared/storage/repositories/`: Các repositories thao tác dữ liệu:
+  - `exercise-repository.ts`: CRUD bài tập cá nhân.
+  - `plan-repository.ts`: CRUD kế hoạch và bài tập trong kế hoạch.
+  - `session-repository.ts`: Ghi nhận buổi tập, hiệp tập và snapshot bài tập.
+- `expo-sqlite`: Thư viện native adapter tương thích Expo SDK 57 (`~57.0.4`). Caller chịu trách nhiệm khởi tạo kết nối.
+- `__tests__/storage-test.ts`: Bộ kiểm thử tự động sử dụng `node:sqlite` in-memory kiểm tra migration, rollback, constraints và repositories.
+
+### 2. Các Quyết định Kỹ thuật Schema SQLite v1
+- **Primary Keys:** Dùng chuỗi text ngẫu nhiên 128-bit hex (sinh qua SQLite `hex(randomblob(16))`).
+- **Timestamps:** Định dạng chuẩn ISO-8601 UTC string (`YYYY-MM-DDTHH:MM:SS.SSSZ`).
+- **Đơn vị khối lượng:** Lưu trực tiếp `weight_value REAL` kèm `weight_unit TEXT CHECK (weight_unit IN ('kg', 'lb'))`.
+- **Ràng buộc toàn vẹn & Snapshot:**
+  - Xóa kế hoạch không xóa lịch sử tập (session lưu snapshot tên kế hoạch).
+  - Xóa bài tập đang có trong kế hoạch bị từ chối; xóa bài tập đã tập trong lịch sử sẽ gán `exercise_id = NULL` nhưng bảo toàn snapshot tên bài tập.
+- **Ranh giới hiện tại của v1:**
+  - Chưa có `user_id` / ownership partition.
+  - Chưa có soft-delete `deleted_at`.
+  - Chưa có bảng `sync_outbox` hay cơ chế đồng bộ cloud (dành cho Phase 3.T09).
