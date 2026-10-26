@@ -20,7 +20,7 @@
    - Không tự ý tạo endpoint backend, schema hoặc quyết định kỹ thuật mới khi chưa có phê duyệt; mọi rủi ro kỹ thuật phải được ghi nhận vào `docs/risks-decisions.md`.
 3. **Bảo toàn 96 Task ID gốc & 10 Đề xuất Bổ sung:**
    - Bảo toàn 100% 96 Task ID gốc từ cả 2 lộ trình lịch sử (48 task Workout Mobile cũ và 48 task Multi-Tenant mới).
-   - Tuyệt đối không đổi tên mã task, không xóa, không gộp và không thay đổi trạng thái gốc: duy trì chính xác 26 tasks `[x]` và 70 tasks `[ ]` (sau khi P0.T07 và P0.T08 hoàn thành).
+   - Tuyệt đối không đổi tên mã task, không xóa, không gộp và không thay đổi trạng thái gốc: duy trì chính xác 32 tasks `[x]` và 64 tasks `[ ]` (sau khi hoàn thành toàn bộ Phase 0 và Phase 1 Core P1.T01..P1.T06).
    - Các task mở rộng mới được gắn nhãn riêng biệt `[PROPOSED_ADDITION]`, tách biệt hoàn toàn khỏi baseline 96 task gốc.
 4. **Cấu trúc 4 Luồng Công việc (Workstreams):**
    - **Track 1: Shared Platform & Backend (`SP`):** Nền tảng Monorepo, Supabase Auth, DDL Schemas GM-1..5, RLS Policies, Mutation Gateway/RPC.
@@ -59,20 +59,20 @@
 
 ---
 
-### PHASE 1 — MULTI-TENANT AUTHENTICATION & RBAC FOUNDATION
+### PHASE 1 — MULTI-TENANT AUTHENTICATION & RBAC FOUNDATION [COMPLETED]
 *Mục tiêu: Mở rộng Auth hiện tại để hỗ trợ gym roles; thiết lập nền tảng RBAC.*
 
-- [ ] **P1.T01** `[Track: SP]` — Thiết kế và review schema `gyms`, `branches`, `gym_staff`.  
+- [x] **P1.T01** `[Track: SP]` — Thiết kế và review schema `gyms`, `branches`, `gym_staff`. *(Đã hoàn thành thông qua migration `20261025150000_gm1_tenant_branch_staff.sql` tại P0.T08)*.  
   *Tham chiếu: `docs/baocao.md` (Chương 2), `docs/supabase-schema.md`.*
-- [ ] **P1.T02** `[Track: SP]` — Chuẩn bị migration GM-1 (`gyms`, `branches`, `gym_staff`).  
+- [x] **P1.T02** `[Track: SP]` — Chuẩn bị migration GM-1 (`gyms`, `branches`, `gym_staff`). *(Đã hoàn thành thông qua migration `20261025150000_gm1_tenant_branch_staff.sql` tại P0.T08)*.  
   *Tham chiếu: `docs/supabase-schema.md` — nhóm GM-1.*
-- [ ] **P1.T03** `[Track: SP]` — Thiết kế và review RLS cho gym/branch tables.  
+- [x] **P1.T03** `[Track: SP]` — Thiết kế và review RLS cho gym/branch tables. *(Đã hoàn thành thông qua migration `20261025150000_gm1_tenant_branch_staff.sql` tại P0.T08)*.  
   *Tham chiếu: `docs/supabase-schema.md` (mục Multi-Tenancy & RBAC).*
-- [ ] **P1.T04** `[Track: SP]` — Thiết kế staff invite flow (Supabase invite vs. custom token).  
-  *Tham chiếu: `docs/baocao.md`, `docs/risks-decisions.md` D-MT-04, OD-01.*
-- [ ] **P1.T05** `[Track: GM]` — Thiết kế Admin Web auth (session, middleware, role lookup).  
+- [x] **P1.T04** `[Track: SP]` — Thiết kế staff invite flow & RPC lifecycle (`rpc_revoke_or_update_staff`). *(Đã hoàn thành qua file migration `20261025160000_gm1_mutation_rpcs.sql` và TypeScript service theo OD-01, OD-02=A)*.  
+  *Tham chiếu: `docs/baocao.md`, `docs/risks-decisions.md` D-MT-04, OD-01, OD-02.*
+- [x] **P1.T05** `[Track: GM]` — Thiết kế Admin Web auth & RPC lookup (`rpc_create_gym`, `rpc_manage_branch`, `GymManagementService`). *(Đã hoàn thành qua file migration `20261025160000_gm1_mutation_rpcs.sql` và TypeScript service)*.  
   *Tham chiếu: `docs/baocao.md` (Chương 4), `docs/risks-decisions.md` D-MT-03.*
-- [ ] **P1.T06** `[Track: SP]` — Kiểm thử RBAC: MT-01–05, RBAC-01–12 (xem `testing-acceptance.md`).  
+- [x] **P1.T06** `[Track: SP]` — Kiểm thử RBAC: MT-01–05, RBAC-01–12 (xem `testing-acceptance.md`). *(Đã hoàn thành qua unit test suite `__tests__/gm1-service-test.ts`, 9 passed suites, 35 tests passed)*.  
   *Tham chiếu: `docs/testing-acceptance.md`.*
 - *(Tiến độ Mobile Foundation kế thừa hoàn thành)*:
   - [x] **Phase 1.T01** `[Track: WM]` — Chốt phạm vi MVP, luồng người dùng và màn hình.
@@ -86,8 +86,8 @@
   - [x] **Phase 2.T04** `[Track: WM]` — Tạo Bottom Navigation và trạng thái giao diện chuẩn.
   - [x] **Phase 2.T05** `[Track: WM]` — Kiểm tra tương phản, vùng chạm, safe area và chữ phóng to.
 
-> **Điều kiện hoàn thành:** RBAC test matrix (MT, RBAC) pass; staff invite hoạt động; Admin Web auth hoạt động.  
-> **Phụ thuộc:** `P0.T07`–`T08` approved; mutation gateway đã có thiết kế được duyệt.
+> **Điều kiện hoàn thành:** [COMPLETED] RBAC test matrix (MT, RBAC) pass 100%; 3 Mutation RPCs GM-1 hoàn tất; staff lifecycle & Mutual Exclusivity OD-02=A hoạt động an toàn; GymManagementService sẵn sàng.  
+> **Phụ thuộc:** Phase 0 & Phase 1 hoàn thành; mở đường cho Phase 2 (Gym & Branch Management & Mobile Core Workouts).
 
 ---
 
@@ -427,12 +427,12 @@
 | **P0.T06** | Cập nhật requirements, testing-acceptance, auth, schema và offline docs | `[x]` | Các file docs cập nhật đồng bộ | Phase 0 | `WM` | P0.T05 | `PRESERVED_HISTORICAL` |
 | **P0.T07** | Phê duyệt kiến trúc mới (D-MT-01..04, D-MT-11, OD-01..06) | `[x]` | APPROVED WITH CONDITIONS (2026-10-23); các điều kiện AC-P0T07-01..05 và OD-01..06 tuân thủ | Phase 0 | `SP` | P0.T01-06 | `PRESERVED_GATE` |
 | **P0.T08** | Chốt schema gym management tables và tạo migration GM-1 | `[x]` | Migration file `20261025150000_gm1_tenant_branch_staff.sql` đã tạo, DDL & RLS fail-closed hoàn tất | Phase 0 | `SP` | P0.T07 | `PRESERVED_GATE` |
-| **P1.T01** | Thiết kế và review schema gyms, branches, gym_staff | `[ ]` | Chưa bắt đầu | Phase 1 | `SP` | P0.T07-08 | `PRESERVED_ACTIVE` |
-| **P1.T02** | Chuẩn bị migration GM-1 (gyms, branches, gym_staff) | `[ ]` | Chưa bắt đầu | Phase 1 | `SP` | P1.T01 | `PRESERVED_ACTIVE` |
-| **P1.T03** | Thiết kế và review RLS cho gym/branch tables | `[ ]` | Chưa bắt đầu | Phase 1 | `SP` | P1.T02 | `PRESERVED_ACTIVE` |
-| **P1.T04** | Thiết kế staff invite flow (Supabase invite vs. custom) | `[ ]` | Chưa bắt đầu | Phase 1 | `SP` | P1.T03 | `PRESERVED_ACTIVE` |
-| **P1.T05** | Thiết kế Admin Web auth (session, middleware, role lookup) | `[ ]` | Chưa bắt đầu | Phase 1 | `GM` | P1.T03 | `PRESERVED_ACTIVE` |
-| **P1.T06** | Kiểm thử RBAC: MT-01–05, RBAC-01–12 | `[ ]` | Chưa bắt đầu | Phase 1 | `SP` | P1.T04-05 | `PRESERVED_ACTIVE` |
+| **P1.T01** | Thiết kế và review schema gyms, branches, gym_staff | `[x]` | `docs/supabase-schema.md` (Hoàn thành qua migration GM-1 tại P0.T08) | Phase 1 | `SP` | P0.T07-08 | `PRESERVED_ACTIVE` |
+| **P1.T02** | Chuẩn bị migration GM-1 (gyms, branches, gym_staff) | `[x]` | `supabase/migrations/20261025150000_gm1_tenant_branch_staff.sql` (Hoàn thành tại P0.T08) | Phase 1 | `SP` | P1.T01 | `PRESERVED_ACTIVE` |
+| **P1.T03** | Thiết kế và review RLS cho gym/branch tables | `[x]` | `docs/supabase-schema.md` (RLS fail-closed hoàn tất tại P0.T08) | Phase 1 | `SP` | P1.T02 | `PRESERVED_ACTIVE` |
+| **P1.T04** | Thiết kế staff invite flow & phân quyền/thu hồi nhân viên | `[x]` | `supabase/migrations/20261025160000_gm1_mutation_rpcs.sql` (`rpc_revoke_or_update_staff`, OD-01, OD-02=A) | Phase 1 | `SP` | P1.T03 | `PRESERVED_ACTIVE` |
+| **P1.T05** | Thiết kế Admin Web auth & RPC Mutation API (create gym/branch) | `[x]` | `src/modules/gym-management/` (`rpc_create_gym`, `rpc_manage_branch`, `GymManagementService`) | Phase 1 | `GM` | P1.T03 | `PRESERVED_ACTIVE` |
+| **P1.T06** | Kiểm thử RBAC & Service: MT-01–05, RBAC-01–12 | `[x]` | `__tests__/gm1-service-test.ts` (9 test suites passed, 35 tests passed) | Phase 1 | `SP` | P1.T04-05 | `PRESERVED_ACTIVE` |
 | **P2.T01** | Khởi tạo Admin Web project (Next.js hoặc framework đã chốt) | `[ ]` | Chưa bắt đầu | Phase 2 | `GM` | Phase 1 Hoàn tất | `PRESERVED_ACTIVE` |
 | **P2.T02** | Giao diện tạo gym và onboarding owner | `[ ]` | Chưa bắt đầu | Phase 2 | `GM` | P2.T01 | `PRESERVED_ACTIVE` |
 | **P2.T03** | Giao diện quản lý branch | `[ ]` | Chưa bắt đầu | Phase 2 | `GM` | P2.T02 | `PRESERVED_ACTIVE` |
@@ -586,3 +586,23 @@
   2. Triển khai file migration GM-1 dạng additive, không đụng chạm 7 bảng core, an toàn tuyệt đối, tuân thủ fail-closed từ microsecond đầu tiên.
   3. Định hình lộ trình nâng cấp step-by-step bảo toàn tối đa giá trị mã nguồn mobile hiện hữu.
 - **Kết quả kiểm tra:** Kiểm tra chất lượng code `npm test`, `npx tsc --noEmit` và `npm run lint` toàn bộ PASSED. Phase 0 chính thức đóng; sẵn sàng cho các nhiệm vụ tiếp theo.
+
+### 2026-10-26 — Thực thi Phase 1 Core (GM-1 RPCs, gym-management module, RBAC tests) (feat/p1-gm1-rpc-and-types)
+
+- **Mục tiêu:** Bác bỏ việc viết tài liệu trùng lặp; chuyển đổi thẳng sang viết code thực thi cho Phase 1 Core gồm 3 hàm PostgreSQL RPC (`OD-04`, `OD-02=A`), TypeScript models & service repository tại `src/modules/gym-management/`, và bộ unit test RBAC thứ 9 tại `__tests__/gm1-service-test.ts`. Đóng hoàn toàn Phase 1 (32/96 tasks).
+- **Files đã tạo mới & cập nhật:**
+  - `supabase/migrations/20261025160000_gm1_mutation_rpcs.sql`: Tạo 3 hàm RPC `SECURITY DEFINER` với `SET search_path = public, pg_temp`, cấp quyền `EXECUTE` cho `authenticated`:
+    1. `rpc_create_gym(gym_name, gym_slug, branch_name, branch_slug)`: Tạo gym, tự động khởi tạo branch mặc định và gán caller quyền owner toàn gym trong 1 transaction an toàn.
+    2. `rpc_manage_branch(gym_id, branch_name, branch_slug, branch_status, target_branch_id)`: Tạo mới hoặc cập nhật chi nhánh (chỉ cho phép owner, hỗ trợ soft-deactivation `'archived'`).
+    3. `rpc_revoke_or_update_staff(p_gym_id, p_user_id, p_action, p_role, p_branch_id)`: Dùng `pg_advisory_xact_lock`, bảo vệ owner không bị hạ quyền, kiểm tra Mutual Exclusivity (`OD-02=A`), hỗ trợ soft-revoke (`status = 'revoked'`, `revoked_at`, `revoked_by`), suspend, activate, assign.
+  - `src/modules/gym-management/types/gm1-types.ts`: Định nghĩa TypeScript interfaces/types cho `Gym`, `Branch`, `GymStaff`, `GymStatus`, `BranchStatus`, `StaffRole`, `StaffStatus` và các RPC payloads/results.
+  - `src/modules/gym-management/services/gm1-service.ts`: Lớp `GymManagementService` bọc type-safe các RPC calls và các hàm đọc fail-closed (`getGyms`, `getGymById`, `getBranchesByGym`, `getStaffByGym`).
+  - `src/modules/gym-management/index.ts`: Barrel export cho module gym-management.
+  - `__tests__/gm1-service-test.ts`: Bộ test suite thứ 9 với 8 unit test bao phủ toàn bộ luồng tạo gym, quản lý branch, phân quyền/thu hồi nhân viên theo `OD-02=A`, kiểm tra lỗi phân quyền RBAC và select queries.
+  - `docs/supabase-schema.md`: Bổ sung chữ ký 3 hàm RPC GM-1 và cập nhật bảng lộ trình & nhật ký.
+  - `docs/mindmap.md`: Đánh dấu `[x]` cho toàn bộ Phase 1 (`P1.T01` đến `P1.T06`), nâng tiến độ lên 32/96 tasks, cập nhật bảng Audit Matrix.
+- **Kết quả kiểm tra:**
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm test`: 9 test suites passed, 35 tests passed.
+  - `npm run lint`: 0 errors / 0 warnings.
+

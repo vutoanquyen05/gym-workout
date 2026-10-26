@@ -566,10 +566,9 @@ Hệ thống tuân thủ triệt để nguyên tắc **Least Privilege** (đặc
 
 #### 1. Nguyên tắc phân quyền RPC Functions
 - Các thao tác thay đổi dữ liệu (tạo gym, thêm branch, gán staff, đổi trạng thái) được đóng gói thành các hàm PostgreSQL RPC có tiền tố nghiệp vụ:
-  - `fn_gm_create_gym(name TEXT, slug TEXT) RETURNS UUID`
-  - `fn_gm_create_branch(gym_id UUID, name TEXT, slug TEXT, address TEXT, phone TEXT) RETURNS UUID`
-  - `fn_gm_assign_staff(gym_id UUID, branch_id UUID, staff_user_id UUID, staff_role TEXT) RETURNS UUID`
-  - `fn_gm_update_staff_status(staff_record_id UUID, new_status TEXT) RETURNS VOID`
+  - `rpc_create_gym(p_name TEXT, p_slug TEXT, p_main_branch_name TEXT, p_main_branch_slug TEXT, p_main_branch_address TEXT, p_main_branch_phone TEXT) RETURNS JSONB`: Tạo phòng gym, tự động tạo chi nhánh chính và gán quyền owner toàn gym trong 1 Atomic Transaction.
+  - `rpc_manage_branch(p_gym_id UUID, p_branch_id UUID, p_name TEXT, p_slug TEXT, p_address TEXT, p_phone TEXT, p_status TEXT) RETURNS JSONB`: Tạo mới hoặc cập nhật thông tin/trạng thái chi nhánh (`active`, `suspended`, `archived` - soft-deactivation).
+  - `rpc_revoke_or_update_staff(p_gym_id UUID, p_staff_user_id UUID, p_action TEXT, p_branch_id UUID, p_role TEXT) RETURNS JSONB`: Thực thi quyết định `OD-02=A` (dùng `pg_advisory_xact_lock`, kiểm tra Mutual Exclusivity giữa quyền toàn gym và chi nhánh, Zero Hard Delete hỗ trợ soft-revoke cập nhật `status = 'revoked'`, `revoked_at = now()`, `revoked_by = auth.uid()`).
 - **Cấu hình bảo mật RPC:**
   - `SECURITY DEFINER`: Chạy với quyền của function owner để ghi dữ liệu sau khi direct DML của table đã bị revoke.
   - `SET search_path = public, pg_temp`: Ngăn chặn hoàn toàn lỗi Search Path Hijacking.
@@ -754,9 +753,9 @@ COMMIT;
 | **GM-3** | `membership_plans`, `memberships` | Thiết kế tổng quan | Sau GM-2 |
 | **GM-4** | `attendance_logs` | Thiết kế tổng quan | Sau GM-3 |
 | **GM-5** | `payment_transactions` & idempotency | Thiết kế tổng quan | Sau GM-3 & chốt OD-05 |
-| **GM-6** | RPC Mutation Gateway & Edge Functions hoàn chỉnh | Thiết kế tổng quan | Cùng nhịp với các nhóm bảng tương ứng |
+| **GM-6** | RPC Mutation Gateway: GM-1 Core RPCs (`rpc_create_gym`, `rpc_manage_branch`, `rpc_revoke_or_update_staff`) | **Đã tạo migration file** (`20261025160000_gm1_mutation_rpcs.sql`) | Hoàn thành Phase 1 Core |
 
-> **Cam kết an toàn:** Migration GM-1 được tạo sẵn dưới dạng file migration SQL độc lập (`supabase/migrations/20261025150000_gm1_tenant_branch_staff.sql`), tuân thủ Zero Hard Delete `OD-02=A` và Fail-Closed. Tuyệt đối không tự ý áp dụng hay kết nối Supabase Cloud khi chưa có phê duyệt runtime.
+> **Cam kết an toàn:** Migration GM-1 và GM-1 Mutation RPCs được tạo sẵn dưới dạng file migration SQL độc lập (`supabase/migrations/`), tuân thủ Zero Hard Delete `OD-02=A`, Fail-Closed và RPC Gateway `OD-04`. Tuyệt đối không tự ý áp dụng hay kết nối Supabase Cloud khi chưa có phê duyệt runtime.
 
 ---
 
@@ -768,8 +767,4 @@ COMMIT;
 | 2026-10-22 | Sửa constraint và ghi nhận trạng thái kiểm tra bảng Cloud. | Đồng bộ tiến độ kiểm thử bảng core. | 7 bảng core đạt kiểm tra table-level grant. |
 | 2026-10-23 | Final Pre-Approval Verification: Chuẩn hóa schema `branches.status TEXT CHECK (status IN ('active', 'suspended', 'archived'))` thay cho `is_active BOOLEAN`; đồng bộ index `branches_status_idx`; làm rõ cơ chế soft-deactivation chuyển trạng thái `archived`. | Đạt tính nhất quán 100% giữa các bảng tenant, branch và staff trước khi phê duyệt P0.T08. | Schema GM-1 nhất quán hoàn toàn. |
 | 2026-10-25 | Hoàn tất migration file GM-1 (`20261025150000_gm1_tenant_branch_staff.sql`), chuẩn hóa `ON DELETE RESTRICT` (`OD-02=A`), status `'revoked'`, cột `revoked_at`/`revoked_by`, 2 partial unique indexes `WHERE status = 'active'`, helper function `is_active_staff` hỗ trợ `allowed_roles TEXT[]`. | Đóng Gate P0.T08 theo chỉ đạo Owner. | Đã tạo migration file GM-1, RLS fail-closed, sẵn sàng triển khai. |
-| 2026-10-23 | Đề xuất schema mở rộng cho Phase II Multi-Tenant Gym Management. | Khởi tạo phân kỳ roadmap mới. | Tài liệu thiết kế mức đặc tả. |
-| 2026-10-23 | Chi tiết hóa schema GM-1, partial unique indexes giải quyết uniqueness multi-branch, RLS helper functions, và phân quyền Edge Functions/RPC least privilege. | Chuẩn bị phê duyệt P0.T07 và chốt thiết kế GM-1 cho P0.T08 theo chỉ đạo chủ dự án. | Hoàn thiện đặc tả kỹ thuật chi tiết GM-1; không tạo migration file hay chạy SQL. |
-| 2026-10-23 | Final GM-1 Schema Security Review: Bổ sung Composite Foreign Key `(branch_id, gym_id)` chống cross-tenant branch assignment; phân tích coexistence và mutual exclusivity; kiểm tra `gyms.status = 'active'` trong `is_active_staff`; ma trận trạng thái vòng đời gym; quy định rõ thứ tự migration 5 bước và kịch bản rollback nghịch đảo. | Đảm bảo tính toàn vẹn dữ liệu và an toàn bảo mật tuyệt đối trước phê duyệt P0.T08. | Tài liệu thiết kế GM-1 hoàn thiện; sẵn sàng cho Gate P0.T08. |
-| 2026-10-23 | Final Security Corrections Before Approval: Bật RLS và thu hồi quyền ngay khi tạo bảng trong Atomic Transactions; đổi composite FK `gym_staff → branches` sang `ON DELETE RESTRICT` và đề xuất soft-deactivation; làm rõ quyền Owner khi gym suspended (chỉ đọc trạng thái/gia hạn); hiệu chỉnh mô tả `STABLE` chính xác theo PostgreSQL optimizer. | Hoàn thiện tuyệt đối các nguyên tắc an toàn dữ liệu và fail-closed trước khi trình duyệt P0.T08. | Tài liệu chuẩn xác 100%; sẵn sàng phê duyệt. |
-| 2026-10-23 | Final Pre-Approval Verification: Chuẩn hóa schema `branches.status TEXT CHECK (status IN ('active', 'suspended', 'archived'))` thay cho `is_active BOOLEAN`; đồng bộ index `branches_status_idx`; làm rõ cơ chế soft-deactivation chuyển trạng thái `archived`. | Đạt tính nhất quán 100% giữa các bảng tenant, branch và staff trước khi phê duyệt P0.T08. | Schema GM-1 nhất quán hoàn toàn. |
+| 2026-10-26 | Hoàn tất migration file GM-1 Mutation RPCs (`20261025160000_gm1_mutation_rpcs.sql`): `rpc_create_gym`, `rpc_manage_branch`, `rpc_revoke_or_update_staff` (SECURITY DEFINER, pg_advisory_xact_lock, Mutual Exclusivity OD-02=A); tạo module `src/modules/gym-management` và bộ unit test `__tests__/gm1-service-test.ts`. | Thực thi Phase 1 Core theo chỉ đạo Owner. | 3 RPCs hoàn tất, 9 test suites passed. |
