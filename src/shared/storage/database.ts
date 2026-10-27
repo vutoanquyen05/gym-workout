@@ -1,6 +1,7 @@
+import { Platform } from 'react-native';
 import type { SQLiteRunResult, SQLiteVariadicBindParams } from 'expo-sqlite';
 
-import { LATEST_SCHEMA_VERSION, MIGRATIONS } from '@/shared/storage/schema';
+import { DATABASE_NAME, LATEST_SCHEMA_VERSION, MIGRATIONS } from '@/shared/storage/schema';
 
 export interface StorageDatabase {
   execAsync(source: string): Promise<void>;
@@ -20,6 +21,24 @@ export class UnsupportedSchemaVersionError extends Error {
     );
     this.name = 'UnsupportedSchemaVersionError';
   }
+}
+
+export class WebPlatformStorageError extends Error {
+  constructor(
+    message = 'Cơ sở dữ liệu SQLite ngoại tuyến không hỗ trợ trên nền tảng web. Vui lòng chạy ứng dụng trên thiết bị di động (Android / iOS).',
+  ) {
+    super(message);
+    this.name = 'WebPlatformStorageError';
+  }
+}
+
+export async function openAppDatabase(): Promise<StorageDatabase> {
+  if (Platform.OS === 'web') {
+    throw new WebPlatformStorageError();
+  }
+
+  const { openDatabaseAsync } = await import('expo-sqlite');
+  return openDatabaseAsync(DATABASE_NAME);
 }
 
 type UserVersionRow = {
