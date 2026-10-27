@@ -606,3 +606,20 @@
   - `npm test`: 9 test suites passed, 35 tests passed.
   - `npm run lint`: 0 errors / 0 warnings.
 
+### 2026-10-27 — Tích hợp Mobile Runtime SQLite v1 vào Root Layout (feat/mobile-sqlite-runtime-integration)
+
+- **Mục tiêu:** Đưa tầng lưu trữ SQLite v1 (`src/shared/storage/`) vào hoạt động thực tế trên ứng dụng di động theo đúng quy chuẩn runtime của Expo SDK 57, giải quyết triệt để vấn đề "thiếu call site khởi tạo runtime" đã ghi nhận trong rủi ro kỹ thuật.
+- **Files đã tạo mới & cập nhật:**
+  - `src/shared/storage/database.ts`: Thêm `WebPlatformStorageError` và `openAppDatabase()` hỗ trợ mở `gym-workout.db` bất đồng bộ trên native (`openDatabaseAsync`) và ném lỗi an toàn trên web.
+  - `src/shared/storage/storage-provider.tsx`: Tạo React Context `StorageProvider`, `useStorage()` và `useDatabase()`, tự động gọi `initializeDatabase()`, khởi tạo 3 repositories (`ExerciseRepository`, `WorkoutPlanRepository`, `WorkoutSessionRepository`), quản lý trạng thái `isReady`, `error`, và cơ chế `retry`.
+  - `src/shared/storage/index.ts`: Export `openAppDatabase`, `WebPlatformStorageError`, `StorageProvider`, `useStorage`, `useDatabase`.
+  - `src/app/_layout.tsx`: Tích hợp `<StorageProvider>` vào Root Layout, trì hoãn render router stack cho tới khi SQLite database và Theme context sẵn sàng (giữ Splash Screen), tự động ẩn Splash Screen và hiển thị `FeedbackState` fallback kèm nút "Thử lại" khi xảy ra lỗi.
+  - `__tests__/root-layout-storage-test.tsx`: Bộ test suite thứ 10 với 7 test cases bao phủ vòng đời khởi tạo của `StorageProvider`, xử lý lỗi & retry, kiểm tra an toàn nền tảng web, và tích hợp RootLayout.
+  - `docs/data-offline.md`: Cập nhật ghi chú call site runtime SQLite v1.
+  - `docs/mindmap.md`: Cập nhật Work Log chi tiết.
+- **Kết quả kiểm tra:**
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm test`: 10 test suites passed, 42 tests passed.
+  - `npm run lint`: 0 errors / 0 warnings.
+
+

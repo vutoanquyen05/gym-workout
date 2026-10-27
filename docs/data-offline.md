@@ -356,7 +356,9 @@ Gate status: **BLOCKED — schema files prepared, not applied**. Chưa có quy�
 
 #### 7.13. SQLite v1 Preflight — kết quả 2026-10-21
 
-Preflight đã được phê duyệt chỉ trên bản sao, nhưng **bị chặn vì không có bản sao/backup được xác nhận và truy cập được**. Repository khai báo tên `gym-workout.db`, không chứa database/backup phù hợp; không có call site `openDatabaseAsync`/`SQLiteProvider` hoặc app/runtime call site `initializeDatabase` (hàm chỉ được gọi trong tests) để xác định vị trí database runtime. Không tìm kiếm/mở dữ liệu ngoài workspace hoặc trên thiết bị/emulator.
+Preflight đã được phê duyệt chỉ trên bản sao, nhưng **bị chặn vì không có bản sao/backup được xác nhận và truy cập được**. Repository khai báo tên `gym-workout.db`, không chứa database/backup phù hợp.
+
+> **Cập nhật Runtime 2026-10-27 (`feat/mobile-sqlite-runtime-integration`):** Đã thiết lập runtime call site chính thức của SQLite v1 trong `src/app/_layout.tsx` thông qua `StorageProvider` và `openAppDatabase()`, thực thi `initializeDatabase()` khi app khởi động trên mobile native, trì hoãn ẩn Splash Screen cho tới khi SQLite sẵn sàng, và cung cấp fallback an toàn (`WebPlatformStorageError`) trên nền tảng web.
 
 Không chạy kiểm kê trên dữ liệu nào. Counts, `PRAGMA user_version`, UUID/PK/FK, orphan, NULL, `typeof(weight_value)`, đơn vị kg/lb, giá trị invalid/non-finite/âm, giới hạn INTEGER gram và conversion preview đều **chưa xác định** (không phải số 0). Không sửa/xóa/làm tròn/chuẩn hóa dữ liệu. Rủi ro triển khai khi chưa có bằng chứng dữ liệu và khả năng phục hồi là cao.
 
