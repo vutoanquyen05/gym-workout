@@ -622,4 +622,24 @@
   - `npm test`: 10 test suites passed, 42 tests passed.
   - `npm run lint`: 0 errors / 0 warnings.
 
+### 2026-10-27 — Nâng cấp toàn diện Expo SDK 57 lên Expo SDK 58 (feat/upgrade-expo-sdk-58)
+
+- **Mục tiêu:** Nâng cấp toàn bộ dự án từ Expo SDK 57 (`~57.0.30`) lên Expo SDK 58 (`~58.0.0`), React Native 0.88.0, React 19.3.0, đồng bộ toàn bộ hệ sinh thái expo modules, `jest-expo@58`, giải quyết tương thích Jest preset và cập nhật API chính thức `expo-router/native-tabs`.
+- **Files đã tạo mới & cập nhật:**
+  - `package.json`: Nâng cấp `expo@~58.0.0`, `react@19.3.0`, `react-dom@19.3.0`, `react-native@0.88.0`, toàn bộ các package Expo lên `~58.0.x`, `jest@~30.5.2`, `jest-expo@~58.0.12`, bổ sung devDependency `@react-native/jest-preset@^0.88.1`.
+  - `package-lock.json`: Đồng bộ toàn diện cây phụ thuộc tương thích chuẩn Expo SDK 58.
+  - `src/shared/design-system/components/bottom-navigation.tsx`: Chuyển import từ `expo-router/unstable-native-tabs` sang API ổn định `expo-router/native-tabs`.
+  - `docs/rule.md`: Cập nhật Quy chuẩn Kỹ thuật mục 6 đồng bộ Expo SDK 58 và React Native 0.88.0.
+  - `docs/mindmap.md`: Ghi nhận nhật ký nâng cấp SDK vào Work Log.
+- **Logic chính đã triển khai:**
+  1. Sử dụng công cụ chính thức của Expo để phân giải và cài đặt chính xác các phiên bản tương thích với SDK 58, cấu hình `package.json` chuẩn mực.
+  2. Cài đặt bổ sung `@react-native/jest-preset` đáp ứng sự tách gói của `jest-expo@58` trong SDK 58.
+  3. Loại bỏ import deprecated `expo-router/unstable-native-tabs` sang `expo-router/native-tabs`.
+  4. Đảm bảo cấu trúc fail-closed và toàn bộ 10 test suites chạy mượt mà, đạt hiệu năng kiểm thử vượt trội (từ ~69s xuống ~12s).
+- **Kết quả kiểm tra:**
+  - `npx expo-doctor`: 20/20 checks passed (0 issues).
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm test`: 10 test suites passed, 42 tests passed (100% pass).
+  - `npm run lint`: 0 errors / 0 warnings.
+
 

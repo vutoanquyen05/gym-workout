@@ -50,7 +50,7 @@
 
 ## 6. Quy chuẩn Kỹ thuật của Dự án
 
-- **Expo SDK 57:** Ứng dụng di động xây dựng trên Expo SDK 57 (`~57.0.30`) và React Native `0.86.3`. Luôn đối chiếu phiên bản `package.json` và tài liệu chính thức Expo SDK 57; không suy diễn API từ các phiên bản cũ.
+- **Expo SDK 58:** Ứng dụng di động xây dựng trên Expo SDK 58 (`~58.0.0`) và React Native `0.88.0`. Luôn đối chiếu phiên bản `package.json` và tài liệu chính thức Expo SDK 58; không suy diễn API từ các phiên bản cũ.
 - **Expo Router:** Toàn bộ điều hướng mobile nằm trong `src/app/` (routes, layouts). Các components, hooks, storage, utils dùng chung nằm ngoài thư mục `src/app/`.
 - **Thực tế Dependencies:** `package.json` và `package-lock.json` là nguồn xác thực dependency duy nhất. Không coi thư viện được đề xuất trong tài liệu kế hoạch là đã cài đặt.
 - **Bảo vệ Native Output:** Thư mục `android/` là output sinh tự động của Continuous Native Generation (CNG) và bị Git ignore. Không sửa tay, không xóa và không tạo thủ công thư mục native. Mọi cấu hình native thực hiện qua `app.json` và Expo config plugins.
