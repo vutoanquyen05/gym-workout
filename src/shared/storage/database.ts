@@ -1,4 +1,3 @@
-import { Platform } from 'react-native';
 import type { SQLiteRunResult, SQLiteVariadicBindParams } from 'expo-sqlite';
 
 import { DATABASE_NAME, LATEST_SCHEMA_VERSION, MIGRATIONS } from '@/shared/storage/schema';
@@ -33,10 +32,6 @@ export class WebPlatformStorageError extends Error {
 }
 
 export async function openAppDatabase(): Promise<StorageDatabase> {
-  if (Platform.OS === 'web') {
-    throw new WebPlatformStorageError();
-  }
-
   const { openDatabaseAsync } = await import('expo-sqlite');
   return openDatabaseAsync(DATABASE_NAME);
 }

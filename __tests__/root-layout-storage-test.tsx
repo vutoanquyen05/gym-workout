@@ -206,23 +206,22 @@ describe('Storage Runtime & RootLayout Integration Suite', () => {
       });
     });
 
-    it('handles web platform safely by capturing WebPlatformStorageError', async () => {
+    it('handles web platform and initializes sqlite storage successfully', async () => {
       const originalOS = Platform.OS;
       try {
         Platform.OS = 'web';
+        const { database } = createTestDatabase();
 
         const { getByTestId } = await render(
-          <StorageProvider>
+          <StorageProvider database={database}>
             <StorageConsumerProbe />
           </StorageProvider>,
         );
 
         await waitFor(() => {
-          expect(getByTestId('probe-error').props.children).toContain(
-            'Cơ sở dữ liệu SQLite ngoại tuyến không hỗ trợ trên nền tảng web',
-          );
+          expect(getByTestId('probe-is-ready').props.children).toBe('true');
         });
-        expect(getByTestId('probe-is-ready').props.children).toBe('false');
+        expect(getByTestId('probe-error').props.children).toBe('none');
       } finally {
         Platform.OS = originalOS;
       }
