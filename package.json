@@ -57,6 +57,7 @@
   "private": true,
   "jest": {
     "preset": "jest-expo",
+    "maxWorkers": 2,
     "testMatch": [
       "<rootDir>/__tests__/**/*-test.[jt]s?(x)"
     ]
