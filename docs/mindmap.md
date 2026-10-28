@@ -141,7 +141,9 @@
   *Tham chiếu: `docs/baocao.md` (Chương 2: Luồng E2E 4).*
 - [ ] **P3.T05** `[Track: GM & SP]` — Test matrix FR-MB-01–05, kiểm tra cờ rà soát hồ sơ trùng lặp (Review Flag, không archive dữ liệu tài chính theo ALIGN-01).  
   *Tham chiếu: `docs/baocao.md`, `docs/testing-acceptance.md`.*
-- [x] **Phase 3.T05** `[Track: WM]` — Tạo kế hoạch: CRUD, thứ tự bài tập, cấu hình hiệp/reps/nghỉ (Offline-First trên SQLite; thay thế RoutePlaceholder).  
+- [x] **Phase 3.T05** `[Track: WM]` — Tạo kế hoạch: CRUD, thứ tự bài tập, cấu hình hiệp/reps/nghỉ (Offline-First trên SQLite; thay thế RoutePlaceholder).
+- [x] **Phase 3.T06 (Mobile Core)** `[Track: WM]` — Màn hình Tiến trình (Progress Tab): 3 chỉ số thống kê (Tổng buổi tập, Thời gian, Tổng khối lượng) & Lịch sử hoạt động gần đây (Offline-First trên SQLite; thay thế RoutePlaceholder).  
+  *Tham chiếu: `docs/baocao.md`, `docs/data-offline.md`.*  
   *Tham chiếu: `docs/baocao.md`, `docs/data-offline.md`.*
 - *(Tiến độ Thiết kế & Chuẩn bị Cloud Schema Migration v1 — Completed Historical Baseline)*:
   - [x] **Phase 3.T06** `[Track: SP]` — Chốt hợp đồng dữ liệu Supabase PostgreSQL–SQLite và các quy tắc đồng bộ còn mở.
@@ -222,8 +224,8 @@
 - [ ] **P5.T06** `[Track: GM & SP]` — Test matrix PY-01–07 (idempotency, chống thu tiền kép).  
   *Tham chiếu: `docs/testing-acceptance.md`.*
 - *(Tiến độ Mobile Core Lịch sử & Thống kê — FIX-F02: Thực thi tập trung DUY NHẤT tại Phase 5)*:
-  - [ ] **Phase 5.T01** `[Track: WM]` — Danh sách và chi tiết lịch sử buổi tập (SQLite).
-  - [ ] **Phase 5.T02** `[Track: WM]` — Xác định công thức, đơn vị và dữ liệu hợp lệ cho thống kê.
+  - [x] **Phase 5.T01** `[Track: WM]` — Danh sách và chi tiết lịch sử buổi tập (SQLite).
+  - [x] **Phase 5.T02** `[Track: WM]` — Xác định công thức, đơn vị và dữ liệu hợp lệ cho thống kê (Total Workouts, Total Duration, Total Volume Lifted; hoàn thiện tab Progress).
   - [ ] **Phase 5.T03** `[Track: WM]` — Tính tiến bộ, khối lượng tập và PR; hiển thị biểu đồ.
   - [ ] **Phase 5.T04** `[Track: WM]` — Tạo mục tiêu, thói quen và tiến độ hoàn thành.
   - [ ] **Phase 5.T05** `[Track: WM]` — Tạo nhắc lịch tập, quyền thông báo và cài đặt.
@@ -399,8 +401,8 @@
 | **Phase 4.T03** | Tạo RestTimer theo timestamp kết thúc dự kiến | `[ ]` | Logic timestamp đã đặc tả; chưa viết code | Phase 4 | `WM` | Phase 4.T01 | `DECOUPLED_PARALLEL` |
 | **Phase 4.T04** | Tự động lưu vào SQLite và khôi phục khi mở lại | `[ ]` | SQLite schema hỗ trợ; chưa gắn handler | Phase 4 | `WM` | Phase 4.T02 | `DECOUPLED_PARALLEL` |
 | **Phase 4.T05** | Tạo màn hình tổng kết và kiểm thử chuyển nền/foreground | `[ ]` | Chưa triển khai | Phase 4 | `WM` | Phase 4.T04 | `DECOUPLED_PARALLEL` |
-| **Phase 5.T01** | Danh sách và chi tiết lịch sử buổi tập | `[ ]` | SQLite schema hỗ trợ; chưa có UI | Phase 5 | `WM` | Phase 4.T05 | `DECOUPLED_PARALLEL` |
-| **Phase 5.T02** | Xác định công thức, đơn vị và dữ liệu hợp lệ cho thống kê | `[ ]` | Đã đặc tả volume = weight × reps | Phase 5 | `WM` | Phase 5.T01 | `DECOUPLED_PARALLEL` |
+| **Phase 5.T01** | Danh sách và chi tiết lịch sử buổi tập | `[x]` | `src/modules/progress/`, `src/app/(tabs)/progress.tsx`, test pass | Phase 5 | `WM` | Phase 4.T05 | `DECOUPLED_PARALLEL` |
+| **Phase 5.T02** | Xác định công thức, đơn vị và dữ liệu hợp lệ cho thống kê | `[x]` | Đã đặc tả volume = weight × reps, duration = end - start; hoàn thiện qua `WorkoutSessionRepository.getSessionsSummary` | Phase 5 | `WM` | Phase 5.T01 | `DECOUPLED_PARALLEL` |
 | **Phase 5.T03** | Tính tiến bộ, khối lượng tập và PR; hiển thị biểu đồ | `[ ]` | Chưa tích hợp thư viện biểu đồ | Phase 5 | `WM` | Phase 5.T02 | `DECOUPLED_PARALLEL` |
 | **Phase 5.T04** | Tạo mục tiêu, thói quen và tiến độ hoàn thành | `[ ]` | Chưa triển khai | Phase 5 | `WM` | Phase 5.T01 | `DECOUPLED_PARALLEL` |
 | **Phase 5.T05** | Tạo nhắc lịch tập, quyền thông báo và cài đặt | `[ ]` | Chưa tích hợp Expo Notifications | Phase 5 | `WM` | Phase 5.T04 | `DECOUPLED_PARALLEL` |
@@ -677,5 +679,20 @@
   - `npm run lint`: 0 errors / 0 warnings.
   - `npm test`: 12/12 test suites passed (100%), 51/51 tests passed (100%).
 
+### 2026-10-28 — Xây dựng Module Tiến trình Tập luyện (Progress) Offline-First (feat/mobile-progress-module, Phase 3.T06 Mobile Core / Phase 5.T01-02)
 
-
+- **Mục tiêu:** Hợp nhất thành công module Workouts vào `main`, khởi tạo module Progress (`src/modules/progress/`) 100% ngoại tuyến trên nền tảng SQLite v1, thay thế hoàn toàn `RoutePlaceholder` tại màn hình `src/app/(tabs)/progress.tsx`.
+- **Files đã tạo mới & cập nhật:**
+  - `src/shared/storage/repositories/workout-sessions.ts`: Bổ sung phương thức `getSessionsSummary()` tính toán 3 chỉ số thống kê tổng hợp (tổng số buổi tập, tổng thời lượng phút, tổng khối lượng tạ kg) và `listCompletedRecent()` lấy các buổi tập hoàn thành.
+  - `src/shared/storage/index.ts`: Re-export `WorkoutSessionsSummary`.
+  - `src/modules/progress/components/stat-card.tsx`: Card hiển thị con số thống kê chuyên biệt gồm Icon, Tiêu đề phụ, Con số cỡ lớn (variant display) và Đơn vị tính (`Card` và `AppText`).
+  - `src/modules/progress/hooks/useProgress.ts`: Hook quản lý truy vấn từ SQLite qua `useStorage()`, tính toán 3 chỉ số thống kê (`totalWorkouts`, `totalDurationMinutes`, `totalVolumeKg`) và metadata chi tiết cho 3-5 buổi tập gần nhất.
+  - `src/modules/progress/index.ts`: Export toàn bộ public API của module progress.
+  - `src/app/(tabs)/progress.tsx`: Thay thế hoàn toàn `RoutePlaceholder` bằng giao diện chính: Header, Grid 3 thẻ `StatCard` (Tổng buổi tập, Thời gian tập, Tổng khối lượng) và FlatList "Hoạt động gần đây" tái sử dụng `WorkoutSessionCard` từ module workouts; hiển thị `FeedbackState` khi tải/lỗi/rỗng.
+  - `package.json`: Cấu hình `maxWorkers: 2` cho Jest giúp tối ưu hóa kiểm thử đa luồng ổn định trên Windows.
+  - `__tests__/progress-screen-test.tsx`: Test suite thứ 13 với 3 test cases bao phủ hiển thị trạng thái rỗng `FeedbackState`, tính toán chính xác 3 chỉ số thống kê từ mock data SQLite, và kiểm thử hiển thị `StatCard`.
+  - `docs/mindmap.md`: Đánh dấu `[x]` hoàn thành Phase 3.T06 Mobile Core / Phase 5.T01-02, cập nhật Audit Matrix và Work Log.
+- **Kết quả kiểm tra Quality Gates:**
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run lint`: 0 errors / 0 warnings.
+  - `npm test`: 13/13 test suites passed (100%), 54/54 tests passed (100%).
