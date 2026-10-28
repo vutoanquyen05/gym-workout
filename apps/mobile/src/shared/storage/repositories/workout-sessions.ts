@@ -9,6 +9,12 @@ import type {
   WorkoutSet,
 } from '@/shared/storage/types';
 
+export type WorkoutSessionsSummary = {
+  totalWorkouts: number;
+  totalDurationMinutes: number;
+  totalVolumeKg: number;
+};
+
 type WorkoutSessionRow = {
   id: string;
   plan_id: string | null;
@@ -357,5 +363,64 @@ export class WorkoutSessionRepository {
     );
 
     return result.changes > 0;
+  }
+
+  async getSessionsSummary(): Promise<WorkoutSessionsSummary> {
+    const sessions = await this.database.getAllAsync<WorkoutSessionRow>(
+      `SELECT * FROM workout_sessions
+       WHERE status = 'completed'
+       ORDER BY started_at DESC`,
+    );
+
+    let totalDurationMinutes = 0;
+    for (const session of sessions) {
+      if (session.started_at && session.completed_at) {
+        const start = new Date(session.started_at).getTime();
+        const end = new Date(session.completed_at).getTime();
+        if (Number.isFinite(start) && Number.isFinite(end) && end >= start) {
+          totalDurationMinutes += Math.round((end - start) / 60000);
+        }
+      }
+    }
+
+    const volumeRow = await this.database.getFirstAsync<{ total_volume: number | null }>(
+      `SELECT SUM(
+         CASE
+           WHEN ws.weight_unit = 'lb' THEN ws.weight_value * 0.45359237 * ws.reps
+           ELSE ws.weight_value * ws.reps
+         END
+       ) as total_volume
+       FROM workout_sets ws
+       JOIN session_exercises se ON se.id = ws.session_exercise_id
+       JOIN workout_sessions sess ON sess.id = se.session_id
+       WHERE sess.status = 'completed'
+         AND ws.is_completed = 1
+         AND ws.weight_value IS NOT NULL
+         AND ws.reps IS NOT NULL`,
+    );
+
+    const totalVolumeKg = Math.round(volumeRow?.total_volume ?? 0);
+
+    return {
+      totalWorkouts: sessions.length,
+      totalDurationMinutes,
+      totalVolumeKg,
+    };
+  }
+
+  async listCompletedRecent({ limit = 5 }: { limit?: number } = {}): Promise<WorkoutSession[]> {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 500) {
+      throw new RangeError('Workout session list limit must be an integer between 1 and 500.');
+    }
+
+    const rows = await this.database.getAllAsync<WorkoutSessionRow>(
+      `SELECT * FROM workout_sessions
+       WHERE status = 'completed'
+       ORDER BY completed_at DESC, started_at DESC
+       LIMIT ?`,
+      limit,
+    );
+
+    return rows.map(mapWorkoutSession);
   }
 }
