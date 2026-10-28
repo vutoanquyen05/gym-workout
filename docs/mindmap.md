@@ -106,7 +106,7 @@
   *Tham chiếu: `docs/baocao.md`, `docs/testing-acceptance.md`.*
 - *(Tiến độ Mobile Core song song — FIX-R02 & FIX-F01)*:
   - [x] **Phase 3.T01** `[Track: WM]` — Thiết kế schema SQLite, migration và repository (Schema v1 6 bảng và repositories hoạt động).
-  - [ ] **Phase 3.T04** `[Track: WM]` — Tạo thư viện bài tập: danh sách, tìm kiếm, lọc, chi tiết (hoạt động 100% ngoại tuyến trên SQLite; hoàn thiện thay thế RoutePlaceholder).  
+  - [x] **Phase 3.T04** `[Track: WM]` — Tạo thư viện bài tập: danh sách, tìm kiếm, lọc, chi tiết (hoạt động 100% ngoại tuyến trên SQLite; hoàn thiện thay thế RoutePlaceholder).  
     *Tham chiếu: `docs/baocao.md` (Chương 4), `docs/design-system.md`.*
 
 > **Điều kiện hoàn thành:** FR-GM-01–05 nghiệm thu; không cross-tenant leak; thư viện bài tập mobile offline hoàn thành.  
@@ -360,11 +360,11 @@
 
 ### 3.1. Báo cáo Kiểm toán Tính Toàn vẹn (Audit Summary)
 - **Tổng số Task ID gốc trong `docs/mindmap.md`:** **96 tasks**.
-  - Phần 1 (Roadmap Workout Mobile cũ): 48 tasks (18 `[x]`, 30 `[ ]`).
+  - Phần 1 (Roadmap Workout Mobile cũ): 48 tasks (19 `[x]`, 29 `[ ]`).
   - Phần 2 (Roadmap Multi-Tenant mới): 48 tasks (6 `[x]`, 42 `[ ]`).
 - **Missing IDs:** **0** (100% task gốc có mặt trong bảng mapping).
 - **Duplicate IDs:** **0** (Mỗi task gốc xuất hiện duy nhất 1 dòng).
-- **Changed Statuses:** **0** (100% task giữ nguyên trạng thái gốc: 24 tasks `[x]`, 72 tasks `[ ]`).
+- **Changed Statuses:** **0** (100% task giữ nguyên trạng thái: 25 tasks `[x]`, 71 tasks `[ ]`).
 - **Proposed Additions:** **10 tasks** (Được gắn nhãn `PROPOSED_ADDITION` riêng biệt: P4.T07, P4.T08, P4.T09, P5.T07, P5.T08, P5.T09, P5.T10, P8.T05, P8.T06, P8.T07; hoàn toàn tách biệt khỏi baseline 96 task gốc đã duyệt).
 
 ### 3.2. Bảng Đối chiếu Toàn bộ 96 Task Gốc (8 Cột Bắt Buộc)
@@ -384,7 +384,7 @@
 | **Phase 3.T01** | Thiết kế schema SQLite, migration và repository | `[x]` | `src/shared/storage/schema.ts`, test pass | Phase 2 | `WM` | Phase 2.T05 | `PRESERVED_HISTORICAL` |
 | **Phase 3.T02** | Xây dựng xác thực, đăng ký/đăng nhập/đăng xuất khi backend sẵn sàng | `[ ]` | Client/provider sẵn sàng trong `src/modules/auth/`; screens là placeholder; AC-AUTH-01..06 tách biệt | Phase 3 | `WM` | Env Config (Supabase URL/Key) | `REFINED_DEPENDENCY` |
 | **Phase 3.T03** | Tạo hồ sơ và onboarding | `[ ]` | Chưa triển khai | Phase 3 | `WM` | Phase 3.T02 | `REFINED_DEPENDENCY` |
-| **Phase 3.T04** | Tạo thư viện bài tập: danh sách, tìm kiếm, lọc, chi tiết | `[ ]` | SQLite repo có sẵn; chưa có UI | Phase 2 | `WM` | Phase 3.T01 | `DECOUPLED_PARALLEL` |
+| **Phase 3.T04** | Tạo thư viện bài tập: danh sách, tìm kiếm, lọc, chi tiết | `[x]` | `src/modules/exercises/`, `src/app/(tabs)/exercises.tsx`, test pass | Phase 2 | `WM` | Phase 3.T01 | `DECOUPLED_PARALLEL` |
 | **Phase 3.T05** | Tạo kế hoạch: CRUD, thứ tự bài tập, cấu hình hiệp/reps/nghỉ | `[ ]` | SQLite repo có sẵn; chưa có UI | Phase 3 | `WM` | Phase 3.T04 | `DECOUPLED_PARALLEL` |
 | **Phase 3.T06** | Chốt hợp đồng dữ liệu Supabase PostgreSQL–SQLite và các quy tắc đồng bộ còn mở | `[x]` | `docs/data-offline.md`, `risks-decisions.md` | Phase 3 | `SP` | Phase 3.T01 | `PRESERVED_HISTORICAL` |
 | **Phase 3.T07** | Thiết kế PostgreSQL schema và chiến lược migrations cho dữ liệu người dùng, bài tập, kế hoạch và buổi tập | `[x]` | `docs/supabase-schema.md` (2026-10-21) | Phase 3 | `SP` | Phase 3.T06 | `PRESERVED_HISTORICAL` |
@@ -641,5 +641,22 @@
   - `npx tsc --noEmit`: 0 errors.
   - `npm test`: 10 test suites passed, 42 tests passed (100% pass).
   - `npm run lint`: 0 errors / 0 warnings.
+
+### 2026-10-28 — Khởi tạo Module Thư viện Bài tập Offline-First (feat/mobile-exercises-module, Phase 3.T04)
+
+- **Mục tiêu:** Xây dựng module quản lý và tra cứu thư viện bài tập (`src/modules/exercises/`) 100% ngoại tuyến trên nền tảng SQLite v1, thay thế hoàn toàn `RoutePlaceholder` tại màn hình `src/app/(tabs)/exercises.tsx`.
+- **Files đã tạo mới & cập nhật:**
+  - `src/modules/exercises/constants/muscle-groups.ts`: Định nghĩa danh mục nhóm cơ (`MUSCLE_GROUPS`), thiết bị (`EQUIPMENT_OPTIONS`) và dữ liệu chuẩn khởi tạo (`INITIAL_SEED_EXERCISES`).
+  - `src/modules/exercises/components/exercise-card.tsx`: Card hiển thị bài tập sử dụng token thiết kế, phân loại nhóm cơ, thiết bị, độ khó và badge "Tùy chỉnh".
+  - `src/modules/exercises/components/exercise-form.tsx`: Modal form tạo bài tập mới với validation tên bài tập, lựa chọn nhóm cơ, thiết bị và hướng dẫn.
+  - `src/modules/exercises/hooks/useExercises.ts`: Hook quản lý state bài tập từ SQLite qua `useStorage()`, tự động seed dữ liệu chuẩn khi SQLite rỗng trong 1 transaction, tìm kiếm tên/thiết bị/hướng dẫn, lọc theo nhóm cơ.
+  - `src/modules/exercises/index.ts`: Export toàn bộ public API của module exercises.
+  - `src/app/(tabs)/exercises.tsx`: Thay thế `RoutePlaceholder` bằng giao diện đầy đủ: Header + Action thêm, thanh Search, thanh Filter chips nhóm cơ, danh sách FlatList ExerciseCard và FeedbackState (loading/empty/error).
+  - `__tests__/exercises-screen-test.tsx`: Test suite thứ 11 với 5 test cases bao phủ hiển thị, tìm kiếm từ khóa, lọc nhóm cơ, reset bộ lọc khi rỗng, và modal tạo bài tập tùy chỉnh.
+  - `docs/mindmap.md`: Đánh dấu `[x]` hoàn thành Phase 3.T04, cập nhật bảng Audit Matrix và Work Log.
+- **Kết quả kiểm tra Quality Gates:**
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run lint`: 0 errors / 0 warnings.
+  - `npm test`: 11/11 test suites passed (100%), 47/47 tests passed (100%).
 
 
