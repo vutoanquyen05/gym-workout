@@ -141,7 +141,7 @@
   *Tham chiếu: `docs/baocao.md` (Chương 2: Luồng E2E 4).*
 - [ ] **P3.T05** `[Track: GM & SP]` — Test matrix FR-MB-01–05, kiểm tra cờ rà soát hồ sơ trùng lặp (Review Flag, không archive dữ liệu tài chính theo ALIGN-01).  
   *Tham chiếu: `docs/baocao.md`, `docs/testing-acceptance.md`.*
-- [ ] **Phase 3.T05** `[Track: WM]` — Tạo kế hoạch: CRUD, thứ tự bài tập, cấu hình hiệp/reps/nghỉ (Offline-First trên SQLite; thay thế RoutePlaceholder).  
+- [x] **Phase 3.T05** `[Track: WM]` — Tạo kế hoạch: CRUD, thứ tự bài tập, cấu hình hiệp/reps/nghỉ (Offline-First trên SQLite; thay thế RoutePlaceholder).  
   *Tham chiếu: `docs/baocao.md`, `docs/data-offline.md`.*
 - *(Tiến độ Thiết kế & Chuẩn bị Cloud Schema Migration v1 — Completed Historical Baseline)*:
   - [x] **Phase 3.T06** `[Track: SP]` — Chốt hợp đồng dữ liệu Supabase PostgreSQL–SQLite và các quy tắc đồng bộ còn mở.
@@ -385,7 +385,7 @@
 | **Phase 3.T02** | Xây dựng xác thực, đăng ký/đăng nhập/đăng xuất khi backend sẵn sàng | `[ ]` | Client/provider sẵn sàng trong `src/modules/auth/`; screens là placeholder; AC-AUTH-01..06 tách biệt | Phase 3 | `WM` | Env Config (Supabase URL/Key) | `REFINED_DEPENDENCY` |
 | **Phase 3.T03** | Tạo hồ sơ và onboarding | `[ ]` | Chưa triển khai | Phase 3 | `WM` | Phase 3.T02 | `REFINED_DEPENDENCY` |
 | **Phase 3.T04** | Tạo thư viện bài tập: danh sách, tìm kiếm, lọc, chi tiết | `[x]` | `src/modules/exercises/`, `src/app/(tabs)/exercises.tsx`, test pass | Phase 2 | `WM` | Phase 3.T01 | `DECOUPLED_PARALLEL` |
-| **Phase 3.T05** | Tạo kế hoạch: CRUD, thứ tự bài tập, cấu hình hiệp/reps/nghỉ | `[ ]` | SQLite repo có sẵn; chưa có UI | Phase 3 | `WM` | Phase 3.T04 | `DECOUPLED_PARALLEL` |
+| **Phase 3.T05** | Tạo kế hoạch: CRUD, thứ tự bài tập, cấu hình hiệp/reps/nghỉ | `[x]` | `src/modules/workouts/`, `src/app/(tabs)/workouts.tsx`, test pass | Phase 3 | `WM` | Phase 3.T04 | `DECOUPLED_PARALLEL` |
 | **Phase 3.T06** | Chốt hợp đồng dữ liệu Supabase PostgreSQL–SQLite và các quy tắc đồng bộ còn mở | `[x]` | `docs/data-offline.md`, `risks-decisions.md` | Phase 3 | `SP` | Phase 3.T01 | `PRESERVED_HISTORICAL` |
 | **Phase 3.T07** | Thiết kế PostgreSQL schema và chiến lược migrations cho dữ liệu người dùng, bài tập, kế hoạch và buổi tập | `[x]` | `docs/supabase-schema.md` (2026-10-21) | Phase 3 | `SP` | Phase 3.T06 | `PRESERVED_HISTORICAL` |
 | **Phase 3.T08** | Thiết kế RLS, grants và indexes cho mọi bảng được expose | `[x]` | `docs/supabase-schema.md` (2026-10-21) | Phase 3 | `SP` | Phase 3.T07 | `PRESERVED_HISTORICAL` |
@@ -658,5 +658,24 @@
   - `npx tsc --noEmit`: 0 errors.
   - `npm run lint`: 0 errors / 0 warnings.
   - `npm test`: 11/11 test suites passed (100%), 47/47 tests passed (100%).
+
+### 2026-10-28 — Xây dựng Module Kế hoạch Tập luyện Offline-First (feat/mobile-workouts-module, Phase 3.T05)
+
+- **Mục tiêu:** Hợp nhất thành công module Exercises vào `main`, khởi tạo module Workouts (`src/modules/workouts/`) 100% ngoại tuyến trên nền tảng SQLite v1, thay thế hoàn toàn `RoutePlaceholder` tại màn hình `src/app/(tabs)/workouts.tsx`.
+- **Files đã tạo mới & cập nhật:**
+  - `src/modules/workouts/constants/sample-plans.ts`: Định nghĩa 2 giáo án mẫu offline ("Full Body Cơ Bản", "Upper Body Sức Mạnh") kèm bài tập liên kết.
+  - `src/modules/workouts/components/workout-plan-card.tsx`: Card hiển thị giáo án, badge "Từ PT", số bài tập và nút "Bắt đầu tập".
+  - `src/modules/workouts/components/workout-session-card.tsx`: Card hiển thị lịch sử buổi tập đã hoàn thành (thời lượng, volume tạ, số hiệp, thời gian kết thúc).
+  - `src/modules/workouts/components/workout-plan-form.tsx`: Modal tạo giáo án cá nhân mới với kiểm tra hợp lệ tên bắt buộc.
+  - `src/modules/workouts/hooks/useWorkouts.ts`: Hook quản lý state kế hoạch và buổi tập từ SQLite qua `useStorage()`, tự động seed 2 giáo án mẫu kèm bài tập nếu rỗng, lấy 5 buổi tập hoàn thành gần nhất.
+  - `src/modules/workouts/index.ts`: Export toàn bộ public API của module workouts.
+  - `src/app/(tabs)/workouts.tsx`: Thay thế `RoutePlaceholder` bằng giao diện 2 khu vực ("Giáo án của tôi" có nút thêm mới và "Lịch sử tập luyện gần đây").
+  - `__tests__/workouts-screen-test.tsx`: Test suite thứ 12 với 4 test cases bao phủ hiển thị, auto-seed 2 giáo án mẫu, kích hoạt buổi tập, danh sách lịch sử & trạng thái rỗng, validation form và tạo giáo án mới.
+  - `docs/mindmap.md`: Đánh dấu `[x]` hoàn thành Phase 3.T05, cập nhật bảng Audit Matrix và Work Log.
+- **Kết quả kiểm tra Quality Gates:**
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run lint`: 0 errors / 0 warnings.
+  - `npm test`: 12/12 test suites passed (100%), 51/51 tests passed (100%).
+
 
 
