@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import {
+  Platform,
   ScrollView,
   StyleSheet,
   View,
@@ -51,13 +52,15 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     alignItems: 'center',
+    width: '100%',
   },
   content: {
     flex: 1,
     width: '100%',
     maxWidth: 800,
     paddingHorizontal: SpacingTokens.space5,
-    paddingVertical: SpacingTokens.space6,
+    paddingTop: Platform.OS === 'web' ? 84 : SpacingTokens.space6,
+    paddingBottom: SpacingTokens.space6,
   },
   scrollContent: {
     flexGrow: 1,
