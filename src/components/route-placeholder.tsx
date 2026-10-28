@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -40,5 +40,6 @@ const styles = StyleSheet.create({
     maxWidth: 560,
     gap: 16,
     paddingVertical: 24,
+    paddingTop: Platform.OS === 'web' ? 84 : 24,
   },
 });

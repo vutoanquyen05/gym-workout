@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Platform,
   ScrollView,
   StyleSheet,
   View,
@@ -174,10 +175,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: SpacingTokens.space2,
+    gap: SpacingTokens.space4,
+    width: '100%',
+    marginTop: Platform.OS === 'web' ? SpacingTokens.space2 : 0,
   },
   headerTitles: {
     flex: 1,
+    minWidth: 0,
     gap: 2,
   },
   mainContent: {
