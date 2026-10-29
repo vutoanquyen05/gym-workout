@@ -1,18 +1,39 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# ==============================================================================
+# GYM WORKOUT MONOREPO - GITIGNORE
+# Hỗ trợ: NPM Workspaces, Expo Mobile, Next.js Admin Web, Supabase & Windows Dev
+# ==============================================================================
 
-# --- Dependencies ---
+# --- 1. Dependencies & Package Managers ---
 node_modules/
+.pnpm-store/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+pnpm-debug.log*
+lerna-debug.log*
 
-# --- Expo & Build Outputs ---
+# --- 2. Environment Variables & Secret Credentials (CRITICAL) ---
+.env
+.env*.local
+.env.development
+.env.test
+.env.production
+.env.staging
+*.env
+*.env.*
+# Cho phép commit file mẫu cấu hình
+!.env.example
+!.env.local.example
+
+# --- 3. Expo & React Native Build Outputs (Root & apps/mobile) ---
 .expo/
 dist/
 web-build/
 expo-env.d.ts
-example
-
-# --- Generated Native Folders & Files ---
-/ios
-/android
+example/
+# Bỏ qua ios/android ở mọi cấp thư mục (khắc phục lỗ hổng /ios và /android)
+ios/
+android/
 .kotlin/
 *.orig.*
 *.jks
@@ -21,40 +42,57 @@ example
 *.key
 *.mobileprovision
 
-# --- Metro Bundler ---
+# --- 4. Next.js Web Build Outputs & Caches (apps/web) ---
+.next/
+out/
+build/
+.turbo/
+
+# --- 5. Metro Bundler & Compilers ---
 .metro-health-check*
-
-# --- Environment Variables ---
-.env
-.env.local
-.env.*.local
-
-# --- Supabase ---
-/supabase/.temp/
-
-# --- TypeScript ---
 *.tsbuildinfo
 
-# --- IDE & Editor Configs ---
+# --- 6. Supabase CLI & Local DB State ---
+supabase/.temp/
+supabase/.branches/
+.supabase/
+
+# --- 7. Testing & Coverage ---
+coverage/
+.nyc_output/
+*.lcov
+
+# --- 8. IDE, Text Editors & AI Tools ---
 .idea/
 .vscode/
 .claude/
-
-# --- Agent Configs & Locks ---
 .agents/
 skills-lock.json
-
-# --- Local Caches, Test Output, Logs & Debug ---
-.cache/
-coverage/
-*.log
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# --- OS Specific ---
-.DS_Store
-*.pem
-
-# AI Local
 opencode.json
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# --- 9. Temporary & Backup Files (Steel Rule Safety Net) ---
+*.bak
+*.tmp
+*.temp
+*~
+
+# --- 10. Logs & Debugging ---
+*.log
+.cache/
+
+# --- 11. OS-Specific System Files (Windows & macOS) ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.pem

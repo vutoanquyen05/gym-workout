@@ -1,27 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { login } from './actions';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
-    setFeedback(null);
+    setErrorMessage(null);
 
-    // Mock Auth logic
-    console.log('Đăng nhập với email:', email);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    setIsLoading(false);
-    setFeedback(`Đăng nhập giả lập thành công với email: ${email}`);
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const result = await login(formData);
+      if (result?.error) {
+        setErrorMessage(result.error);
+      }
+    });
   };
 
   return (
@@ -37,15 +38,28 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {feedback && (
-          <div className="mb-6 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm text-center">
-            {feedback}
+        {errorMessage && (
+          <div className="mb-6 p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+            <svg
+              className="w-5 h-5 flex-shrink-0 text-red-500"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span>{errorMessage}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <Input
             label="Email"
+            name="email"
             type="email"
             placeholder="admin@gymtracker.com"
             value={email}
@@ -56,6 +70,7 @@ export default function LoginPage() {
 
           <Input
             label="Mật khẩu"
+            name="password"
             type="password"
             placeholder="••••••••"
             value={password}
@@ -77,7 +92,7 @@ export default function LoginPage() {
             </span>
           </div>
 
-          <Button type="submit" isLoading={isLoading} className="w-full mt-2">
+          <Button type="submit" isLoading={isPending} className="w-full mt-2">
             Đăng nhập
           </Button>
         </form>
