@@ -94,11 +94,11 @@
 ### PHASE 2 — GYM & BRANCH MANAGEMENT & MOBILE CORE WORKOUTS
 *Mục tiêu: Admin Web có thể tạo gym, branch và quản lý nhân viên; Mobile client triển khai Thư viện bài tập offline.*
 
-- [ ] **P2.T01** `[Track: GM]` — Khởi tạo Admin Web project (Next.js theo D-MT-02; thực hiện tách monorepo theo OD-03=A trước task này).  
+- [x] **P2.T01** `[Track: GM]` — Khởi tạo Admin Web project (Next.js theo D-MT-02; Monorepo npm workspaces theo OD-03=A: `apps/admin-web`, `apps/mobile`).  
   *Tham chiếu: `docs/baocao.md` (Chương 4), `docs/risks-decisions.md` D-MT-02, OD-03.*
-- [ ] **P2.T02** `[Track: GM]` — Giao diện tạo gym và onboarding owner.  
+- [x] **P2.T02** `[Track: GM]` — Xác thực Admin Web & Khung điều hành Dashboard Shell (Supabase Auth SSR PKCE httpOnly cookie, `/login`, `/dashboard`, Header + Sidebar navigation).  
   *Tham chiếu: `docs/baocao.md` (Chương 2: Luồng E2E 1).*
-- [ ] **P2.T03** `[Track: GM]` — Giao diện quản lý branch.  
+- [x] **P2.T03** `[Track: GM]` — Phân hệ Quản lý Chi nhánh (Giao diện danh sách `/dashboard/branches` nạp dữ liệu Supabase và Form tạo chi nhánh vật lý `/dashboard/branches/create` kèm auto-slug).  
   *Tham chiếu: `docs/baocao.md` (Chương 2: Luồng E2E 2).*
 - [ ] **P2.T04** `[Track: GM]` — Giao diện mời và quản lý nhân viên.  
   *Tham chiếu: `docs/baocao.md` (Chương 2: Luồng E2E 3).*
@@ -117,9 +117,9 @@
 ### PHASE 3 — MEMBER MANAGEMENT, MOBILE AUTH & ACCOUNT LINKING
 *Mục tiêu: Admin Web quản lý hội viên; triển khai Mobile Authentication cơ bản; liên kết tài khoản an toàn qua OTP.*
 
-- [ ] **P3.T01** `[Track: SP]` — Schema `gym_members`; migration GM-2.  
+- [x] **P3.T01** `[Track: SP]` — Schema `memberships`, `membership_plans`, `attendance_logs`; migration GM-2 (`20261028235500_gym_management_core.sql` & patch `20261031000000_gm2_admin_member_policies_and_user_fields.sql`).  
   *Tham chiếu: `docs/baocao.md` (Chương 2: Luồng E2E 4), `docs/supabase-schema.md`.*
-- [ ] **P3.T02** `[Track: GM]` — Admin Web: tạo, tìm kiếm, sửa hồ sơ hội viên walk-in.  
+- [x] **P3.T02** `[Track: GM]` — Phân hệ Quản lý Hội viên Admin Web (Danh sách `/dashboard/members`, Form cấp thẻ `/dashboard/members/create` cập nhật đa bảng `public.users` & `memberships`, tự sinh mã định danh `MEM-XXXXXX`).  
   *Tham chiếu: `docs/baocao.md` (Chương 2: Luồng E2E 4).*
 - [ ] **Phase 3.T02** `[Track: WM — FIX-F01 & FIX-12]` — **Xây dựng xác thực, đăng ký/đăng nhập/đăng xuất khi backend sẵn sàng**. *(Hiện trạng mã nguồn: Client factory, SecureStore adapter và AuthProvider đã có sẵn trong `src/modules/auth/`; màn hình `login.tsx`/`register.tsx` còn là RoutePlaceholder, giữ nguyên 100% trạng thái chưa hoàn thành `[ ]`. Dependency: Độc lập hoàn toàn với Gym RLS P1.T03, Admin Web P1.T05 và Workout Cloud Sync P6.T01a; chỉ phụ thuộc biến môi trường Supabase URL/Key. Tuyệt đối không triển khai mã nguồn trong task tài liệu này)*.  
   *Ghi chú triển khai kỹ thuật (Implementation Notes):*  
@@ -435,13 +435,13 @@
 | **P1.T04** | Thiết kế staff invite flow & phân quyền/thu hồi nhân viên | `[x]` | `supabase/migrations/20261025160000_gm1_mutation_rpcs.sql` (`rpc_revoke_or_update_staff`, OD-01, OD-02=A) | Phase 1 | `SP` | P1.T03 | `PRESERVED_ACTIVE` |
 | **P1.T05** | Thiết kế Admin Web auth & RPC Mutation API (create gym/branch) | `[x]` | `src/modules/gym-management/` (`rpc_create_gym`, `rpc_manage_branch`, `GymManagementService`) | Phase 1 | `GM` | P1.T03 | `PRESERVED_ACTIVE` |
 | **P1.T06** | Kiểm thử RBAC & Service: MT-01–05, RBAC-01–12 | `[x]` | `__tests__/gm1-service-test.ts` (9 test suites passed, 35 tests passed) | Phase 1 | `SP` | P1.T04-05 | `PRESERVED_ACTIVE` |
-| **P2.T01** | Khởi tạo Admin Web project (Next.js hoặc framework đã chốt) | `[ ]` | Chưa bắt đầu | Phase 2 | `GM` | Phase 1 Hoàn tất | `PRESERVED_ACTIVE` |
-| **P2.T02** | Giao diện tạo gym và onboarding owner | `[ ]` | Chưa bắt đầu | Phase 2 | `GM` | P2.T01 | `PRESERVED_ACTIVE` |
-| **P2.T03** | Giao diện quản lý branch | `[ ]` | Chưa bắt đầu | Phase 2 | `GM` | P2.T02 | `PRESERVED_ACTIVE` |
+| **P2.T01** | Khởi tạo Admin Web project (Next.js App Router, NPM Monorepo) | `[x]` | `apps/admin-web`, commit `ba947e8` | Phase 2 | `GM` | Phase 1 Hoàn tất | `PRESERVED_ACTIVE` |
+| **P2.T02** | Xác thực Admin Web & Khung Dashboard Shell | `[x]` | `/login`, `/dashboard/layout.tsx`, commit `c863492` | Phase 2 | `GM` | P2.T01 | `PRESERVED_ACTIVE` |
+| **P2.T03** | Giao diện quản lý branch (Danh sách & Tạo mới) | `[x]` | `/dashboard/branches`, commit `2c147e8` | Phase 2 | `GM` | P2.T02 | `PRESERVED_ACTIVE` |
 | **P2.T04** | Giao diện mời và quản lý nhân viên | `[ ]` | Chưa bắt đầu | Phase 2 | `GM` | P2.T03 | `PRESERVED_ACTIVE` |
 | **P2.T05** | Integration test: FR-GM-01 đến FR-GM-05 | `[ ]` | Chưa bắt đầu | Phase 2 | `GM` | P2.T04 | `PRESERVED_ACTIVE` |
-| **P3.T01** | Schema gym_members; migration GM-2 | `[ ]` | Chưa bắt đầu | Phase 3 | `SP` | Phase 2 Hoàn tất | `PRESERVED_ACTIVE` |
-| **P3.T02** | Admin Web: tạo, tìm kiếm, sửa hồ sơ hội viên | `[ ]` | Chưa bắt đầu | Phase 3 | `GM` | P3.T01 | `PRESERVED_ACTIVE` |
+| **P3.T01** | Schema gym_members / memberships; migration GM-2 | `[x]` | `20261028235500_gym_management_core.sql` & GM-2 Patch | Phase 3 | `SP` | Phase 2 Hoàn tất | `PRESERVED_ACTIVE` |
+| **P3.T02** | Admin Web: tạo, tìm kiếm, sửa hồ sơ hội viên | `[x]` | `/dashboard/members`, commit `d68777b` | Phase 3 | `GM` | P3.T01 | `PRESERVED_ACTIVE` |
 | **P3.T03** | Luồng liên kết tài khoản Supabase Auth | `[ ]` | Chưa bắt đầu | Phase 3 | `SP & WM`| P3.T02 | `PRESERVED_ACTIVE` |
 | **P3.T04** | Mobile app: xem profile và lịch sử của mình | `[ ]` | Chưa bắt đầu | Phase 3 | `WM` | P3.T03 | `PRESERVED_ACTIVE` |
 | **P3.T05** | Test matrix FR-MB-01–05 | `[ ]` | Chưa bắt đầu | Phase 3 | `GM & SP`| P3.T04 | `PRESERVED_ACTIVE` |
@@ -692,6 +692,27 @@
   - `package.json`: Cấu hình `maxWorkers: 2` cho Jest giúp tối ưu hóa kiểm thử đa luồng ổn định trên Windows.
   - `__tests__/progress-screen-test.tsx`: Test suite thứ 13 với 3 test cases bao phủ hiển thị trạng thái rỗng `FeedbackState`, tính toán chính xác 3 chỉ số thống kê từ mock data SQLite, và kiểm thử hiển thị `StatCard`.
   - `docs/mindmap.md`: Đánh dấu `[x]` hoàn thành Phase 3.T06 Mobile Core / Phase 5.T01-02, cập nhật Audit Matrix và Work Log.
+- **Kết quả kiểm tra Quality Gates:**
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run lint`: 0 errors / 0 warnings.
+  - `npm test`: 13/13 test suites passed (100%), 54/54 tests passed (100%).
+
+### 2026-10-31 — Kiểm toán Baseline (P00-T01) và Chuẩn hóa Quản trị & Schema Drift Sync (P00-T02)
+
+- **Mục tiêu:** Thực hiện kiểm toán toàn diện hệ thống (P00-T01), thiết lập mô hình quản trị phối hợp Advisor Agent ↔ Coding Agent, chuẩn hóa Vòng đời Task, cập nhật trạng thái các module Admin Web đã nghiệm thu (Auth, Dashboard Shell, Branches, Members), và tạo migration vá lỗi schema drift/bảo mật RLS (P00-T02).
+- **Files đã tạo mới & cập nhật:**
+  - `docs/rule.md`: Tích hợp quy trình phối hợp Advisor Agent ↔ Coding Agent, chuẩn hóa Vòng đời Task (`TODO → IN_PROGRESS → IN_REVIEW → DONE`), siết chặt quy tắc Git theo Phase và áp dụng mẫu chuẩn `Task Execution Report`.
+  - `docs/mindmap.md`: Cập nhật trạng thái hoàn thành `[x]` cho P2.T01, P2.T02, P2.T03, P3.T01, P3.T02; đồng bộ bảng Audit Matrix và bổ sung Work Log 31/10/2026.
+  - `docs/supabase-schema.md`: Cập nhật định nghĩa cột `phone`, `address` bảng `users`, đồng bộ lộ trình migration GM-2 Patch.
+  - `supabase/migrations/20261031000000_gm2_admin_member_policies_and_user_fields.sql`: Tạo file migration thứ 8:
+    1. Bổ sung cột `phone TEXT` và `address TEXT` cho bảng `public.users`.
+    2. Cấp quyền & thiết lập RLS INSERT/UPDATE cho bảng `public.memberships` (`is_gym_owner` hoặc `is_active_staff`).
+    3. Cấp quyền & thiết lập RLS INSERT/UPDATE cho bảng `public.membership_plans` (`is_gym_owner` hoặc `is_active_staff`).
+    4. Thay thế `users_update_policy` trên `public.users` đảm bảo an toàn tuyệt đối: chỉ cho phép user sửa hồ sơ của chính mình hoặc Owner/Active Staff của Gym có thẩm quyền (loại bỏ hoàn toàn nguy cơ `USING (true)`).
+- **Logic chính đã triển khai:**
+  1. Xác lập cơ chế phân quyền RBAC và kiểm soát cập nhật đa bảng trên Supabase Cloud thông qua RLS policies và migration idempotent.
+  2. Khóa chặt 8 file tài liệu SSOT, ngăn chặn phân mảnh tài liệu và thiết lập giao thức bàn giao kỹ thuật chuẩn mực giữa các tầng tác tử AI.
+  3. Ghi nhận đầy đủ hiện trạng thực tế mã nguồn Monorepo (`apps/admin-web`, `apps/mobile`) tới commit `d68777b`.
 - **Kết quả kiểm tra Quality Gates:**
   - `npx tsc --noEmit`: 0 errors.
   - `npm run lint`: 0 errors / 0 warnings.

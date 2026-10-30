@@ -43,7 +43,7 @@ Không có SQL nào được chạy, không kết nối/sửa Supabase Cloud, kh
 
 | Bảng | Nội dung và ràng buộc ownership |
 |---|---|
-| `users` | Profile tối thiểu; `id` là PK/FK `auth.users.id`; không lưu email/password hoặc dùng metadata người dùng để phân quyền. Tạo/cập nhật qua mutation channel đã xác thực, không qua Auth trigger. |
+| `users` | Profile tối thiểu (`display_name`, `preferred_weight_unit`, bổ sung `phone`, `address` từ migration GM-2); `id` là PK/FK `auth.users.id`; không lưu email/password hoặc dùng metadata người dùng để phân quyền. Cập nhật hồ sơ tuân thủ RLS siết chặt (chính chủ hoặc Owner/Active Staff). |
 | `exercises` | Catalog hệ thống và exercise cá nhân phân biệt bằng `scope` (`system`/`user`); `owner_id` NULL chỉ khi system, còn user exercise phải có owner. System rows chỉ được seed/quản trị bởi quy trình tin cậy. |
 | `workout_plans` | Plan thuộc `user_id`; có archive riêng với tombstone. |
 | `plan_exercises` | Child của plan có cùng `user_id`; exercise phải là system hoặc thuộc đúng user; vị trí active duy nhất trong plan, tombstone vẫn giữ. |
@@ -749,13 +749,14 @@ COMMIT;
 | Nhóm | Nội dung | Trạng thái | Điều kiện tiên quyết |
 |---|---|---|---|
 | **GM-1** | `gyms`, `branches`, `gym_staff`, composite FK (RESTRICT), partial indexes, helper functions & RLS | **Đã tạo migration file** (`20261025150000_gm1_tenant_branch_staff.sql`) | Hoàn thành Gate P0.T08 |
-| **GM-2** | `gym_members` & member linking flow | Thiết kế tổng quan | Sau khi GM-1 sẵn sàng |
+| **GM-2** | `membership_plans`, `memberships`, `attendance_logs`, mở rộng `exercises`/`workout_plans`/`workout_sessions` | **Đã tạo migration file** (`20261028235500_gym_management_core.sql`) | Sau GM-1 |
+| **GM-2 Patch** | Bổ sung `phone`, `address` vào `users`; RLS INSERT/UPDATE cho `memberships` và `membership_plans`; siết chặt `users_update_policy` | **Đã tạo migration file** (`20261031000000_gm2_admin_member_policies_and_user_fields.sql`) | Sau GM-2 |
 | **GM-3** | `membership_plans`, `memberships` | Thiết kế tổng quan | Sau GM-2 |
 | **GM-4** | `attendance_logs` | Thiết kế tổng quan | Sau GM-3 |
 | **GM-5** | `payment_transactions` & idempotency | Thiết kế tổng quan | Sau GM-3 & chốt OD-05 |
 | **GM-6** | RPC Mutation Gateway: GM-1 Core RPCs (`rpc_create_gym`, `rpc_manage_branch`, `rpc_revoke_or_update_staff`) | **Đã tạo migration file** (`20261025160000_gm1_mutation_rpcs.sql`) | Hoàn thành Phase 1 Core |
 
-> **Cam kết an toàn:** Migration GM-1 và GM-1 Mutation RPCs được tạo sẵn dưới dạng file migration SQL độc lập (`supabase/migrations/`), tuân thủ Zero Hard Delete `OD-02=A`, Fail-Closed và RPC Gateway `OD-04`. Tuyệt đối không tự ý áp dụng hay kết nối Supabase Cloud khi chưa có phê duyệt runtime.
+> **Cam kết an toàn:** Migration GM-1, GM-1 Mutation RPCs, GM-2 Core và GM-2 Patch được tạo sẵn dưới dạng file migration SQL độc lập (`supabase/migrations/`), tuân thủ Zero Hard Delete `OD-02=A`, Fail-Closed và RPC Gateway `OD-04`. Tuyệt đối không tự ý áp dụng hay kết nối Supabase Cloud khi chưa có phê duyệt runtime.
 
 ---
 
@@ -768,3 +769,4 @@ COMMIT;
 | 2026-10-23 | Final Pre-Approval Verification: Chuẩn hóa schema `branches.status TEXT CHECK (status IN ('active', 'suspended', 'archived'))` thay cho `is_active BOOLEAN`; đồng bộ index `branches_status_idx`; làm rõ cơ chế soft-deactivation chuyển trạng thái `archived`. | Đạt tính nhất quán 100% giữa các bảng tenant, branch và staff trước khi phê duyệt P0.T08. | Schema GM-1 nhất quán hoàn toàn. |
 | 2026-10-25 | Hoàn tất migration file GM-1 (`20261025150000_gm1_tenant_branch_staff.sql`), chuẩn hóa `ON DELETE RESTRICT` (`OD-02=A`), status `'revoked'`, cột `revoked_at`/`revoked_by`, 2 partial unique indexes `WHERE status = 'active'`, helper function `is_active_staff` hỗ trợ `allowed_roles TEXT[]`. | Đóng Gate P0.T08 theo chỉ đạo Owner. | Đã tạo migration file GM-1, RLS fail-closed, sẵn sàng triển khai. |
 | 2026-10-26 | Hoàn tất migration file GM-1 Mutation RPCs (`20261025160000_gm1_mutation_rpcs.sql`): `rpc_create_gym`, `rpc_manage_branch`, `rpc_revoke_or_update_staff` (SECURITY DEFINER, pg_advisory_xact_lock, Mutual Exclusivity OD-02=A); tạo module `src/modules/gym-management` và bộ unit test `__tests__/gm1-service-test.ts`. | Thực thi Phase 1 Core theo chỉ đạo Owner. | 3 RPCs hoàn tất, 9 test suites passed. |
+| 2026-10-31 | Tạo migration file GM-2 Patch (`20261031000000_gm2_admin_member_policies_and_user_fields.sql`): bổ sung cột `phone`, `address` bảng `users`, bổ sung policy INSERT/UPDATE cho `memberships` và `membership_plans`, siết chặt bảo mật `users_update_policy` (chống `USING (true)`). | Đồng bộ schema drift và vá lỗi bảo mật RLS phục vụ tính năng quản lý hội viên Admin Web. | Migration GM-2 Patch hoàn tất, RLS an toàn. |
