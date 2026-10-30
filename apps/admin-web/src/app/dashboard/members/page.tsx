@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { getMembers, Membership } from './actions';
 
@@ -62,10 +63,12 @@ export default async function MembersPage() {
             </p>
           </div>
 
-          <Button className="flex items-center gap-2 self-start sm:self-center shadow-sm">
-            <span className="text-lg leading-none">+</span>
-            <span>Thêm hội viên mới</span>
-          </Button>
+          <Link href="/dashboard/members/create">
+            <Button className="flex items-center gap-2 self-start sm:self-center shadow-sm">
+              <span className="text-lg leading-none">+</span>
+              <span>Thêm hội viên mới</span>
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -117,10 +120,16 @@ export default async function MembersPage() {
                             👤
                           </div>
                           <div>
-                            <span className="font-mono text-xs font-semibold text-slate-900 block truncate max-w-[140px]" title={member.id}>
+                            <span
+                              className="font-mono text-xs font-semibold text-slate-900 block truncate max-w-[140px]"
+                              title={member.id}
+                            >
                               #{member.id.slice(0, 8)}
                             </span>
-                            <span className="text-[11px] text-slate-400 font-mono block truncate max-w-[140px]" title={member.user_id}>
+                            <span
+                              className="text-[11px] text-slate-400 font-mono block truncate max-w-[140px]"
+                              title={member.user_id}
+                            >
                               UID: {member.user_id.slice(0, 8)}...
                             </span>
                           </div>
@@ -194,10 +203,12 @@ export default async function MembersPage() {
             Dữ liệu hội viên sẽ được đồng bộ từ ứng dụng Mobile của học viên hoặc qua cổng đăng ký thẻ tập mới tại phòng gym.
           </p>
           <div className="mt-6">
-            <Button className="inline-flex items-center gap-2 shadow-sm">
-              <span className="text-base leading-none">+</span>
-              <span>Thêm hội viên đầu tiên</span>
-            </Button>
+            <Link href="/dashboard/members/create">
+              <Button className="inline-flex items-center gap-2 shadow-sm">
+                <span className="text-base leading-none">+</span>
+                <span>Thêm hội viên đầu tiên</span>
+              </Button>
+            </Link>
           </div>
         </div>
       )}
