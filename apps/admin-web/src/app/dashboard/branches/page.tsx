@@ -1,11 +1,12 @@
 import React from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { getBranches, Gym } from './actions';
+import { getBranches, Branch } from './actions';
 
 export const dynamic = 'force-dynamic';
 
 export default async function BranchesPage() {
-  const { data: gyms, error } = await getBranches();
+  const { data: branches, error } = await getBranches();
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -21,10 +22,12 @@ export default async function BranchesPage() {
             </p>
           </div>
 
-          <Button className="flex items-center gap-2 self-start sm:self-center shadow-sm">
-            <span className="text-lg leading-none">+</span>
-            <span>Thêm chi nhánh mới</span>
-          </Button>
+          <Link href="/dashboard/branches/create">
+            <Button className="flex items-center gap-2 self-start sm:self-center shadow-sm">
+              <span className="text-lg leading-none">+</span>
+              <span>Thêm chi nhánh mới</span>
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -40,11 +43,11 @@ export default async function BranchesPage() {
       )}
 
       {/* Danh sách Chi nhánh hoặc Trạng thái rỗng (Empty State) */}
-      {gyms && gyms.length > 0 ? (
+      {branches && branches.length > 0 ? (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
             <span className="text-sm font-semibold text-slate-800">
-              Danh sách chi nhánh ({gyms.length})
+              Danh sách chi nhánh ({branches.length})
             </span>
           </div>
 
@@ -60,8 +63,8 @@ export default async function BranchesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
-                {gyms.map((gym: Gym) => (
-                  <tr key={gym.id} className="hover:bg-slate-50/60 transition-colors">
+                {branches.map((branch: Branch) => (
+                  <tr key={branch.id} className="hover:bg-slate-50/60 transition-colors">
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">
@@ -69,47 +72,52 @@ export default async function BranchesPage() {
                         </div>
                         <div>
                           <span className="font-semibold text-slate-900 block">
-                            {gym.name}
+                            {branch.name}
                           </span>
-                          {gym.slug && (
+                          {branch.slug && (
                             <span className="text-xs text-slate-400 font-mono">
-                              /{gym.slug}
+                              /{branch.slug}
                             </span>
                           )}
                         </div>
                       </div>
                     </td>
                     <td className="py-4 px-6 text-slate-600">
-                      {gym.phone || (
+                      {branch.phone || (
                         <span className="text-slate-400 italic">Chưa cập nhật</span>
                       )}
                     </td>
-                    <td className="py-4 px-6 text-slate-600 max-w-xs truncate" title={gym.address ?? ''}>
-                      {gym.address || (
+                    <td
+                      className="py-4 px-6 text-slate-600 max-w-xs truncate"
+                      title={branch.address ?? ''}
+                    >
+                      {branch.address || (
                         <span className="text-slate-400 italic">Chưa cập nhật</span>
                       )}
                     </td>
                     <td className="py-4 px-6">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                          gym.status === 'active' || !gym.status
+                          branch.status === 'active' || !branch.status
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                             : 'bg-slate-100 text-slate-600 border border-slate-200'
                         }`}
                       >
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${
-                            gym.status === 'active' || !gym.status
+                            branch.status === 'active' || !branch.status
                               ? 'bg-emerald-500'
                               : 'bg-slate-400'
                           }`}
                         />
-                        {gym.status === 'active' || !gym.status ? 'Hoạt động' : gym.status}
+                        {branch.status === 'active' || !branch.status
+                          ? 'Hoạt động'
+                          : branch.status}
                       </span>
                     </td>
                     <td className="py-4 px-6 text-slate-500 text-xs">
-                      {gym.created_at
-                        ? new Date(gym.created_at).toLocaleDateString('vi-VN', {
+                      {branch.created_at
+                        ? new Date(branch.created_at).toLocaleDateString('vi-VN', {
                             day: '2-digit',
                             month: '2-digit',
                             year: 'numeric',
@@ -135,10 +143,12 @@ export default async function BranchesPage() {
             Hệ thống quản lý phòng tập Gym Tracker sẵn sàng tiếp nhận cơ sở phòng tập đầu tiên của bạn để thiết lập cấu hình phân quyền và hội viên.
           </p>
           <div className="mt-6">
-            <Button className="inline-flex items-center gap-2 shadow-sm">
-              <span className="text-base leading-none">+</span>
-              <span>Thêm chi nhánh đầu tiên</span>
-            </Button>
+            <Link href="/dashboard/branches/create">
+              <Button className="inline-flex items-center gap-2 shadow-sm">
+                <span className="text-base leading-none">+</span>
+                <span>Thêm chi nhánh đầu tiên</span>
+              </Button>
+            </Link>
           </div>
         </div>
       )}
