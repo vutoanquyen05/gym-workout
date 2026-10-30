@@ -55,7 +55,7 @@ export async function getBranches(): Promise<{ data: Branch[]; error: string | n
 
 /**
  * Server Action: Tạo chi nhánh mới và lưu vào bảng branches.
- * Tự động lấy gym_id của user hiện tại từ bảng gyms.
+ * Bọc toàn bộ trong try/catch an toàn, tuyệt đối không throw Unhandled Exception.
  */
 export async function createBranch(
   formData: FormData,
@@ -85,69 +85,116 @@ export async function createBranch(
     const supabase = await createClient();
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser();
 
-    if (!user) {
-      return { error: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' };
+    if (authError || !user) {
+      return { error: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.' };
     }
 
-    // Truy vấn lấy gym_id của user hiện tại (từ bảng gyms)
+    // 1. Tìm gym_id của user hiện tại từ bảng gyms hoặc gym_staff
     let gymId: string | null = null;
 
-    // 1. Kiểm tra nếu user là chủ sở hữu (owner) trong bảng gyms
+    // Tìm trong gyms do user làm owner
     const { data: ownerGyms, error: ownerError } = await supabase
       .from('gyms')
       .select('id')
       .eq('owner_id', user.id)
       .limit(1);
 
-    if (!ownerError && ownerGyms && ownerGyms.length > 0) {
+    if (ownerError) {
+      console.warn('[CREATE BRANCH] Không thể đọc gyms của owner:', ownerError.message);
+    }
+
+    if (ownerGyms && ownerGyms.length > 0) {
       gymId = ownerGyms[0].id;
     } else {
-      // 2. Tìm qua gym_staff nếu user là nhân sự/quản lý
-      const { data: staffGyms } = await supabase
+      // Tìm trong gym_staff
+      const { data: staffGyms, error: staffError } = await supabase
         .from('gym_staff')
         .select('gym_id')
         .eq('user_id', user.id)
         .limit(1);
 
+      if (staffError) {
+        console.warn('[CREATE BRANCH] Không thể đọc gym_staff:', staffError.message);
+      }
+
       if (staffGyms && staffGyms.length > 0) {
         gymId = staffGyms[0].gym_id;
       } else {
-        // 3. Fallback: Lấy phòng gym có sẵn đầu tiên trong hệ thống
-        const { data: anyGym } = await supabase.from('gyms').select('id').limit(1);
+        // Tìm bất kỳ gym nào user có quyền đọc
+        const { data: anyGym, error: anyGymError } = await supabase
+          .from('gyms')
+          .select('id')
+          .limit(1);
+
+        if (anyGymError) {
+          console.warn('[CREATE BRANCH] Không thể đọc gyms fallback:', anyGymError.message);
+        }
 
         if (anyGym && anyGym.length > 0) {
           gymId = anyGym[0].id;
-        } else {
-          // 4. Nếu chưa có bất kỳ Gym nào, tự động khởi tạo 1 Tenant Gym mặc định cho user
-          const defaultGymSlug = `gym-${user.id.slice(0, 8)}`;
-          const { data: newGym, error: newGymError } = await supabase
-            .from('gyms')
-            .insert({
-              name: 'Gym Tracker Central',
-              slug: defaultGymSlug,
-              owner_id: user.id,
-              status: 'active',
-            })
-            .select('id')
-            .single();
-
-          if (!newGymError && newGym) {
-            gymId = newGym.id;
-          }
         }
       }
     }
 
+    // Nếu user chưa có gym nào trong hệ thống, thử tự động khởi tạo qua rpc_create_gym
     if (!gymId) {
-      return {
-        error:
-          'Không tìm thấy thông tin phòng tập (Gym) liên kết với tài khoản này. Vui lòng cấu hình phòng tập trước.',
-      };
+      console.log('[CREATE BRANCH] User chưa có gym, tiến hành gọi rpc_create_gym...');
+      const defaultGymName = 'Gym Tracker Center';
+      const defaultGymSlug = `gym-${user.id.slice(0, 8)}`;
+
+      const { error: rpcGymError } = await supabase.rpc('rpc_create_gym', {
+        p_name: defaultGymName,
+        p_slug: defaultGymSlug,
+        p_main_branch_name: name,
+        p_main_branch_slug: slug,
+        p_main_branch_address: address,
+        p_main_branch_phone: phone,
+      });
+
+      if (rpcGymError) {
+        console.error('[CREATE BRANCH ERROR]: ', rpcGymError);
+        return {
+          error: `Không tìm thấy phòng tập (Gym) và không thể tự khởi tạo: ${rpcGymError.message}`,
+        };
+      }
+
+      try {
+        revalidatePath('/dashboard/branches');
+      } catch (revError) {
+        console.warn('[CREATE BRANCH] revalidatePath warning:', revError);
+      }
+      return { success: true };
     }
 
-    // Thực hiện INSERT INTO branches (gym_id, name, slug, address, phone, status)
+    // Nếu đã có gymId, thực hiện tạo branch cho phòng gym đó
+    // Phương án 1: Gọi RPC rpc_manage_branch (tuân thủ RLS & SECURITY DEFINER)
+    const { error: rpcBranchError } = await supabase.rpc('rpc_manage_branch', {
+      p_gym_id: gymId,
+      p_name: name,
+      p_slug: slug,
+      p_address: address,
+      p_phone: phone,
+      p_status: status,
+    });
+
+    if (!rpcBranchError) {
+      try {
+        revalidatePath('/dashboard/branches');
+      } catch (revError) {
+        console.warn('[CREATE BRANCH] revalidatePath warning:', revError);
+      }
+      return { success: true };
+    }
+
+    console.warn(
+      '[CREATE BRANCH] rpc_manage_branch không thành công, thử insert trực tiếp:',
+      rpcBranchError.message,
+    );
+
+    // Phương án 2: Insert trực tiếp vào bảng branches
     const { error: insertError } = await supabase.from('branches').insert({
       gym_id: gymId,
       name,
@@ -158,39 +205,26 @@ export async function createBranch(
     });
 
     if (insertError) {
-      console.warn('Lỗi khi insert trực tiếp vào branches, thử RPC rpc_manage_branch:', insertError.message);
-      // Fallback gọi RPC rpc_manage_branch nếu database chỉ cấp quyền qua function
-      const { error: rpcError } = await supabase.rpc('rpc_manage_branch', {
-        p_gym_id: gymId,
-        p_name: name,
-        p_slug: slug,
-        p_address: address,
-        p_phone: phone,
-        p_status: status,
-      });
-
-      if (rpcError) {
-        console.error('Lỗi khi tạo chi nhánh qua RPC:', rpcError.message);
-        return { error: `Lỗi tạo chi nhánh: ${rpcError.message}` };
-      }
+      console.error('[CREATE BRANCH ERROR]: ', insertError);
+      return {
+        error: `Lỗi Supabase khi tạo chi nhánh: ${insertError.message} (Mã lỗi: ${insertError.code || 'UNKNOWN'}, Chi tiết: ${insertError.details || insertError.hint || 'Kiểm tra quyền RLS'})`,
+      };
     }
 
-    // Làm mới dữ liệu trang danh sách
-    revalidatePath('/dashboard/branches');
+    try {
+      revalidatePath('/dashboard/branches');
+    } catch (revError) {
+      console.warn('[CREATE BRANCH] revalidatePath warning:', revError);
+    }
     return { success: true };
-  } catch (err: unknown) {
-    if (
-      err &&
-      typeof err === 'object' &&
-      'digest' in err &&
-      typeof (err as { digest?: unknown }).digest === 'string' &&
-      (err as { digest: string }).digest.startsWith('DYNAMIC_SERVER_USAGE')
-    ) {
-      throw err;
-    }
+  } catch (error: any) {
+    console.error('[CREATE BRANCH ERROR]: ', error);
     const errorMessage =
-      err instanceof Error ? err.message : 'Đã xảy ra lỗi hệ thống khi tạo chi nhánh.';
-    console.error('Lỗi ngoại lệ trong createBranch:', errorMessage);
-    return { error: errorMessage };
+      error instanceof Error
+        ? error.message
+        : typeof error === 'string'
+          ? error
+          : JSON.stringify(error);
+    return { error: `Lỗi ngoại lệ hệ thống: ${errorMessage}` };
   }
 }

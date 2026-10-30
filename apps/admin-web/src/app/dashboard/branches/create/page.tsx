@@ -58,13 +58,24 @@ export default function CreateBranchPage() {
     formData.append('status', status);
 
     startTransition(async () => {
-      const result = await createBranch(formData);
+      try {
+        const result = await createBranch(formData);
 
-      if (result?.error) {
-        setErrorMessage(result.error);
-      } else {
-        router.push('/dashboard/branches');
-        router.refresh();
+        if (result?.error) {
+          setErrorMessage(result.error);
+        } else if (result?.success) {
+          router.push('/dashboard/branches');
+          router.refresh();
+        } else {
+          setErrorMessage('Không nhận được phản hồi hợp lệ từ máy chủ.');
+        }
+      } catch (err: unknown) {
+        console.error('Client action exception:', err);
+        setErrorMessage(
+          err instanceof Error
+            ? err.message
+            : 'Đã xảy ra lỗi khi gửi yêu cầu đến máy chủ.',
+        );
       }
     });
   };
@@ -100,19 +111,8 @@ export default function CreateBranchPage() {
           </div>
         </div>
 
-        {/* Error Notification */}
-        {errorMessage && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3">
-            <span className="text-base leading-none">⚠️</span>
-            <div className="flex-1">
-              <span className="font-semibold block">Không thể tạo chi nhánh</span>
-              <span>{errorMessage}</span>
-            </div>
-          </div>
-        )}
-
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {/* Tên chi nhánh */}
             <div className="sm:col-span-2">
@@ -187,6 +187,21 @@ export default function CreateBranchPage() {
               />
             </div>
           </div>
+
+          {/* Khu vực thông báo lỗi hiển thị ngay trên nút "Tạo chi nhánh" */}
+          {errorMessage && (
+            <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3 shadow-sm animate-in fade-in duration-200">
+              <span className="text-lg leading-none shrink-0">⚠️</span>
+              <div className="flex-1 overflow-hidden">
+                <span className="font-semibold block text-red-800">
+                  Lỗi xử lý khi tạo chi nhánh:
+                </span>
+                <span className="font-mono text-xs break-words text-red-700 mt-1 block bg-red-100/60 p-2.5 rounded-lg border border-red-200">
+                  {errorMessage}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
