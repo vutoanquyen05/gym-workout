@@ -122,9 +122,9 @@ export default async function MembersPage() {
                           <div>
                             <span
                               className="font-mono text-xs font-semibold text-slate-900 block truncate max-w-[140px]"
-                              title={member.id}
+                              title={member.qr_code_token || member.id}
                             >
-                              #{member.id.slice(0, 8)}
+                              {member.qr_code_token || `#${member.id.slice(0, 8)}`}
                             </span>
                             <span
                               className="text-[11px] text-slate-400 font-mono block truncate max-w-[140px]"

@@ -36,6 +36,14 @@ export interface MemberBranchOption {
 }
 
 /**
+ * Sinh ngẫu nhiên Mã hội viên định dạng MEM-XXXXXX (6 ký tự hex)
+ */
+function generateMemberCode(): string {
+  const hex = Math.random().toString(16).substring(2, 8).toUpperCase().padStart(6, '0');
+  return `MEM-${hex}`;
+}
+
+/**
  * Server Action: Lấy danh sách hội viên (memberships) từ Supabase Cloud.
  * Ưu tiên truy vấn theo gym_id của quản trị viên đang đăng nhập.
  */
@@ -246,13 +254,18 @@ export async function getBranchOptions(): Promise<{ data: MemberBranchOption[] }
 }
 
 /**
- * Server Action: Cấp phát thẻ hội viên mới và ghi vào bảng memberships.
- * Bọc toàn bộ try/catch an toàn, không ném Unhandled Exception.
+ * Server Action: Cấp phát thẻ hội viên mới và cập nhật thông tin khách hàng.
+ * - Nhận họ tên, số điện thoại, địa chỉ và lưu vào bảng public.users.
+ * - Tự động sinh Mã hội viên ngẫu nhiên (MEM-XXXXXX) gán vào qr_code_token.
+ * - Thực hiện ghi nhận hợp đồng thẻ vào bảng public.memberships.
  */
 export async function createMembership(
   formData: FormData,
 ): Promise<{ success?: boolean; error?: string }> {
   try {
+    const fullName = formData.get('fullName')?.toString().trim() || null;
+    const phone = formData.get('phone')?.toString().trim() || null;
+    const address = formData.get('address')?.toString().trim() || null;
     const rawUserId = formData.get('userId')?.toString().trim();
     const planId = formData.get('planId')?.toString().trim();
     const startDateStr =
@@ -271,7 +284,7 @@ export async function createMembership(
       return { error: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.' };
     }
 
-    // Xác định target user ID
+    // 1. Xác định target user ID
     let targetUserId = rawUserId;
     if (!targetUserId || targetUserId === user.email || targetUserId === 'me') {
       targetUserId = user.id;
@@ -281,7 +294,7 @@ export async function createMembership(
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(targetUserId)) {
       return {
-        error: `Mã người dùng (User ID) phải là định dạng UUID hợp lệ. Bạn có thể dùng UID tài khoản của mình: ${user.id}`,
+        error: `Mã người dùng (User ID) phải là định dạng UUID hợp lệ. Bạn có thể dùng UID tài khoản của mình: ${user.id} hoặc nhập đúng Email tài khoản hiện tại.`,
       };
     }
 
@@ -289,7 +302,41 @@ export async function createMembership(
       return { error: 'Vui lòng chọn một gói tập hợp lệ.' };
     }
 
-    // 1. Xác định gym_id của tổ chức
+    // 2. Cập nhật thông tin cá nhân vào bảng public.users (display_name, phone, address)
+    if (fullName || phone || address) {
+      const updateData: Record<string, any> = {
+        updated_at: new Date().toISOString(),
+      };
+      if (fullName) updateData.display_name = fullName;
+      if (phone) updateData.phone = phone;
+      if (address) updateData.address = address;
+
+      // Thử cập nhật đầy đủ các trường vào public.users
+      const { error: userUpdateError } = await supabase
+        .from('users')
+        .update(updateData)
+        .eq('id', targetUserId);
+
+      if (userUpdateError) {
+        console.warn(
+          '[CREATE MEMBERSHIP] Không thể cập nhật phone/address vào public.users (có thể cột chưa tồn tại), thử cập nhật display_name:',
+          userUpdateError.message,
+        );
+        // Fallback cập nhật display_name nếu các cột phone/address chưa có trong bảng users
+        if (fullName) {
+          const { error: nameOnlyError } = await supabase
+            .from('users')
+            .update({ display_name: fullName, updated_at: new Date().toISOString() })
+            .eq('id', targetUserId);
+
+          if (nameOnlyError) {
+            console.warn('[CREATE MEMBERSHIP] Update users display_name failed:', nameOnlyError.message);
+          }
+        }
+      }
+    }
+
+    // 3. Xác định gym_id của tổ chức
     let gymId: string | null = null;
     const { data: ownerGyms } = await supabase
       .from('gyms')
@@ -323,7 +370,7 @@ export async function createMembership(
       };
     }
 
-    // 2. Lấy thông tin gói tập để tính toán thời hạn (end_date) và số buổi (remaining_sessions)
+    // 4. Lấy thông tin gói tập để tính toán thời hạn (end_date) và số buổi (remaining_sessions)
     const { data: plan, error: planError } = await supabase
       .from('membership_plans')
       .select('*')
@@ -341,9 +388,10 @@ export async function createMembership(
     const endDate = new Date(startDate.getTime() + durationDays * 24 * 60 * 60 * 1000);
     const endDateStr = endDate.toISOString().split('T')[0];
 
-    const qrCodeToken = `mem-${Math.random().toString(36).substring(2, 9)}-${Date.now()}`;
+    // 5. Sinh tự động Mã hội viên (MEM-XXXXXX)
+    const memberCode = generateMemberCode();
 
-    // 3. Thực hiện INSERT vào bảng memberships
+    // 6. Thực hiện INSERT vào bảng memberships
     const { error: insertError } = await supabase.from('memberships').insert({
       gym_id: gymId,
       user_id: targetUserId,
@@ -353,7 +401,7 @@ export async function createMembership(
       start_date: startDateStr,
       end_date: endDateStr,
       remaining_sessions: plan.sessions_count || null,
-      qr_code_token: qrCodeToken,
+      qr_code_token: memberCode,
     });
 
     if (insertError) {
