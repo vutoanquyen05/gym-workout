@@ -1,70 +1,90 @@
-This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
+# AGENTS.md — MONOREPO & STATELESS GOVERNANCE BLUEPRINT
 
-## Expo has changed — do not trust your training data
+Dự án này là nền tảng **Monorepo (Next.js 15 Admin/PT Web Portal + Expo SDK 58 Mobile App + Supabase PostgreSQL)** mang tên **Gym Tracker v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)**.
 
-Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
+---
 
-1. Read the major version of the `expo` package in `package.json`.
-2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v<major>.0.0/`
-3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
+## 1. STATELESS SESSION BOOTSTRAP PROTOCOL (GIAO THỨC KHỞI ĐỘNG KHÔNG TRẠNG THÁI)
 
-## Commands
+Mọi AI Agent khi khởi động phiên làm việc mới (không có bộ nhớ ngữ cảnh từ phiên trước) **BẮT BUỘC** thực thi nghiêm ngặt theo 4 bước sau:
 
-Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
+1. **Bước 1 — Nắm vững Quy tắc Thép:** Đọc [`docs/rule.md`](./docs/rule.md) để hiểu rõ mô hình phân vai Advisor/Coding Agent, kỷ luật Git Branch Workflow, Quality Gates và mẫu báo cáo bắt buộc `Task Execution Report`.
+2. **Bước 2 — Định vị Trạng thái Dự án (Read Stateless Pointer):** Đọc mục `## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)` ở ngay đầu tệp [`docs/mindmap.md`](./docs/mindmap.md) để xác định chính xác:
+   - `Current Architecture Version` (Phiên bản kiến trúc hiện hành).
+   - `Current Phase` (Phase đang thực thi).
+   - `Current Active Task` (Task ID duy nhất cần làm).
+   - `Active Git Branch` (Nhánh Git làm việc hiện tại).
+   - `Next Action` (Hành động kỹ thuật tiếp theo được giao).
+3. **Bước 3 — Đối chiếu Kho lưu trữ Thực tế:** Chạy `git status` và `git branch` để kiểm tra working tree và bảo đảm đang đứng đúng nhánh feature branch tương ứng với Task được giao.
+4. **Bước 4 — Thực thi Duy nhất 1 Task & Nghiệm thu:**
+   - Chỉ thực hiện các thay đổi trong phạm vi `SCOPE` của Task.
+   - Chạy đầy đủ các Quality Gates bắt buộc: `npm run lint`, `npx tsc --noEmit`, `npm test` (hoặc `npm.cmd test` trên Windows).
+   - Khi hoàn thành, cập nhật trạng thái `[x]` và ghi tóm tắt vào `## 5. NHẬT KÝ CẬP NHẬT TÀI LIỆU & WORK LOG` trong [`docs/mindmap.md`](./docs/mindmap.md).
+   - Xuất báo cáo nghiệm thu theo đúng mẫu `Task Execution Report`.
 
+---
+
+## 2. MONOREPO ARCHITECTURE & COMMANDS
+
+Hệ thống được tổ chức theo cấu trúc NPM Monorepo (`workspaces: ["apps/*", "packages/*"]`):
+
+### 2.1. Phân hệ Admin & PT Web Portal (`apps/admin-web`)
+- **Công nghệ cốt lõi:** Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS, `@supabase/ssr` (Server-First Cookie SSR Architecture).
+- **Nguyên tắc kỹ thuật:**
+  - Mọi thao tác đọc/ghi nhạy cảm thực hiện qua Server Components và Server Actions (`actions.ts`).
+  - Session lưu trữ an toàn trong Cookie `httpOnly`, `secure`, `sameSite: 'lax'`.
+  - Middleware (`src/middleware.ts`) điều phối xác thực và bảo vệ tuyến đường `/dashboard/*` bằng `supabase.auth.getUser()`.
+- **Lệnh thực thi:**
+  ```bash
+  npm run dev --workspace=@gym-tracker/admin-web      # Khởi chạy dev server cổng 3000
+  npm run build --workspace=@gym-tracker/admin-web    # Build Next.js production
+  npm run lint --workspace=@gym-tracker/admin-web     # Lint code Admin Web
+  ```
+
+### 2.2. Phân hệ Workout Mobile App (`apps/mobile`)
+- **Công nghệ cốt lõi:** Expo SDK 58 (`~58.0.0`), React Native `0.88.0`, React `19.3.0`, `expo-router` (`~58.0.26`), `expo-sqlite` (`~58.0.14`), `expo-secure-store` (`~58.0.2`).
+- **Nguyên tắc kỹ thuật:**
+  - Tuyệt đối không tin tưởng dữ liệu huấn luyện cũ về Expo. Trước khi đụng vào Expo API, đối chiếu phiên bản `package.json` và đọc tài liệu versioned: `https://docs.expo.dev/versions/v58.0.0/` hoặc `https://docs.expo.dev/llms.txt`.
+  - Điều hướng bằng Expo Router trong `src/app/`. Các components, hooks, storage, utils dùng chung nằm ngoài `src/app/`.
+  - Lưu trữ nội bộ ngoại tuyến 100% bằng SQLite v1 (`gym-workout.db`) thông qua `StorageProvider` React Context.
+  - Thư mục `android/` và `ios/` là output sinh tự động của Continuous Native Generation (CNG). Tuyệt đối không chỉnh sửa bằng tay.
+- **Lệnh thực thi:**
+  ```bash
+  npx expo install <package>                         # Cài đặt gói tương thích SDK 58
+  npx expo start                                     # Khởi động Metro bundler
+  npm test --workspace=@gym-tracker/mobile           # Chạy Jest unit tests
+  npx expo lint                                      # Lint code mobile
+  npx expo-doctor                                    # Chẩn đoán sức khỏe dependencies
+  ```
+
+### 2.3. Lệnh Kiểm thử & Chất lượng Toàn Repo (Quality Gates)
+Trước khi bàn giao bất kỳ task nào, bắt buộc phải vượt qua:
 ```bash
-npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
-npx expo start              # start the dev server
-npx expo lint               # lint
-npx tsc --noEmit            # typecheck
-npx expo-doctor             # diagnose dependency and config issues
-npx expo install --fix      # fix incompatible package versions
+npm run lint          # Linting toàn bộ repo
+npx tsc --noEmit      # Typecheck TypeScript không lỗi
+npm test              # Toàn bộ test suites pass (npm.cmd test trên Windows PowerShell)
 ```
 
-Run test, lint, and typecheck before declaring any task done:
-```bash
-npm test
-npx tsc --noEmit
-npm run lint
-```
+### 2.4. An toàn Tuyệt đối Supabase Cloud
+- Các tệp trong `supabase/migrations/` là mã nguồn phiên bản, không tự động apply lên Cloud.
+- **NGHIÊM CẤM** tự ý chạy lệnh SQL, kết nối/thay đổi Cloud project, reset database hoặc áp dụng migration nếu chưa có phê duyệt bằng văn bản từ Project Owner.
+- Mọi thao tác ghi trên các bảng Core/CRM phải đi qua Mutation Gateway hoặc RLS policies chặt chẽ; không dùng `USING (true)` trên các bảng người dùng hoặc dữ liệu nhạy cảm.
 
-## Navigation & Routing
+---
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
+## 3. STRICT 8-FILE DOCUMENTATION LOCK & GIT WORKFLOW
 
-## Building with EAS
-
-Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
-Docs: https://docs.expo.dev/eas/index.md
-
-## Native & Security Rules
-
-- If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
-- Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
-- Supabase migrations are prepared but not applied or runtime-verified. Never execute SQL, connect to or mutate Supabase Cloud, or reset a database without explicit approval for that operation.
-
-## Gym Workout Workspace Steel Rules
-
-- **Strict 8-File Documentation Lock:** The project documentation is strictly locked to **EXACTLY 8 core files** under `docs/`:
-  1. [`docs/rule.md`](./docs/rule.md) (Working rules, Git workflow, technical safety)
-  2. [`docs/mindmap.md`](./docs/mindmap.md) (Unified Roadmap 9 Phase, 96-task audit matrix, Work Log)
-  3. [`docs/baocao.md`](./docs/baocao.md) (Product Vision, 8 E2E business flows, overall architecture)
-  4. [`docs/risks-decisions.md`](./docs/risks-decisions.md) (Decision Register OD-01..06, D-MT & risks)
-  5. [`docs/supabase-schema.md`](./docs/supabase-schema.md) (PostgreSQL Schema, GM-1..5 DDL, RLS & RBAC Multi-Tenancy)
-  6. [`docs/data-offline.md`](./docs/data-offline.md) (Offline-First architecture, sync contract, SQLite v1 code status)
-  7. [`docs/design-system.md`](./docs/design-system.md) (Design system, Dark/Light palette, ThemeProvider, navigation)
-  8. [`docs/testing-acceptance.md`](./docs/testing-acceptance.md) (Testing strategy, 8 test suites in `__tests__/`, acceptance criteria)
-  - **NO OTHER `.md` FILES:** The rule of creating `[tenmodule].md` is **ABOLISHED**. Strictly FORBIDDEN to create any new `.md` files in `docs/` or `.bak`, `.tmp`, `-copy` files anywhere.
-- **Focus Roadmap & Single Task Rule:**
-  - Before starting any session, MUST read `docs/rule.md` and `docs/mindmap.md`.
-  - Only work on **EXACTLY 1 task** currently at `[ ]` that was assigned. No spreading across multiple modules.
-  - When completing the task, MUST update status to `[x]` and log summary (Files modified, key logic, test results) into `## 5. NHẬT KÝ CẬP NHẬT TÀI LIỆU & WORK LOG` in `docs/mindmap.md`.
-- **Strict Git Feature Branch Workflow:**
-  - **NEVER** work or commit directly on `main`.
-  - Every new task must branch off `main` following format: `feat/<task-id>-<desc>` or `fix/...`, `docs/...`.
-  - **NEVER** create `backup/...` branches.
-  - Only commit after verifying all session requirements and passing `npm test` + `npx tsc --noEmit`.
-  - **NEVER** merge into `main` without explicit approval from the Project Owner.
+- **Khóa 8 Tệp Tài Liệu Cốt Lõi (Strict 8-File Lock):** Toàn bộ tri thức, đặc tả và kiến trúc của dự án được lưu trữ duy nhất trong đúng 8 tệp SSOT dưới thư mục `docs/`:
+  1. [`docs/rule.md`](./docs/rule.md) (Quy tắc làm việc, mô hình phân vai Advisor/Coding, tiêu chuẩn kỹ thuật)
+  2. [`docs/mindmap.md`](./docs/mindmap.md) (Stateless Pointer, Lộ trình v2.0, ma trận task & Work Log)
+  3. [`docs/baocao.md`](./docs/baocao.md) (Product Vision v2.0, 8 chu trình E2E, kiến trúc hệ thống)
+  4. [`docs/risks-decisions.md`](./docs/risks-decisions.md) (Sổ bộ quyết định OD-01..08, D-MT và ma trận rủi ro)
+  5. [`docs/supabase-schema.md`](./docs/supabase-schema.md) (Schema PostgreSQL, DDL migrations, RLS & RBAC)
+  6. [`docs/data-offline.md`](./docs/data-offline.md) (Kiến trúc Offline-First, hợp đồng đồng bộ, SQLite runtime)
+  7. [`docs/design-system.md`](./docs/design-system.md) (Design system, ThemeProvider, màu sắc, routes mobile)
+  8. [`docs/testing-acceptance.md`](./docs/testing-acceptance.md) (Chiến lược kiểm thử tự động, test suites, tiêu chí AC)
+  - **CẤM TUYỆT ĐỐI** tạo thêm tệp `.md` mới trong `docs/` hoặc tệp tạm `.bak`, `.tmp`, `-copy` trong repository.
+- **Kỷ luật Nhánh Git theo Phase (Strict Git Feature Branch Workflow):**
+  - **CẤM** commit hoặc làm việc trực tiếp trên nhánh `main`.
+  - Mọi task mới phải rẽ nhánh từ `main`: `feat/<task-id>-<desc>`, `fix/...`, `docs/...`, `chore/...`. Cấm tạo nhánh `backup/...`.
+  - **Quy tắc Đóng gói theo Phase:** Chỉ thực hiện `git merge` vào `main` và `git push` khi hoàn thành toàn bộ Phase và có chỉ thị đóng gói chính thức từ Project Owner.

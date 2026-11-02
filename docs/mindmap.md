@@ -8,6 +8,19 @@
 
 ---
 
+## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)
+
+- **Current Architecture Version:** v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)
+- **Current Phase:** P00 — Governance & Architecture v2.0 Foundation
+- **Current Active Task:** P00-T04 (Stateless Governance & v2.0 Architecture Blueprint Lock)
+- **Task Status:** IN_REVIEW
+- **Active Git Branch:** `chore/governance-and-schema-sync` (Ready for Phase P00 Package & Merge Approval into `main`)
+- **Last Completed Task:** P00-T03 (Deep Architectural & Governance Inspection)
+- **Next Scheduled Task:** P01-T01 (Supabase Schema v2.0 Migration: CRM gym_members, payment_transactions & 3-Tier Workout Programming)
+- **Last Updated:** 31/10/2026
+
+---
+
 ## 1. QUY TẮC THEO DÕI & QUẢN LÝ ROADMAP
 
 1. **Nguyên tắc theo dõi trạng thái:**
@@ -27,6 +40,112 @@
    - **Track 2: Gym Management Web Portal (`GM`):** Next.js App Router Admin Web, Quản lý Chi nhánh, Nhân viên, Hội viên, Gói tập, Check-in quầy, Thu phí & Báo cáo đối soát ca.
    - **Track 3: Personal Training Subsystem (`PT`):** Lịch hẹn PT, Phân công Trainer, Khấu trừ buổi tập 2 chiều (`BR-PT-02`), Chia sẻ dữ liệu tập luyện tuân thủ Consent Model & Health Minimization (`BR-PT-03`).
    - **Track 4: Workout Mobile App (`WM`):** Mobile Foundation (SDK 57, Design System v1, SQLite v1), Mobile Core Workouts (Offline-First CRUD, Session, RestTimer, History/Stats), Gym Member Mode (Thẻ hội viên, QR check-in) và Cloud Sync Outbox.
+
+---
+
+## 1B. LỘ TRÌNH TÁI KIẾN TRÚC TOÀN DIỆN V2.0 (ERP & COACHING REDESIGN ROADMAP — ACTIVE TRACK)
+
+> **Căn cứ Phê duyệt:** Quyết định OD-07 (CRM `gym_members` Độc lập Auth), OD-08 (Trạm Xếp Bài Tập 3 Tầng) và Chỉ thị Kiến trúc v2.0 của Project Owner.  
+> **Nguyên tắc Điều hành:** Kế thừa toàn bộ kết quả đã kiểm toán tại Phase P00; bảo toàn tính liên tục của hệ thống và 96 task lịch sử.
+
+### PHASE P00 — STATELESS GOVERNANCE & ARCHITECTURE V2.0 BLUEPRINT [COMPLETED]
+*Mục tiêu: Kiểm toán toàn diện hệ thống, chuẩn hóa bộ quy tắc quản trị không trạng thái (Stateless Bootstrap), đồng bộ schema drift và khóa bản thiết kế kiến trúc v2.0.*
+
+- [x] **P00-T01** `[Track: Governance]` — Project Audit & Baseline Discovery (Kiểm kê toàn bộ Monorepo và trạng thái 8 tệp SSOT).
+- [x] **P00-T02** `[Track: Governance & SP]` — Governance Alignment & Schema Drift Sync (Mô hình Advisor/Coding Agent, chuẩn hóa Vòng đời Task, cập nhật migration GM-2 Patch).
+- [x] **P00-T03** `[Track: Governance & Architecture]` — Deep Architectural & Governance Inspection (Trích xuất toàn văn AGENTS.md, docs/rule.md; kiểm tra SQLite v1 mobile, components admin-web và 5 functions RPC).
+- [x] **P00-T04** `[Track: Governance & Architecture]` — Stateless Governance & v2.0 Architecture Blueprint Lock (Khóa Pointer Stateless, lộ trình v2.0, nguyên tắc CRM độc lập Auth OD-07 và giáo án 3 tầng OD-08).
+
+---
+
+### PHASE P01 — DATABASE V2.0 REFACTORING (CRM 360° & 3-TIER WORKOUT SCHEMA)
+*Mục tiêu: Triển khai Migration SQL v2.0 trên Supabase: tạo bảng `gym_members`, `payment_transactions`, `workout_programs`, `program_days`, `program_day_exercises`, `body_measurements`; nâng cấp RLS policies và seed data chuẩn.*
+
+- [ ] **P01-T01** `[Track: SP]` — **Migration SQL v2.0 Additive Non-Breaking**:
+  - Tạo bảng CRM `public.gym_members` (id, gym_id, branch_id, member_code UNIQUE `MEM-XXXXXX`, full_name, phone, email, gender, dob, address, status, linked_user_id nullable REFERENCES auth.users, avatar_url, notes).
+  - Tạo bảng Hóa đơn `public.payment_transactions` (id, gym_id, branch_id, member_id, membership_id, amount BIGINT VND, payment_method, status, cashier_id, idempotency_key, note).
+  - Tạo Trạm Xếp bài tập 3 tầng: `public.workout_programs` (id, gym_id, name, program_type 'template'/'assigned', member_id, assigned_by), `public.program_days` (id, program_id, day_name, order_index), `public.program_day_exercises` (id, program_day_id, exercise_id, order_index, target_sets, target_reps_min, target_reps_max, rest_seconds, superset_group, pt_notes).
+  - Tạo bảng `public.body_measurements` (id, member_id, weight_kg, height_cm, body_fat_pct, muscle_mass_kg, measured_at, measured_by).
+  - Cập nhật RLS fail-closed, grants tối thiểu và migration file v2.0.
+- [ ] **P01-T02** `[Track: SP]` — **Seed Data & Helper RPCs v2.0**:
+  - Seed 30+ bài tập chuẩn vào `exercises` phân loại theo nhóm cơ.
+  - Seed các gói tập mẫu (Gym tháng, PT 12 buổi, Combo).
+  - Tạo helper RPC sinh mã thẻ `MEM-XXXXXX` tự động không trùng lặp và đối soát RLS.
+  - Cập nhật tài liệu `docs/supabase-schema.md`.
+
+---
+
+### PHASE P02 — ADMIN WEB SHELL V2.0, BRANCHES, PLANS & STAFF MANAGEMENT
+*Mục tiêu: Nâng cấp toàn diện giao diện Admin Web thành trung tâm điều hành phòng gym chuẩn ERP; quản lý chi nhánh, gói tập và nhân sự/PT.*
+
+- [ ] **P02-T01** `[Track: GM]` — **Nâng cấp Dashboard Layout & Sidebar 7 phân hệ**:
+  - Thiết kế Sidebar 7 module chuẩn ERP: Tổng quan, Hội viên & POS, Gói tập, Chi nhánh, Nhân sự & PT, Điểm danh, Trạm xếp bài tập.
+  - Header tích hợp chọn nhanh Chi nhánh (Branch Switcher) và nút Quick Actions ("Đăng ký hội viên", "Check-in nhanh").
+- [ ] **P02-T02** `[Track: GM]` — **Nâng cấp Quản lý Chi nhánh (`Branches`)**:
+  - Danh sách chi nhánh dạng bảng/thẻ với tìm kiếm, lọc trạng thái, form tạo mới và chỉnh sửa thông tin/đổi trạng thái (active/suspended/archived).
+- [ ] **P02-T03** `[Track: GM]` — **Xây dựng Quản lý Gói tập (`Membership Plans`)**:
+  - Quản lý danh mục gói tập phòng gym (Gym tiêu chuẩn, PT 1 kèm 1, Combo).
+  - Form tạo mới và chỉnh sửa: giá `BIGINT` VND, thời hạn ngày, số buổi tập, phạm vi áp dụng (toàn chuỗi / chi nhánh cụ thể).
+- [ ] **P02-T04** `[Track: GM]` — **Xây dựng Quản lý Nhân sự & Huấn Luyện Viên (`Staff & Trainers`)**:
+  - Danh sách nhân sự & huấn luyện viên cá nhân (PT), phân loại vai trò (manager, receptionist, trainer).
+  - Form thêm nhân sự, gán chi nhánh công tác và quản lý trạng thái.
+
+---
+
+### PHASE P03 — CRM HỘI VIÊN 360° & THU NGÂN TẠI QUẦY (MEMBERS & POS)
+*Mục tiêu: Xây dựng trung tâm CRM hội viên hoàn chỉnh; luồng bán gói/thu tiền tại quầy không phụ thuộc Auth và hồ sơ hội viên 360° đa tab.*
+
+- [ ] **P03-T01** `[Track: GM]` — **Bảng Danh sách Hội viên CRM (`gym_members`)**:
+  - Bảng danh sách hội viên hiển thị: Họ tên, SĐT, Mã thẻ `MEM-XXXXXX`, Trạng thái thẻ, Gói đang tập, Thời hạn còn lại, PT phụ trách.
+  - Bộ lọc nâng cao theo trạng thái thẻ (Đang tập, Hết hạn, Bảo lưu, Sắp hết hạn trong 7 ngày) và thanh tìm kiếm đa năng.
+- [ ] **P03-T02** `[Track: GM]` — **Luồng Đăng ký Hội viên & POS Checkout 1 bước**:
+  - Form tiếp nhận khách hàng walk-in: nhập thông tin cá nhân, chọn gói tập, ghi nhận thanh toán tiền mặt/chuyển khoản/POS qua `payment_transactions`, kích hoạt thẻ và sinh mã thẻ `MEM-XXXXXX` tức thì mà không cần tài khoản Auth.
+- [ ] **P03-T03** `[Track: GM]` — **Trang Hồ sơ Chi tiết Hội viên 360° (`Member Detail 4-Tab View`)**:
+  - *Tab 1 — Thẻ & Gói tập:* Xem chi tiết gói hiện tại, nút Gia hạn gói, nút Nâng cấp gói, nút Bảo lưu thẻ.
+  - *Tab 2 — Lịch sử Giao dịch:* Danh sách các khoản thanh toán, biên nhận thu tiền, hóa đơn của hội viên.
+  - *Tab 3 — Lịch sử Điểm danh:* Nhật ký vào/ra phòng gym theo mốc thời gian thực tế.
+  - *Tab 4 — Chỉ số Cơ thể & InBody:* Biểu đồ và danh sách chỉ số (cân nặng, mỡ, cơ, BMI) qua các lần đo `body_measurements`.
+
+---
+
+### PHASE P04 — QUẦY ĐIỂM DANH THÔNG MINH (SMART CHECK-IN DESK)
+*Mục tiêu: Tối ưu hóa tốc độ điểm danh quầy tiếp tân dưới 300ms; xác thực điều kiện thẻ tự động và nhật ký thời gian thực.*
+
+- [ ] **P04-T01** `[Track: GM]` — **Giao diện Quầy Check-in Tiếp tân Thông minh**:
+  - Hộp nhập nhanh mã thẻ `MEM-XXXXXX` hoặc tìm kiếm tức thì theo SĐT/Họ tên hội viên.
+  - Động cơ kiểm tra thẻ tự động: Kiểm tra hạn thẻ, số buổi còn lại, chi nhánh cho phép, nợ phí.
+  - Hiển thị kết quả điểm danh trực quan (Thành công kèm số buổi còn lại / Từ chối kèm lý do rõ ràng).
+  - Danh sách nhật ký điểm danh trong ca trực theo thời gian thực (Realtime Attendance Feed).
+
+---
+
+### PHASE P05 — TRẠM THIẾT KẾ GIÁO ÁN & XẾP BÀI TẬP 3 TẦNG (WORKOUT PROGRAMMING STUDIO)
+*Mục tiêu: Xây dựng công cụ xếp giáo án chuyên nghiệp cho PT và Chủ phòng gym; quản lý danh mục bài tập và cá nhân hóa lộ trình tập luyện.*
+
+- [ ] **P05-T01** `[Track: GM & PT]` — **Quản lý Thư viện Bài tập trên Web (`Exercises Catalog`)**:
+  - Giao diện danh mục bài tập: Tìm kiếm, lọc theo nhóm cơ chính, nhóm cơ phụ, dụng cụ và độ khó.
+  - Form thêm bài tập riêng của phòng gym kèm hướng dẫn kỹ thuật chi tiết.
+- [ ] **P05-T02** `[Track: PT]` — **Trình thiết kế Giáo án Mẫu 3 Tầng (`Program Templates Builder`)**:
+  - Trình tạo giáo án mẫu: Đặt tên giáo án, mô tả mục tiêu (Tăng cơ, Giảm mỡ, Sức mạnh).
+  - Chia các buổi tập trong tuần (`program_days` - ví dụ: Ngày 1 Ngực/Tay sau, Ngày 2 Lưng/Tay trước...).
+  - Xếp danh sách bài tập cho từng ngày (`program_day_exercises`): Cấu hình số hiệp (Sets), số lần (Reps), thời gian nghỉ (Rest seconds), nhóm Superset và ghi chú lưu ý kỹ thuật của PT.
+- [ ] **P05-T03** `[Track: PT]` — **Giao Giáo án cho Hội viên & Cá nhân hóa (`Assign & Customize Member Program`)**:
+  - Chức năng gán giáo án mẫu cho Hội viên cụ thể: Tự động nhân bản sang hồ sơ hội viên và cho phép PT tinh chỉnh hiệp/tạ/bài tập phù hợp với thể trạng riêng của học viên.
+  - Tích hợp trực tiếp vào Tab Giáo án trong Hồ sơ Hội viên 360°.
+
+---
+
+### PHASE P06 — BẢNG ĐIỀU KHIỂN PHÂN TÍCH & ĐỒNG BỘ MOBILE V2.0
+*Mục tiêu: Cung cấp bức tranh phân tích kinh doanh thời gian thực cho chủ phòng gym và đồng bộ dữ liệu thẻ/giáo án v2.0 sang Mobile App.*
+
+- [ ] **P06-T01** `[Track: GM]` — **Dashboard Analytics Kinh Doanh & Vận Hành**:
+  - Thống kê doanh thu kỳ (ngày/tuần/tháng), cơ cấu doanh thu theo gói tập và phương thức thanh toán.
+  - Thống kê số lượng hội viên đang hoạt động, tỷ lệ gia hạn thẻ và danh sách hội viên sắp hết hạn cần chăm sóc.
+  - Biểu đồ lưu lượng check-in theo khung giờ vàng trong ngày tại từng chi nhánh.
+- [ ] **P06-T02** `[Track: WM & SP]` — **Đồng bộ Mobile App v2.0 (Dual-Mode Integration)**:
+  - Mobile App hiển thị Thẻ Hội viên điện tử từ `gym_members` và `memberships` sau khi liên kết OTP.
+  - Hội viên xem được Giáo án tập luyện cá nhân hóa do PT giao từ `workout_programs` / `program_days` / `program_day_exercises`.
+  - Giữ nguyên vẹn 100% chế độ Standalone Workout ngoại tuyến trên SQLite cục bộ.
 
 ---
 
@@ -94,11 +213,11 @@
 ### PHASE 2 — GYM & BRANCH MANAGEMENT & MOBILE CORE WORKOUTS
 *Mục tiêu: Admin Web có thể tạo gym, branch và quản lý nhân viên; Mobile client triển khai Thư viện bài tập offline.*
 
-- [ ] **P2.T01** `[Track: GM]` — Khởi tạo Admin Web project (Next.js theo D-MT-02; thực hiện tách monorepo theo OD-03=A trước task này).  
+- [x] **P2.T01** `[Track: GM]` — Khởi tạo Admin Web project (Next.js theo D-MT-02; Monorepo npm workspaces theo OD-03=A: `apps/admin-web`, `apps/mobile`).  
   *Tham chiếu: `docs/baocao.md` (Chương 4), `docs/risks-decisions.md` D-MT-02, OD-03.*
-- [ ] **P2.T02** `[Track: GM]` — Giao diện tạo gym và onboarding owner.  
+- [x] **P2.T02** `[Track: GM]` — Xác thực Admin Web & Khung điều hành Dashboard Shell (Supabase Auth SSR PKCE httpOnly cookie, `/login`, `/dashboard`, Header + Sidebar navigation).  
   *Tham chiếu: `docs/baocao.md` (Chương 2: Luồng E2E 1).*
-- [ ] **P2.T03** `[Track: GM]` — Giao diện quản lý branch.  
+- [x] **P2.T03** `[Track: GM]` — Phân hệ Quản lý Chi nhánh (Giao diện danh sách `/dashboard/branches` nạp dữ liệu Supabase và Form tạo chi nhánh vật lý `/dashboard/branches/create` kèm auto-slug).  
   *Tham chiếu: `docs/baocao.md` (Chương 2: Luồng E2E 2).*
 - [ ] **P2.T04** `[Track: GM]` — Giao diện mời và quản lý nhân viên.  
   *Tham chiếu: `docs/baocao.md` (Chương 2: Luồng E2E 3).*
@@ -117,9 +236,9 @@
 ### PHASE 3 — MEMBER MANAGEMENT, MOBILE AUTH & ACCOUNT LINKING
 *Mục tiêu: Admin Web quản lý hội viên; triển khai Mobile Authentication cơ bản; liên kết tài khoản an toàn qua OTP.*
 
-- [ ] **P3.T01** `[Track: SP]` — Schema `gym_members`; migration GM-2.  
+- [x] **P3.T01** `[Track: SP]` — Schema `memberships`, `membership_plans`, `attendance_logs`; migration GM-2 (`20261028235500_gym_management_core.sql` & patch `20261031000000_gm2_admin_member_policies_and_user_fields.sql`).  
   *Tham chiếu: `docs/baocao.md` (Chương 2: Luồng E2E 4), `docs/supabase-schema.md`.*
-- [ ] **P3.T02** `[Track: GM]` — Admin Web: tạo, tìm kiếm, sửa hồ sơ hội viên walk-in.  
+- [x] **P3.T02** `[Track: GM]` — Phân hệ Quản lý Hội viên Admin Web (Danh sách `/dashboard/members`, Form cấp thẻ `/dashboard/members/create` cập nhật đa bảng `public.users` & `memberships`, tự sinh mã định danh `MEM-XXXXXX`).  
   *Tham chiếu: `docs/baocao.md` (Chương 2: Luồng E2E 4).*
 - [ ] **Phase 3.T02** `[Track: WM — FIX-F01 & FIX-12]` — **Xây dựng xác thực, đăng ký/đăng nhập/đăng xuất khi backend sẵn sàng**. *(Hiện trạng mã nguồn: Client factory, SecureStore adapter và AuthProvider đã có sẵn trong `src/modules/auth/`; màn hình `login.tsx`/`register.tsx` còn là RoutePlaceholder, giữ nguyên 100% trạng thái chưa hoàn thành `[ ]`. Dependency: Độc lập hoàn toàn với Gym RLS P1.T03, Admin Web P1.T05 và Workout Cloud Sync P6.T01a; chỉ phụ thuộc biến môi trường Supabase URL/Key. Tuyệt đối không triển khai mã nguồn trong task tài liệu này)*.  
   *Ghi chú triển khai kỹ thuật (Implementation Notes):*  
@@ -435,13 +554,13 @@
 | **P1.T04** | Thiết kế staff invite flow & phân quyền/thu hồi nhân viên | `[x]` | `supabase/migrations/20261025160000_gm1_mutation_rpcs.sql` (`rpc_revoke_or_update_staff`, OD-01, OD-02=A) | Phase 1 | `SP` | P1.T03 | `PRESERVED_ACTIVE` |
 | **P1.T05** | Thiết kế Admin Web auth & RPC Mutation API (create gym/branch) | `[x]` | `src/modules/gym-management/` (`rpc_create_gym`, `rpc_manage_branch`, `GymManagementService`) | Phase 1 | `GM` | P1.T03 | `PRESERVED_ACTIVE` |
 | **P1.T06** | Kiểm thử RBAC & Service: MT-01–05, RBAC-01–12 | `[x]` | `__tests__/gm1-service-test.ts` (9 test suites passed, 35 tests passed) | Phase 1 | `SP` | P1.T04-05 | `PRESERVED_ACTIVE` |
-| **P2.T01** | Khởi tạo Admin Web project (Next.js hoặc framework đã chốt) | `[ ]` | Chưa bắt đầu | Phase 2 | `GM` | Phase 1 Hoàn tất | `PRESERVED_ACTIVE` |
-| **P2.T02** | Giao diện tạo gym và onboarding owner | `[ ]` | Chưa bắt đầu | Phase 2 | `GM` | P2.T01 | `PRESERVED_ACTIVE` |
-| **P2.T03** | Giao diện quản lý branch | `[ ]` | Chưa bắt đầu | Phase 2 | `GM` | P2.T02 | `PRESERVED_ACTIVE` |
+| **P2.T01** | Khởi tạo Admin Web project (Next.js App Router, NPM Monorepo) | `[x]` | `apps/admin-web`, commit `ba947e8` | Phase 2 | `GM` | Phase 1 Hoàn tất | `PRESERVED_ACTIVE` |
+| **P2.T02** | Xác thực Admin Web & Khung Dashboard Shell | `[x]` | `/login`, `/dashboard/layout.tsx`, commit `c863492` | Phase 2 | `GM` | P2.T01 | `PRESERVED_ACTIVE` |
+| **P2.T03** | Giao diện quản lý branch (Danh sách & Tạo mới) | `[x]` | `/dashboard/branches`, commit `2c147e8` | Phase 2 | `GM` | P2.T02 | `PRESERVED_ACTIVE` |
 | **P2.T04** | Giao diện mời và quản lý nhân viên | `[ ]` | Chưa bắt đầu | Phase 2 | `GM` | P2.T03 | `PRESERVED_ACTIVE` |
 | **P2.T05** | Integration test: FR-GM-01 đến FR-GM-05 | `[ ]` | Chưa bắt đầu | Phase 2 | `GM` | P2.T04 | `PRESERVED_ACTIVE` |
-| **P3.T01** | Schema gym_members; migration GM-2 | `[ ]` | Chưa bắt đầu | Phase 3 | `SP` | Phase 2 Hoàn tất | `PRESERVED_ACTIVE` |
-| **P3.T02** | Admin Web: tạo, tìm kiếm, sửa hồ sơ hội viên | `[ ]` | Chưa bắt đầu | Phase 3 | `GM` | P3.T01 | `PRESERVED_ACTIVE` |
+| **P3.T01** | Schema gym_members / memberships; migration GM-2 | `[x]` | `20261028235500_gym_management_core.sql` & GM-2 Patch | Phase 3 | `SP` | Phase 2 Hoàn tất | `PRESERVED_ACTIVE` |
+| **P3.T02** | Admin Web: tạo, tìm kiếm, sửa hồ sơ hội viên | `[x]` | `/dashboard/members`, commit `d68777b` | Phase 3 | `GM` | P3.T01 | `PRESERVED_ACTIVE` |
 | **P3.T03** | Luồng liên kết tài khoản Supabase Auth | `[ ]` | Chưa bắt đầu | Phase 3 | `SP & WM`| P3.T02 | `PRESERVED_ACTIVE` |
 | **P3.T04** | Mobile app: xem profile và lịch sử của mình | `[ ]` | Chưa bắt đầu | Phase 3 | `WM` | P3.T03 | `PRESERVED_ACTIVE` |
 | **P3.T05** | Test matrix FR-MB-01–05 | `[ ]` | Chưa bắt đầu | Phase 3 | `GM & SP`| P3.T04 | `PRESERVED_ACTIVE` |
@@ -696,3 +815,54 @@
   - `npx tsc --noEmit`: 0 errors.
   - `npm run lint`: 0 errors / 0 warnings.
   - `npm test`: 13/13 test suites passed (100%), 54/54 tests passed (100%).
+
+### 2026-10-31 — Kiểm toán Baseline (P00-T01) và Chuẩn hóa Quản trị & Schema Drift Sync (P00-T02)
+
+- **Mục tiêu:** Thực hiện kiểm toán toàn diện hệ thống (P00-T01), thiết lập mô hình quản trị phối hợp Advisor Agent ↔ Coding Agent, chuẩn hóa Vòng đời Task, cập nhật trạng thái các module Admin Web đã nghiệm thu (Auth, Dashboard Shell, Branches, Members), và tạo migration vá lỗi schema drift/bảo mật RLS (P00-T02).
+- **Files đã tạo mới & cập nhật:**
+  - `docs/rule.md`: Tích hợp quy trình phối hợp Advisor Agent ↔ Coding Agent, chuẩn hóa Vòng đời Task (`TODO → IN_PROGRESS → IN_REVIEW → DONE`), siết chặt quy tắc Git theo Phase và áp dụng mẫu chuẩn `Task Execution Report`.
+  - `docs/mindmap.md`: Cập nhật trạng thái hoàn thành `[x]` cho P2.T01, P2.T02, P2.T03, P3.T01, P3.T02; đồng bộ bảng Audit Matrix và bổ sung Work Log 31/10/2026.
+  - `docs/supabase-schema.md`: Cập nhật định nghĩa cột `phone`, `address` bảng `users`, đồng bộ lộ trình migration GM-2 Patch.
+  - `supabase/migrations/20261031000000_gm2_admin_member_policies_and_user_fields.sql`: Tạo file migration thứ 8:
+    1. Bổ sung cột `phone TEXT` và `address TEXT` cho bảng `public.users`.
+    2. Cấp quyền & thiết lập RLS INSERT/UPDATE cho bảng `public.memberships` (`is_gym_owner` hoặc `is_active_staff`).
+    3. Cấp quyền & thiết lập RLS INSERT/UPDATE cho bảng `public.membership_plans` (`is_gym_owner` hoặc `is_active_staff`).
+    4. Thay thế `users_update_policy` trên `public.users` đảm bảo an toàn tuyệt đối: chỉ cho phép user sửa hồ sơ của chính mình hoặc Owner/Active Staff của Gym có thẩm quyền (loại bỏ hoàn toàn nguy cơ `USING (true)`).
+- **Logic chính đã triển khai:**
+  1. Xác lập cơ chế phân quyền RBAC và kiểm soát cập nhật đa bảng trên Supabase Cloud thông qua RLS policies và migration idempotent.
+  2. Khóa chặt 8 file tài liệu SSOT, ngăn chặn phân mảnh tài liệu và thiết lập giao thức bàn giao kỹ thuật chuẩn mực giữa các tầng tác tử AI.
+  3. Ghi nhận đầy đủ hiện trạng thực tế mã nguồn Monorepo (`apps/admin-web`, `apps/mobile`) tới commit `d68777b`.
+- **Kết quả kiểm tra Quality Gates:**
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run lint`: 0 errors / 0 warnings.
+  - `npm test`: 13/13 test suites passed (100%), 54/54 tests passed (100%).
+
+### 2026-10-31 — Kiểm tra Chuyên sâu Kiến trúc & Quản trị (P00-T03: Deep Architectural & Governance Inspection)
+
+- **Mục tiêu:** Thực hiện kiểm tra chuyên sâu (Read-only Inspection) đối với toàn bộ tệp quản trị gốc (`AGENTS.md`, `docs/rule.md`, `docs/mindmap.md`, `docs/baocao.md`, `docs/risks-decisions.md`), cấu trúc `apps/mobile`, các components của `apps/admin-web` và các hàm Database RPC/Triggers/Constraints hiện có trong `supabase/migrations/` để cung cấp dữ liệu cho Advisor Agent tái thiết kế hệ thống lên kiến trúc v2.0.
+- **Files đã kiểm tra:**
+  - `AGENTS.md` & `docs/rule.md`: Trích xuất nguyên văn toàn bộ điều khoản quản trị và Strict 8-File Documentation Lock.
+  - `docs/mindmap.md`, `docs/baocao.md`, `docs/risks-decisions.md`: Lập bản đồ cấu trúc tổng thể.
+  - `apps/mobile`: Xác nhận sử dụng `expo-sqlite` (~58.0.14) cho 6 bảng offline (`exercises`, `workout_plans`, `plan_exercises`, `workout_sessions`, `session_exercises`, `workout_sets`), 3 màn hình hoàn thiện offline (`exercises`, `workouts`, `progress`) và 4 màn hình placeholder (`login`, `register`, `home`, `profile`).
+  - `apps/admin-web`: Xác nhận 23 tệp trong `apps/admin-web/src/`, dùng Tailwind CSS thuần + SVG custom icons, chưa cài Lucide icons hay Radix UI; middleware xử lý `@supabase/ssr` cookies và bảo vệ `/dashboard`.
+  - `supabase/migrations/`: Rà soát 8 tệp SQL, trích xuất chi tiết 5 functions/RPCs (`is_gym_owner`, `is_active_staff`, `rpc_create_gym`, `rpc_manage_branch`, `rpc_revoke_or_update_staff`), xác nhận 0 Triggers và 47 CHECK constraints trên 13 bảng.
+- **Kết quả Quality Gates & Git:**
+  - `git status`: Working tree clean (100% Read-only).
+  - `npm test`: 13 test suites passed, 54 tests passed.
+
+### 2026-10-31 — Khóa Bản thiết kế Kiến trúc v2.0 & Quản trị Không Trạng thái (P00-T04: Stateless Governance & v2.0 Architecture Blueprint Lock)
+
+- **Mục tiêu:** Nâng cấp toàn diện bộ tệp SSOT (`AGENTS.md`, `docs/rule.md`, `docs/mindmap.md`, `docs/baocao.md`, `docs/risks-decisions.md`) lên chuẩn Stateless Governance & Architecture v2.0, bảo toàn tuyệt đối Strict 8-File Documentation Lock.
+- **Files đã sửa đổi & cập nhật:**
+  - `AGENTS.md`: Nâng cấp thành cổng khởi động cho Monorepo (Next.js 15 Admin Web + Expo SDK 58 Mobile + Supabase), ban hành Stateless Session Bootstrap Protocol 4 bước, cập nhật lệnh monorepo và khóa 8 tệp SSOT.
+  - `docs/rule.md`: Bổ sung quy tắc Stateless Bootstrap (Agent luôn đọc và cập nhật `## 0. CURRENT EXECUTION POINTER` trong `mindmap.md`), bổ sung nguyên tắc CRM độc lập Auth (`OD-07`) và nguyên tắc Giáo án 3 tầng (`OD-08`), đồng bộ quy chuẩn Next.js 15 và Mobile Offline-First SQLite.
+  - `docs/mindmap.md`: Bổ sung mục `## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)` ở đầu file; bổ sung mục `## 1B. LỘ TRÌNH TÁI KIẾN TRÚC TOÀN DIỆN V2.0` gồm 7 Phases mới (P00 đến P06); cập nhật nhật ký công việc.
+  - `docs/baocao.md`: Bổ sung đặc tả kiến trúc v2.0 (Mô hình CRM `gym_members` độc lập Auth và Trạm xếp bài tập 3 tầng `exercises` -> `workout_programs` -> `program_days` -> `program_day_exercises`).
+  - `docs/risks-decisions.md`: Bổ sung quyết định kiến trúc `OD-07` (Tách biệt CRM `gym_members` khỏi `auth.users`) và `OD-08` (Kiến trúc xếp bài tập 3 tầng) vào Decision Register.
+- **Logic chính đã triển khai:**
+  1. Thiết lập hạ tầng điều hành không trạng thái: Bất kỳ Agent nào khởi động phiên mới đều có thể tiếp quản chính xác công việc qua Pointer và Bộ Quy tắc Thép mà không phụ thuộc vào context cũ.
+  2. Khóa cứng bản thiết kế dữ liệu v2.0, sẵn sàng cho Phase P01 triển khai migrations SQL additive không phá hủy.
+- **Kết quả kiểm tra Quality Gates:**
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run lint`: 0 errors.
+  - `npm test`: 13 test suites passed, 54 tests passed.

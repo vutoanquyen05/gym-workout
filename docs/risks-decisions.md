@@ -263,6 +263,8 @@ Hướng dẫn Supabase chính thức được kiểm tra chỉ dẫn chạy loc
 - **OD-04 = A (Audit & Mutation Boundary):** Mọi thao tác ghi (mutation) đi qua PostgreSQL RPC (`SECURITY DEFINER`) có `SET search_path = public, pg_temp`. Không tạo bảng `security_incident_logs` riêng trong DB ở MVP (tránh mất log khi transaction rollback); lịch sử nghiệp vụ lưu qua metadata (`created_at`, `updated_at`, `revoked_at`, `revoked_by`), còn lỗi bảo mật/truy cập trái phép ghi nhận qua Supabase Platform/Edge Logs.
 - **OD-05 = A (Payment Evidence MVP):** Sử dụng đơn vị tiền tệ `BIGINT` (VND). Ở giai đoạn MVP, áp dụng xác nhận thanh toán thủ công tại quầy (Manual Counter Confirmation). Hoãn tích hợp Webhook tự động sang Phase sau.
 - **OD-06 = A (Attendance Check-in Window):** Chống quét trùng lặp (duplicate check-in) trong cửa sổ **60 phút** tính từ lần check-in hợp lệ gần nhất của cùng một hội viên tại cùng chi nhánh.
+- **OD-07 = A (CRM Hội viên Độc lập Auth):** Tách biệt hoàn toàn bảng CRM hội viên `public.gym_members` khỏi tài khoản xác thực `auth.users`. Khách hàng mua thẻ tập tại quầy chỉ cần Họ tên, SĐT, mã định danh `member_code` `MEM-XXXXXX`. Cột `linked_user_id UUID REFERENCES auth.users(id)` là nullable (tùy chọn). Liên kết tài khoản qua OTP chỉ thực hiện khi hội viên tự nguyện sử dụng Mobile App, không chặn quy trình bán gói tại quầy. (Phê duyệt: 31/10/2026).
+- **OD-08 = A (Kiến trúc Trạm Xếp Bài Tập 3 Tầng):** Phân hệ giáo án tập luyện áp dụng mô hình phân cấp 3 tầng chuẩn thể hình chuyên nghiệp: `exercises` (Thư viện bài tập) -> `workout_programs` (Giáo án mẫu 'template' hoặc giáo án gán hội viên 'assigned') -> `program_days` (Buổi tập trong tuần: Ngày 1 Ngực, Ngày 2 Lưng...) -> `program_day_exercises` (Bài tập chỉ định kèm Sets, Reps, Rest, Superset group và ghi chú kỹ thuật PT). (Phê duyệt: 31/10/2026).
 
 #### 3. Bắt buộc Tuân thủ 5 Điều kiện Phê duyệt (Approval Conditions)
 
@@ -375,3 +377,11 @@ Hướng dẫn Supabase chính thức được kiểm tra chỉ dẫn chạy loc
   2. Cập nhật soft-deactivation là chuyển `branches.status = 'archived'` trong `R-MT-13` và blocker P0.T08.
   3. Xác nhận thư mục untracked `gym-workout/` là bản sao clone lồng của repository gốc, không tự ý xóa hay thay đổi.
 - **Trạng thái:** Tiếp tục giữ `P0.T07` và `P0.T08` ở trạng thái chờ phê duyệt (`[ ]`). Không commit, không bắt đầu Phase 1. Sẵn sàng cho chủ dự án phê duyệt Phase 0.
+
+### 2026-10-31 — Phê duyệt Quyết định Kiến trúc v2.0 (OD-07 & OD-08)
+
+- **Mục tiêu:** Khóa các quyết định kiến trúc nền tảng cho hệ thống All-in-One Gym ERP & 3-Tier Workout Coaching Platform v2.0.
+- **Nội dung:**
+  1. Ghi nhận chính thức `OD-07`: Tách biệt hồ sơ hội viên CRM `public.gym_members` khỏi `auth.users` với khóa liên kết tùy chọn `linked_user_id`.
+  2. Ghi nhận chính thức `OD-08`: Chuẩn hóa kiến trúc xếp bài tập 3 tầng (`exercises` -> `workout_programs` -> `program_days` -> `program_day_exercises`).
+  3. Cập nhật Decision Register và đồng bộ toàn diện với `docs/mindmap.md` và `docs/baocao.md`.

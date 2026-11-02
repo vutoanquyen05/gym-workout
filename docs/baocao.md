@@ -90,6 +90,29 @@ Hệ thống Gym Workout được định hướng phát triển thành **Nền 
 
 ---
 
+### 1.5. Nâng cấp Kiến trúc v2.0: All-in-One Gym ERP & 3-Tier Workout Coaching Platform [APPROVED - 31/10/2026]
+
+Dựa trên kết quả kiểm toán toàn diện hệ thống, Project Owner và Advisor Agent đã chính thức phê duyệt bước nhảy vọt kiến trúc lên phiên bản **v2.0**. Bản thiết kế v2.0 giải quyết triệt để 2 nút thắt lớn nhất của mô hình v1:
+
+1. **Mô hình CRM Hội viên Độc lập Tài khoản Auth (`OD-07`):**
+   - *Vấn đề của v1:* Bắt buộc hội viên mua thẻ tập tại quầy phải có `user_id` trong `auth.users`, gây tắc nghẽn quầy tiếp tân khi khách hàng walk-in không có tài khoản hoặc chưa cài ứng dụng di động.
+   - *Kiến trúc v2.0:* Toàn bộ nghiệp vụ khách hàng quầy được quản lý độc lập tại bảng `public.gym_members` (định danh bằng mã thẻ `member_code` định dạng `MEM-XXXXXX` và số điện thoại `phone`).
+   - *Khóa liên kết tùy chọn:* Cột `linked_user_id UUID REFERENCES auth.users(id)` là nullable. Tiếp tân bán gói tập và thu tiền 1 bước tại POS mà không cần tài khoản Auth. Khi hội viên tải Mobile App, hệ thống thực hiện liên kết tài khoản qua OTP xác minh số điện thoại mà không làm thay đổi hay gián đoạn hợp đồng thẻ tập.
+
+2. **Trạm Thiết Kế Giáo Án & Xếp Bài Tập 3 Tầng (`OD-08`):**
+   - *Vấn đề của v1:* Mô hình `workout_plans` -> `plan_exercises` là cấu trúc phẳng, không chia tách được các ngày tập riêng biệt (split ngày) và không hỗ trợ quy trình Huấn luyện viên (PT) tạo giáo án mẫu để gán cho nhiều học viên.
+   - *Kiến trúc v2.0:* Thiết lập chuỗi quan hệ 3 tầng chuẩn thể hình chuyên nghiệp:
+     - **Tầng 1 — Thư viện bài tập (`exercises`):** Danh mục các bài tập kỹ thuật phân loại theo nhóm cơ chính, nhóm cơ phụ, dụng cụ và mức độ khó.
+     - **Tầng 2 — Giáo án Tổng thể (`workout_programs`):** Cấp độ chương trình tập luyện (chia thành `program_type = 'template'` cho giáo án mẫu của phòng gym hoặc `program_type = 'assigned'` cho giáo án gán cho từng hội viên).
+     - **Tầng 3 — Buổi tập trong tuần (`program_days`):** Chia nhỏ chương trình thành các ngày tập cụ thể (ví dụ: Day 1: Ngực & Tay sau, Day 2: Lưng & Tay trước, Day 3: Chân & Bụng).
+     - **Tầng Chi tiết Bài tập (`program_day_exercises`):** Danh sách bài tập được xếp trong từng ngày tập, cấu hình số hiệp (`target_sets`), khoảng lặp (`target_reps_min`..`max`), thời gian nghỉ giữa hiệp (`rest_seconds`), nhóm `superset_group` và ghi chú lưu ý chuyên môn của PT (`pt_notes`).
+
+3. **Phân hệ Quản lý Hợp đồng & Thu ngân tại Quầy (Memberships & POS):**
+   - Hợp đồng thẻ tập `public.memberships` liên kết trực tiếp với `member_id` của bảng CRM `gym_members` và gói tập `membership_plans`.
+   - Giao dịch thu ngân `public.payment_transactions` ghi nhận thanh toán tiền mặt/chuyển khoản/POS với `amount BIGINT` VND và mã chống trùng lặp `idempotency_key`, bảo đảm tính toàn vẹn kế toán 100%.
+
+---
+
 ## CHƯƠNG 2: MÔ HÌNH VẬN HÀNH & 8 QUY TRÌNH NGHIỆP VỤ END-TO-END
 
 > **Nguyên tắc biên soạn:** Phân tách rõ ràng giữa **Nguyên tắc nghiệp vụ (Business Rules)** và **Chi tiết triển khai kỹ thuật**. Chương này tập trung vào luồng thao tác, tác nhân, điều kiện kiểm tra nghiệp vụ và kết quả vận hành. Chi tiết về câu lệnh SQL, DDL bảng, định nghĩa hàm RLS helper, Partial Index, RPC và tham số kỹ thuật được trích xuất và tham chiếu sang các tài liệu chuyên biệt: [`docs/supabase-schema.md`](./supabase-schema.md), [`docs/baocao.md`](./baocao.md), và [`docs/risks-decisions.md`](./risks-decisions.md). Mọi quy tắc nghiệp vụ chưa được chủ dự án phê duyệt chính thức đều được đánh dấu tường minh là `[PROPOSED]` hoặc `[UNDECIDED]`.
