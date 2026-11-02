@@ -12,11 +12,11 @@
 
 - **Current Architecture Version:** v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)
 - **Current Phase:** P02 — Admin Web Shell v2.0, Branches, Plans & Staff Management
-- **Current Active Task:** P02-T01 (Nâng cấp Dashboard Layout & Sidebar 7 phân hệ)
+- **Current Active Task:** P02-T02 (Nâng cấp Quản lý Chi nhánh: Search, Filter, Edit & Status Toggle)
 - **Task Status:** IN_REVIEW
 - **Active Git Branch:** `feat/p02-admin-erp-foundation`
-- **Last Completed Task:** P01-T02 (Seed Data & Helper RPCs v2.0)
-- **Next Scheduled Task:** P02-T02 (Nâng cấp Quản lý Chi nhánh: Search, Filter, Edit & Status Toggle)
+- **Last Completed Task:** P02-T01 (Nâng cấp Dashboard Layout & Sidebar 7 phân hệ)
+- **Next Scheduled Task:** P02-T03 (Xây dựng Quản lý Gói tập: CRUD Plans & Scopes)
 - **Last Updated:** 02/11/2026
 
 ---
@@ -81,7 +81,7 @@
 - [x] **P02-T01** `[Track: GM]` — **Nâng cấp Dashboard Layout & Sidebar 7 phân hệ**:
   - Thiết kế Sidebar 7 module chuẩn ERP: Tổng quan, Hội viên & POS, Gói tập, Chi nhánh, Nhân sự & PT, Điểm danh, Trạm xếp bài tập.
   - Header tích hợp chọn nhanh Chi nhánh (Branch Switcher) và nút Quick Actions ("Đăng ký hội viên", "Check-in nhanh").
-- [ ] **P02-T02** `[Track: GM]` — **Nâng cấp Quản lý Chi nhánh (`Branches`)**:
+- [x] **P02-T02** `[Track: GM]` — **Nâng cấp Quản lý Chi nhánh (`Branches`)**:
   - Danh sách chi nhánh dạng bảng/thẻ với tìm kiếm, lọc trạng thái, form tạo mới và chỉnh sửa thông tin/đổi trạng thái (active/suspended/archived).
 - [ ] **P02-T03** `[Track: GM]` — **Xây dựng Quản lý Gói tập (`Membership Plans`)**:
   - Quản lý danh mục gói tập phòng gym (Gym tiêu chuẩn, PT 1 kèm 1, Combo).
@@ -930,5 +930,29 @@
 - **Kết quả kiểm tra Quality Gates:**
   - `npx.cmd tsc --project apps/mobile/tsconfig.json --noEmit`: 0 errors.
   - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (12 routes tĩnh/động tối ưu, compiled thành công).
+  - `npm.cmd run lint`: 0 errors.
+  - `npm.cmd test`: 13 test suites passed, 54 tests passed.
+
+### 2026-11-02 — Nâng cấp Toàn diện Quản lý Chi nhánh: Tìm kiếm, Bộ lọc & Chỉnh sửa (P02-T02: feat/p02-admin-erp-foundation)
+
+- **Mục tiêu:** Nâng cấp toàn diện phân hệ Quản lý Chi nhánh cơ sở (`/dashboard/branches`) từ chế độ xem tĩnh sang giao diện quản trị động: tìm kiếm thời gian thực, lọc theo 4 trạng thái, hiển thị số lượng nhân sự/hội viên trực thuộc, đổi trạng thái nhanh (Active/Suspended) và trang form chỉnh sửa chi nhánh an toàn.
+- **Files đã tạo mới & cập nhật:**
+  - `apps/admin-web/src/app/dashboard/branches/actions.ts`:
+    1. Bổ sung `BranchWithStats` và cập nhật `getBranches()` để truy vấn song song số lượng nhân sự active (`gym_staff`) và số lượng hội viên đăng ký (`gym_members`) theo từng chi nhánh.
+    2. Bổ sung `getBranchById(branchId)` truy vấn chi tiết 1 cơ sở.
+    3. Bổ sung `updateBranch(branchId, formData)` cập nhật tên, slug, phone, address, status qua RPC `rpc_manage_branch` (với fallback direct update) kèm kiểm tra regex slug và revalidate path.
+    4. Bổ sung `updateBranchStatus(branchId, status)` đổi nhanh trạng thái hoạt động của cơ sở.
+  - `apps/admin-web/src/app/dashboard/branches/branch-table.tsx`: Tạo component Client tương tác cao: thanh tìm kiếm tức thì theo Tên/Slug/SĐT/Địa chỉ; 4 tab lọc trạng thái (Tất cả, Hoạt động, Tạm ngưng, Lưu trữ); hiển thị badge quy mô nhân sự & hội viên; cột thao tác gồm nút Chỉnh sửa và nút Đổi trạng thái nhanh kèm hộp thoại xác nhận.
+  - `apps/admin-web/src/app/dashboard/branches/page.tsx`: Tích hợp `BranchTable` và breadcrumb ERP v2.0.
+  - `apps/admin-web/src/app/dashboard/branches/[id]/edit/branch-edit-form.tsx`: Form chỉnh sửa chi nhánh với prefill dữ liệu, slug generator, chọn trạng thái và thông báo phản hồi inline.
+  - `apps/admin-web/src/app/dashboard/branches/[id]/edit/page.tsx`: Server component định tuyến động với xử lý `params` Promise Next.js 15 và kiểm tra 404 khi không tìm thấy cơ sở.
+  - `docs/mindmap.md`: Cập nhật con trỏ `## 0` sang Task P02-T02 IN_REVIEW, đánh dấu `[x] P02-T02`, ghi nhận Work Log 02/11/2026.
+- **Logic chính đã triển khai:**
+  1. Hỗ trợ đa dạng phương thức tìm kiếm và lọc danh sách chi nhánh mượt mà trên client mà không gây tải lại toàn trang.
+  2. Tích hợp đầy đủ luồng chỉnh sửa dữ liệu và chuyển trạng thái cơ sở phòng tập tuân thủ cơ chế bảo mật RLS và RPC gateway của hệ thống.
+  3. Hoàn thiện báo cáo thống kê quy mô cơ sở (số lượng nhân sự & hội viên) ngay trên từng dòng danh sách.
+- **Kết quả kiểm tra Quality Gates:**
+  - `npx.cmd tsc --project apps/mobile/tsconfig.json --noEmit`: 0 errors.
+  - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (13 routes tĩnh/động tối ưu, compiled thành công).
   - `npm.cmd run lint`: 0 errors.
   - `npm.cmd test`: 13 test suites passed, 54 tests passed.
