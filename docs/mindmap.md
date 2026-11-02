@@ -12,11 +12,11 @@
 
 - **Current Architecture Version:** v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)
 - **Current Phase:** P02 — Admin Web Shell v2.0, Branches, Plans & Staff Management
-- **Current Active Task:** P02-T02 (Nâng cấp Quản lý Chi nhánh: Search, Filter, Edit & Status Toggle)
+- **Current Active Task:** P02-T03 (Đại tu Giao diện Enterprise & CRUD Gói tập Plans)
 - **Task Status:** IN_REVIEW
 - **Active Git Branch:** `feat/p02-admin-erp-foundation`
-- **Last Completed Task:** P02-T01 (Nâng cấp Dashboard Layout & Sidebar 7 phân hệ)
-- **Next Scheduled Task:** P02-T03 (Xây dựng Quản lý Gói tập: CRUD Plans & Scopes)
+- **Last Completed Task:** P02-T02 (Nâng cấp Quản lý Chi nhánh: Search, Filter, Edit & Status Toggle)
+- **Next Scheduled Task:** P02-T04 (Xây dựng Quản lý Nhân sự & Huấn luyện viên PT: Staff Management)
 - **Last Updated:** 02/11/2026
 
 ---
@@ -83,7 +83,7 @@
   - Header tích hợp chọn nhanh Chi nhánh (Branch Switcher) và nút Quick Actions ("Đăng ký hội viên", "Check-in nhanh").
 - [x] **P02-T02** `[Track: GM]` — **Nâng cấp Quản lý Chi nhánh (`Branches`)**:
   - Danh sách chi nhánh dạng bảng/thẻ với tìm kiếm, lọc trạng thái, form tạo mới và chỉnh sửa thông tin/đổi trạng thái (active/suspended/archived).
-- [ ] **P02-T03** `[Track: GM]` — **Xây dựng Quản lý Gói tập (`Membership Plans`)**:
+- [x] **P02-T03** `[Track: GM]` — **Xây dựng Quản lý Gói tập (`Membership Plans`)**:
   - Quản lý danh mục gói tập phòng gym (Gym tiêu chuẩn, PT 1 kèm 1, Combo).
   - Form tạo mới và chỉnh sửa: giá `BIGINT` VND, thời hạn ngày, số buổi tập, phạm vi áp dụng (toàn chuỗi / chi nhánh cụ thể).
 - [ ] **P02-T04** `[Track: GM]` — **Xây dựng Quản lý Nhân sự & Huấn Luyện Viên (`Staff & Trainers`)**:
@@ -954,5 +954,31 @@
 - **Kết quả kiểm tra Quality Gates:**
   - `npx.cmd tsc --project apps/mobile/tsconfig.json --noEmit`: 0 errors.
   - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (13 routes tĩnh/động tối ưu, compiled thành công).
+  - `npm.cmd run lint`: 0 errors.
+  - `npm.cmd test`: 13 test suites passed, 54 tests passed.
+
+### 2026-11-02 — Đại tu Giao diện Enterprise & Xây dựng Quản lý Gói tập Plans (P02-T03: feat/p02-admin-erp-foundation)
+
+- **Mục tiêu:** Cài đặt thư viện `lucide-react` cho phân hệ `@gym-tracker/admin-web`, thực hiện quy tắc Zero-Emoji và nâng cấp toàn bộ hệ thống giao diện theo chuẩn Enterprise SaaS (Devias Kit Pro & Shadcn UI style), khắc phục lỗi chuỗi LaTeX thô `($\rightarrow$)`, sửa lỗi nút Next.js DevTools che khuất thông tin chân Sidebar; đồng thời xây dựng hoàn chỉnh phân hệ Quản lý Gói tập & Bảng giá (`/dashboard/plans`).
+- **Files đã tạo mới & cập nhật:**
+  - `apps/admin-web/package.json` & `package-lock.json`: Cài đặt gói `lucide-react` (^1.66.0).
+  - `apps/admin-web/src/app/dashboard/layout.tsx`: Đại tu khung điều hành: Topbar Header `h-14` với nút Điểm danh nhanh (`ScanLine`) và Đăng ký Hội viên (`UserPlus`); Sidebar tối màu Devias `bg-slate-950`, chân Sidebar thêm khoảng đệm `pb-16` không bị nút Next.js DevTools che khuất; tích hợp icon Đăng xuất `LogOut`.
+  - `apps/admin-web/src/app/dashboard/sidebar-nav.tsx`: Thay toàn bộ icon SVG/Emoji bằng `lucide-react` (`LayoutDashboard`, `ScanLine`, `Users`, `CreditCard`, `Dumbbell`, `Building2`, `ShieldCheck`, `Settings`); hiệu ứng active item `bg-indigo-600/15 text-indigo-400 font-semibold ring-1 ring-inset ring-indigo-500/30`.
+  - `apps/admin-web/src/app/dashboard/page.tsx`: Xóa bỏ thẻ banner "Xin chào, admin! 👋" cồng kềnh; chuẩn hóa Page Header không đóng hộp trên nền trang; tái thiết kế 4 KPI Cards theo chuẩn tài chính Stripe/Devias (`tabular-nums`, icon trong hộp `w-9 h-9`); xóa bỏ 100% Emoji.
+  - `apps/admin-web/src/app/dashboard/workouts/page.tsx`: Xóa triệt để lỗi chuỗi LaTeX thô `($\rightarrow$)`, thay bằng `ArrowRight` và mũi tên trực quan; loại bỏ hoàn toàn Emoji `🏋️`.
+  - `apps/admin-web/src/app/dashboard/check-in/page.tsx`, `staff/page.tsx`, `settings/page.tsx`: Chuẩn hóa Page Header không đóng hộp, thay thế toàn bộ emoji `⚡`, `👥`, `⚙️` bằng icon Lucide tương ứng.
+  - `apps/admin-web/src/app/dashboard/branches/*` (`page.tsx`, `branch-table.tsx`, `create/page.tsx`, `[id]/edit/*`): Chuẩn hóa Page Header, xóa sạch toàn bộ emoji (`🏢`, `👥`, `💪`, `📞`, `📍`, `⚠️`, `🟢`, `🟡`, `⚪`), thay thế bằng các component Lucide chuẩn.
+  - `apps/admin-web/src/app/dashboard/members/*` (`page.tsx`, `create-form.tsx`): Xóa sạch emoji `⚠️`, `👤`, `👥`, `🎫`.
+  - `apps/admin-web/src/app/dashboard/plans/actions.ts`: Xây dựng đầy đủ CRUD Server Actions: `getMembershipPlans()` kèm thống kê số thẻ active, `getMembershipPlanById()`, `createMembershipPlan()` (hỗ trợ `fixed_period`, `session_pack`, `recurring` kèm cơ chế tự động mapping fallback cho constraint DB), `updateMembershipPlan()` và `togglePlanStatus()`.
+  - `apps/admin-web/src/app/dashboard/plans/plan-table.tsx`: Giao diện bảng gói tập thông minh: 3 thẻ tóm tắt nhanh, thanh tìm kiếm thời gian thực, các tab lọc phân loại (`Tất cả`, `Thẻ Thời Hạn`, `Gói Buổi PT`, `Định Kỳ`), lọc trạng thái mở bán, hiển thị đơn giá VNĐ định dạng chuẩn, số buổi, phạm vi chi nhánh, số hội viên đang dùng và nút thao tác nhanh.
+  - `apps/admin-web/src/app/dashboard/plans/page.tsx`: Trang danh mục gói tập chuẩn Enterprise.
+  - `apps/admin-web/src/app/dashboard/plans/plan-form.tsx`: Form nhập liệu 2 cột thông minh: chọn nhanh thời hạn (`30 ngày`, `90 ngày`, `180 ngày`, `365 ngày`), nổi bật hạn mức buổi tập khi chọn Gói PT, và Live Pricing Card Preview thời gian thực chuẩn POS quầy tiếp tân.
+  - `apps/admin-web/src/app/dashboard/plans/create/page.tsx` & `[id]/edit/page.tsx`: Tuyến đường tạo mới và chỉnh sửa gói tập tương thích Next.js 15 `await params`.
+  - `docs/design-system.md`: Bổ sung mục 3 quy chuẩn Admin Web Enterprise Design System v2.0 (Zero-Emoji, Lucide React, Devias Shell, Page Header không đóng hộp).
+  - `docs/mindmap.md`: Cập nhật con trỏ trạng thái sang P02-T03 IN_REVIEW, đánh dấu `[x] P02-T03` và ghi nhận Work Log chi tiết.
+- **Kết quả kiểm tra Quality Gates:**
+  - `node scratch/scan_emojis.js`: 0 emojis, 0 unrendered LaTeX strings.
+  - `npx.cmd tsc --project apps/mobile/tsconfig.json --noEmit`: 0 errors.
+  - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (14 routes tĩnh/động tối ưu, compiled thành công).
   - `npm.cmd run lint`: 0 errors.
   - `npm.cmd test`: 13 test suites passed, 54 tests passed.

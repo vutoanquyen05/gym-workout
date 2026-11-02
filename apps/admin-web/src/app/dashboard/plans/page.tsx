@@ -1,66 +1,85 @@
 import React from 'react';
 import Link from 'next/link';
+import { getMembershipPlans } from './actions';
+import { PlanTable } from './plan-table';
+import { CreditCard, Plus, AlertTriangle } from 'lucide-react';
 
-export default function PlansPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function PlansPage() {
+  const { data: plans, error } = await getMembershipPlans();
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Breadcrumb & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-2xs">
+    <div className="max-w-[1600px] mx-auto px-6 py-6 space-y-6">
+      {/* Enterprise Page Header (Không đóng hộp) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
-            <Link href="/dashboard" className="hover:text-blue-600 transition-colors">
-              Bảng điều khiển
+          <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
+            <Link href="/dashboard" className="hover:text-indigo-600 transition-colors">
+              Tổng quan
             </Link>
             <span>/</span>
-            <span className="text-slate-700 font-medium">Gói tập & Bảng giá</span>
+            <span className="font-medium text-slate-700">Dịch vụ & Giáo án</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <span>📋 Quản Lý Gói Tập & Bảng Giá</span>
-            <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-              Phase P02-T03
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+              Quản Lý Gói Tập & Bảng Giá
+            </h1>
+            <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+              Membership Plans
             </span>
-          </h1>
-          <p className="text-slate-600 text-xs sm:text-sm mt-1">
-            Quản trị danh mục gói tập phòng gym (Gym tiêu chuẩn, PT 1 kèm 1, Combo) và chính sách giá VND.
+          </div>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Cấu hình bảng giá dịch vụ phòng gym: Thẻ hội viên theo thời hạn, Gói buổi huấn luyện PT và gói định kỳ.
           </p>
         </div>
-        <div>
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
-          >
-            ← Về Tổng quan
-          </Link>
-        </div>
+
+        <Link
+          href="/dashboard/plans/create"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs self-start sm:self-center"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>Tạo gói tập mới</span>
+        </Link>
       </div>
 
-      {/* Feature Preview Card */}
-      <div className="bg-white rounded-xl border border-slate-200 p-8 shadow-2xs text-center space-y-4">
-        <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-3xl mx-auto border border-blue-200">
-          📋
+      {/* Thông báo lỗi nếu có */}
+      {error && (
+        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs sm:text-sm flex items-start gap-3">
+          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <span className="font-semibold block">Thông báo kết nối Supabase:</span>
+            <span>{error}</span>
+          </div>
         </div>
-        <div className="max-w-md mx-auto space-y-2">
-          <h2 className="text-lg font-bold text-slate-900">
-            Danh Mục Gói Tập & Phân Loại v2.0
+      )}
+
+      {/* Danh sách Gói tập hoặc Empty State */}
+      {plans && plans.length > 0 ? (
+        <PlanTable initialPlans={plans} />
+      ) : (
+        /* Empty State */
+        <div className="bg-white rounded-xl p-12 text-center border border-slate-200/80 shadow-xs">
+          <div className="w-14 h-14 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-4 border border-slate-200">
+            <CreditCard className="w-7 h-7 text-slate-400" />
+          </div>
+          <h2 className="text-base font-semibold text-slate-900">
+            Chưa có gói tập nào trong danh mục
           </h2>
-          <p className="text-xs text-slate-500 leading-relaxed">
-            Schema bảng `membership_plans` đã mở rộng hỗ trợ `plan_type` (fixed_period, session_pack, recurring) và giá tiền VND chuẩn hóa. Giao diện CRUD toàn diện sẽ được hoàn thiện tại Task P02-T03.
+          <p className="text-xs text-slate-500 max-w-md mx-auto mt-2 leading-relaxed">
+            Hãy khởi tạo gói tập đầu tiên (Gói tháng, Gói năm hoặc Gói PT cá nhân) để bắt đầu bán thẻ và phục vụ hội viên tại quầy.
           </p>
+          <div className="mt-6">
+            <Link
+              href="/dashboard/plans/create"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Tạo gói tập đầu tiên</span>
+            </Link>
+          </div>
         </div>
-
-        <div className="pt-4 border-t border-slate-100 flex flex-wrap justify-center gap-3">
-          <span className="px-2.5 py-1 text-xs rounded-md bg-slate-50 border border-slate-200 text-slate-600">
-            ✓ Gói Tháng (fixed_period)
-          </span>
-          <span className="px-2.5 py-1 text-xs rounded-md bg-slate-50 border border-slate-200 text-slate-600">
-            ✓ Gói Buổi PT (session_pack)
-          </span>
-          <span className="px-2.5 py-1 text-xs rounded-md bg-slate-50 border border-slate-200 text-slate-600">
-            ✓ Giá BIGINT VND Chuẩn hóa
-          </span>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
-

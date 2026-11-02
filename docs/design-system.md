@@ -300,3 +300,30 @@ Triển khai palette, theme, tokens và component UI dùng chung theo đặc t�
 - `src/hooks/use-color-scheme.ts`: Đọc `useColorScheme` của React Native cho iOS/Android.
 - `src/hooks/use-color-scheme.web.ts`: Dùng `useSyncExternalStore` để giữ render đầu tiên ở SSR là Light theme nhằm chống mismatch hydration; sau hydration tự động đồng bộ theo theme của trình duyệt.
 - `src/shared/design-system/components/bottom-navigation.tsx`: Triển khai thanh điều hướng 5 tab NativeTabs với tokenized icons, màu sắc chuẩn và nhãn luôn hiển thị trên Android.
+
+---
+
+## 3. Admin Web Enterprise Design System v2.0 (Zero-Emoji & Devias / Shadcn Style)
+
+Quy chuẩn thiết kế giao diện phân hệ Admin & PT Web Portal (`apps/admin-web`) được nâng cấp toàn diện theo phong cách Enterprise SaaS (tương đồng Devias Kit Pro và Shadcn UI), tối ưu hóa trải nghiệm quản trị đa cơ sở và loại bỏ triệt để các yếu tố nghiệp dư.
+
+### 3.1. Quy tắc Thép: Zero-Emoji & Biểu Tượng Chuẩn
+- **Tuyệt đối không sử dụng Emoji:** Cấm mọi ký tự Emoji hệ điều hành (`👋`, `⚡`, `💰`, `📋`, `🏋️`, `👥`, `🏢`, `⚙️`, `💪`, `⚠️`...) trong toàn bộ mã nguồn `apps/admin-web`.
+- **Thư viện Biểu tượng Thống nhất:** Sử dụng 100% component icon từ `lucide-react` (`className="w-4 h-4"` hoặc `"w-5 h-5"`, `strokeWidth={1.75}` hoặc `strokeWidth={2}`).
+- **Cấm LaTeX thô trong JSX:** Không sử dụng cú pháp LaTeX (ví dụ: `$\rightarrow$`, `$\to$`) trong các chuỗi văn bản JSX; thay thế bằng các icon điều hướng chuẩn (`<ArrowRight className="w-3 h-3" />`) hoặc mũi tên hiển thị trực quan.
+
+### 3.2. Bảng Màu & Thành Phần Giao Diện (Enterprise Palette)
+- **Nền Toàn Trang (App Background):** `bg-slate-50/70` sạch sẽ, tạo độ tương phản nhẹ với các khối thẻ trắng.
+- **Thanh Điều Hướng Sidebar (Devias Dark Shell):**
+  - Màu nền: `bg-slate-950 text-slate-300 border-r border-slate-800/80`.
+  - Mục được chọn (Active Item): `bg-indigo-600/15 text-indigo-400 font-semibold ring-1 ring-inset ring-indigo-500/30`.
+  - Khoảng đệm chân Sidebar: Thêm `pb-16` để tránh bị nút Next.js DevTools che khuất phiên bản và email quản trị viên.
+- **Thanh Tác Vụ Đỉnh Trang (Quick-Action Topbar):** Chiều cao cố định `h-14 bg-white border-b border-slate-200 px-6`, tích hợp nút Điểm danh nhanh (`ScanLine`) và Đăng ký Hội viên (`UserPlus` với màu `bg-indigo-600 text-white`).
+- **Thẻ Nội Dung (Enterprise Cards):** `bg-white rounded-xl border border-slate-200/80 shadow-xs`.
+
+### 3.3. Cấu Trúc Tiêu Đề Trang (Page Header Không Đóng Hộp)
+- Tiêu đề của mọi trang trong `/dashboard/*` đặt trực tiếp trên nền trang (`bg-slate-50/70`), tuyệt đối không bọc trong thẻ Card trắng riêng biệt (`rounded-2xl`).
+- Bố cục gồm 2 phần ngang:
+  - **Bên trái:** Breadcrumb điều hướng nhỏ (`text-xs text-slate-500`) + Tiêu đề trang (`text-2xl font-semibold tracking-tight text-slate-900`) + Dòng mô tả phạm vi (`text-sm text-slate-500 mt-0.5`).
+  - **Bên phải:** Nhóm nút hành động chính (Primary / Outline Actions).
+- **Khung chứa trang:** Tiêu chuẩn `max-w-[1600px] mx-auto px-6 py-6 space-y-6` nhằm tận dụng tối đa không gian màn hình rộng và hiển thị bảng dữ liệu chuyên nghiệp.
