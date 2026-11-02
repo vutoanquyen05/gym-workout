@@ -821,6 +821,50 @@ Nhằm đáp ứng yêu cầu vận hành thực tế của phòng gym chuyên n
 
 ---
 
+### 3. Bộ 3 Hàm RPCs Nghiệp vụ v2.0 & Cơ chế Đồng bộ Auth User
+
+Nhằm bảo đảm tính nguyên tử trong các giao dịch quầy tiếp tân, điểm danh và xếp bài tập, tệp migration thứ 10 (`supabase/migrations/20261102010000_v2_rpcs_and_seed_catalog.sql`) bổ sung các hàm Transactional RPCs và cơ chế tự động hóa:
+
+#### A. Đồng bộ Tài khoản Tự động (Auth Synchronization Trigger)
+- **Hàm `public.handle_new_auth_user()` & Trigger `on_auth_user_created`:**
+  - Lắng nghe sự kiện `AFTER INSERT ON auth.users`.
+  - Tự động sao chép tài khoản mới tạo sang bảng `public.users (id, display_name)` với chính sách an toàn `ON CONFLICT (id) DO NOTHING`.
+  - Giải quyết triệt để lỗi vi phạm khóa ngoại (`gym_members_linked_user_id_fkey`), bảo đảm mọi liên kết hội viên luôn toàn vẹn dữ liệu.
+
+#### B. Hàm RPC Đăng ký Hội viên & Thu ngân tại Quầy (`public.rpc_register_member_with_plan`)
+- **Mục tiêu:** Cho phép lễ tân/quản lý tiếp nhận khách hàng walk-in chỉ trong 1 thao tác duy nhất.
+- **Quy trình nguyên tử trong 1 Transaction:**
+  1. Kiểm tra quyền của caller (`is_gym_owner` hoặc `is_active_staff`).
+  2. Tự động sinh mã thẻ định danh duy nhất dạng `MEM-XXXXXX` (không trùng lặp trong gym).
+  3. Tạo hồ sơ hội viên trong `public.gym_members` (độc lập 100% với Auth).
+  4. Nếu có chọn gói tập (`p_plan_id`): Tự động tạo bản ghi thẻ `public.memberships` và kích hoạt ngay.
+  5. Tự động sinh mã hóa đơn `INV-YYMMDD-XXXX` và ghi nhận khoản thu vào `public.payment_transactions`.
+  6. Tự động gán `processed_by_staff_id` theo hồ sơ nhân sự của caller (hoặc `NULL` nếu là Owner chưa có trong `gym_staff`).
+
+#### C. Hàm RPC Quầy Điểm danh Thông minh (`public.rpc_check_in_member`)
+- **Mục tiêu:** Xử lý quầy check-in tốc độ cao, hỗ trợ đa phương thức tra cứu (UUID, Mã thẻ `MEM-XXXXXX` hoặc Số điện thoại).
+- **Quy trình kiểm tra đa tầng:**
+  1. Tra cứu hội viên theo mã thẻ/SĐT/UUID; từ chối nếu hồ sơ mang trạng thái `inactive` hoặc `suspended`.
+  2. Xác định chi nhánh điểm danh (`branch_id` truyền vào hoặc `home_branch_id` của hội viên).
+  3. Kiểm tra hợp đồng thẻ `memberships`: Xác minh `status = 'active'`, trong khoảng thời hạn `start_date` - `end_date`, và số buổi còn lại `remaining_sessions > 0`.
+  4. Nếu là gói có giới hạn số buổi (`session_pack`): Tự động trừ 1 buổi; nếu hết buổi thì tự chuyển trạng thái thẻ sang `expired`.
+  5. Ghi nhật ký vào `public.attendance_logs` và trả về kết quả JSONB chi tiết gồm tên hội viên, mã thẻ, số buổi/hạn dùng còn lại.
+
+#### D. Hàm RPC Phân công Giáo án Mẫu 3 Tầng (`public.rpc_assign_program_template`)
+- **Mục tiêu:** Huấn luyện viên (PT) gán một giáo án mẫu (`is_template = true`) cho học viên cá nhân chỉ bằng một lệnh RPC.
+- **Quy trình sao chép sâu (Deep Clone):**
+  1. Xác minh giáo án mẫu thuộc cùng phòng gym của hội viên.
+  2. Nhân bản bản ghi `workout_programs` với `is_template = false`, gán `assigned_member_id = p_member_id` và `created_by_staff_id = p_staff_id`.
+  3. Sao chép toàn bộ các ngày tập (`program_days`) tương ứng.
+  4. Sao chép toàn bộ chi tiết bài tập (`program_day_exercises`: sets, reps text, rpe_target, rest, superset, ghi chú PT).
+
+#### E. Danh mục Dữ liệu Mẫu Hệ thống (Seed Data)
+- **12 Bài tập Hệ thống Chuẩn (`scope = 'system'`):** Bench Press, Incline Dumbbell Press, Lat Pulldown, Seated Cable Row, Barbell Back Squat, Romanian Deadlift, Leg Press, Overhead Shoulder Press, Lateral Raise, Barbell Bicep Curl, Tricep Pushdown, Plank.
+- **3 Gói tập Mẫu Cơ bản:** Gói Hội Viên 1 Tháng (500.000 VND), Gói VIP 6 Tháng (2.500.000 VND), Gói PT 1-Kèm-1 12 Buổi (4.800.000 VND).
+- **1 Giáo án Mẫu 3 Tầng Chuẩn:** "Giáo án Tăng Cơ - Giảm Mỡ Toàn Thân (Push - Pull - Legs)" gồm 3 ngày tập và 12 bài tập chỉ định kèm hướng dẫn kỹ thuật chi tiết.
+
+---
+
 ### Lộ trình migration tổng thể cho gym management
 
 | Nhóm | Nội dung | Trạng thái | Điều kiện tiên quyết |
@@ -833,6 +877,7 @@ Nhằm đáp ứng yêu cầu vận hành thực tế của phòng gym chuyên n
 | **GM-5** | `payment_transactions` & idempotency | Thiết kế tổng quan | Sau GM-3 & chốt OD-05 |
 | **GM-6** | RPC Mutation Gateway: GM-1 Core RPCs (`rpc_create_gym`, `rpc_manage_branch`, `rpc_revoke_or_update_staff`) | **Đã tạo migration file** (`20261025160000_gm1_mutation_rpcs.sql`) | Hoàn thành Phase 1 Core |
 | **v2.0 CRM & 3-Tier** | CRM Hội viên 360° (`gym_members`), Thu ngân (`payment_transactions`), Xếp bài tập 3 tầng (`workout_programs`, `program_days`, `program_day_exercises`), InBody (`body_measurements`), mở rộng `gym_staff`, `memberships`, `attendance_logs`, `exercises` | **Đã tạo migration file** (`20261102000000_v2_crm_360_and_3tier_workout_schema.sql`) | Đóng Phase P00, hoàn thành P01-T01 |
+| **v2.0 RPCs & Seed** | Mở rộng constraint `exercises`, trigger `handle_new_auth_user`, 3 RPCs v2.0 (`rpc_register_member_with_plan`, `rpc_check_in_member`, `rpc_assign_program_template`), 12 bài tập chuẩn, 3 gói tập & giáo án mẫu 3 tầng | **Đã tạo migration file** (`20261102010000_v2_rpcs_and_seed_catalog.sql`) | Hoàn thành P01-T02 |
 
 > **Cam kết an toàn:** Migration GM-1, GM-1 Mutation RPCs, GM-2 Core và GM-2 Patch được tạo sẵn dưới dạng file migration SQL độc lập (`supabase/migrations/`), tuân thủ Zero Hard Delete `OD-02=A`, Fail-Closed và RPC Gateway `OD-04`. Tuyệt đối không tự ý áp dụng hay kết nối Supabase Cloud khi chưa có phê duyệt runtime.
 
@@ -849,3 +894,4 @@ Nhằm đáp ứng yêu cầu vận hành thực tế của phòng gym chuyên n
 | 2026-10-26 | Hoàn tất migration file GM-1 Mutation RPCs (`20261025160000_gm1_mutation_rpcs.sql`): `rpc_create_gym`, `rpc_manage_branch`, `rpc_revoke_or_update_staff` (SECURITY DEFINER, pg_advisory_xact_lock, Mutual Exclusivity OD-02=A); tạo module `src/modules/gym-management` và bộ unit test `__tests__/gm1-service-test.ts`. | Thực thi Phase 1 Core theo chỉ đạo Owner. | 3 RPCs hoàn tất, 9 test suites passed. |
 | 2026-10-31 | Tạo migration file GM-2 Patch (`20261031000000_gm2_admin_member_policies_and_user_fields.sql`): bổ sung cột `phone`, `address` bảng `users`, bổ sung policy INSERT/UPDATE cho `memberships` và `membership_plans`, siết chặt bảo mật `users_update_policy` (chống `USING (true)`). | Đồng bộ schema drift và vá lỗi bảo mật RLS phục vụ tính năng quản lý hội viên Admin Web. | Migration GM-2 Patch hoàn tất, RLS an toàn. |
 | 2026-11-02 | Hoàn tất migration file v2.0 (`20261102000000_v2_crm_360_and_3tier_workout_schema.sql`): CRM Hội viên 360° (`gym_members`), Thu ngân (`payment_transactions`), Trạm xếp bài tập 3 tầng (`workout_programs`, `program_days`, `program_day_exercises`), Đo lường InBody (`body_measurements`), mở rộng `gym_staff`, `memberships`, `attendance_logs`, `exercises`. | Thực thi Task P01-T01 nâng cấp kiến trúc Database v2.0 theo OD-05, OD-07, OD-08. | File migration thứ 9 hoàn tất, RLS fail-closed siết chặt, backfill dữ liệu an toàn. |
+| 2026-11-02 | Hoàn tất migration file thứ 10 (`20261102010000_v2_rpcs_and_seed_catalog.sql`): trigger tự động đồng bộ `auth.users -> public.users`, 3 hàm RPCs v2.0 (`rpc_register_member_with_plan`, `rpc_check_in_member`, `rpc_assign_program_template`), seed 12 bài tập chuẩn, 3 gói tập và giáo án mẫu; vá lỗi FK backfill trong file thứ 9. | Thực thi Task P01-T02 nâng cấp RPCs giao dịch và danh mục dữ liệu v2.0. | Migration thứ 10 hoàn tất, 3 RPCs biên soạn thành công, catalog seed idempotent an toàn. |

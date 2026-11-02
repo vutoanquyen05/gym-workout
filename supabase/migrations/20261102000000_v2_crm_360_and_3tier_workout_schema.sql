@@ -717,8 +717,14 @@ USING (
 );
 
 -- -----------------------------------------------------------------------------
--- 5. KHỐI BACKFILL DỮ LIỆU AN TOÀN CHO HỘI VIÊN HIỆN CÓ
+-- 5. ĐỒNG BỘ AUTH.USERS & KHỐI BACKFILL DỮ LIỆU AN TOÀN CHO HỘI VIÊN HIỆN CÓ
 -- -----------------------------------------------------------------------------
+-- Đồng bộ tài khoản auth.users vào public.users để chống lỗi khóa ngoại linked_user_id_fkey
+INSERT INTO public.users (id, display_name)
+SELECT au.id, coalesce(au.raw_user_meta_data ->> 'full_name', split_part(au.email, '@', 1), 'Hội viên')
+FROM auth.users au
+ON CONFLICT (id) DO NOTHING;
+
 DO $$
 DECLARE
   r RECORD;
@@ -729,7 +735,7 @@ DECLARE
   v_seq INT := 1000;
 BEGIN
   FOR r IN
-    SELECT m.id AS membership_id, m.gym_id, m.branch_id, m.user_id, u.display_name, u.phone
+    SELECT m.id AS membership_id, m.gym_id, m.branch_id, m.user_id, u.id AS valid_user_id, u.display_name, u.phone
     FROM public.memberships m
     LEFT JOIN public.users u ON u.id = m.user_id
     WHERE m.member_id IS NULL
@@ -744,12 +750,12 @@ BEGIN
     FROM public.gym_members
     WHERE gym_id = r.gym_id
       AND (
-        (r.user_id IS NOT NULL AND linked_user_id = r.user_id)
+        (r.valid_user_id IS NOT NULL AND linked_user_id = r.valid_user_id)
         OR phone = v_phone
       )
     LIMIT 1;
 
-    -- Nếu chưa có, tạo mới hồ sơ CRM
+    -- Nếu chưa có, tạo mới hồ sơ CRM (chỉ gán linked_user_id khi user thực sự tồn tại trong public.users)
     IF v_member_id IS NULL THEN
       INSERT INTO public.gym_members (
         gym_id,
@@ -762,7 +768,7 @@ BEGIN
       ) VALUES (
         r.gym_id,
         r.branch_id,
-        r.user_id,
+        r.valid_user_id,
         v_member_code,
         v_name,
         v_phone,
