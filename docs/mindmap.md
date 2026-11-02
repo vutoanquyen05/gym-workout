@@ -11,12 +11,12 @@
 ## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)
 
 - **Current Architecture Version:** v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)
-- **Current Phase:** P01 — Database v2.0 Refactoring
-- **Current Active Task:** P01-T02 (Seed Data & Helper RPCs v2.0)
+- **Current Phase:** P02 — Admin Web Shell v2.0, Branches, Plans & Staff Management
+- **Current Active Task:** P02-T01 (Nâng cấp Dashboard Layout & Sidebar 7 phân hệ)
 - **Task Status:** IN_REVIEW
-- **Active Git Branch:** `feat/p01-t01-schema-v2`
-- **Last Completed Task:** P01-T01 (Supabase Schema v2.0 Migration: CRM gym_members, payment_transactions & 3-Tier Workout Programming)
-- **Next Scheduled Task:** P02-T01 (Nâng cấp Dashboard Layout & Sidebar 7 phân hệ chuẩn ERP)
+- **Active Git Branch:** `feat/p02-admin-erp-foundation`
+- **Last Completed Task:** P01-T02 (Seed Data & Helper RPCs v2.0)
+- **Next Scheduled Task:** P02-T02 (Nâng cấp Quản lý Chi nhánh: Search, Filter, Edit & Status Toggle)
 - **Last Updated:** 02/11/2026
 
 ---
@@ -78,7 +78,7 @@
 ### PHASE P02 — ADMIN WEB SHELL V2.0, BRANCHES, PLANS & STAFF MANAGEMENT
 *Mục tiêu: Nâng cấp toàn diện giao diện Admin Web thành trung tâm điều hành phòng gym chuẩn ERP; quản lý chi nhánh, gói tập và nhân sự/PT.*
 
-- [ ] **P02-T01** `[Track: GM]` — **Nâng cấp Dashboard Layout & Sidebar 7 phân hệ**:
+- [x] **P02-T01** `[Track: GM]` — **Nâng cấp Dashboard Layout & Sidebar 7 phân hệ**:
   - Thiết kế Sidebar 7 module chuẩn ERP: Tổng quan, Hội viên & POS, Gói tập, Chi nhánh, Nhân sự & PT, Điểm danh, Trạm xếp bài tập.
   - Header tích hợp chọn nhanh Chi nhánh (Branch Switcher) và nút Quick Actions ("Đăng ký hội viên", "Check-in nhanh").
 - [ ] **P02-T02** `[Track: GM]` — **Nâng cấp Quản lý Chi nhánh (`Branches`)**:
@@ -908,5 +908,27 @@
 - **Kết quả kiểm tra Quality Gates:**
   - `npx.cmd tsc --project apps/mobile/tsconfig.json --noEmit`: 0 errors.
   - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (Next.js production build passed).
+  - `npm.cmd run lint`: 0 errors.
+  - `npm.cmd test`: 13 test suites passed, 54 tests passed.
+
+### 2026-11-02 — Đóng gói Phase P01 và Xây dựng Khung Điều hành Admin ERP Shell v2.0 & Live Dashboard (P02-T01: feat/p02-admin-erp-foundation)
+
+- **Mục tiêu:** Hợp nhất thành công toàn bộ Phase P01 (Database v2.0 Refactoring) vào nhánh `main`, khởi tạo nhánh mới `feat/p02-admin-erp-foundation`; tái thiết kế khung điều hành Admin Web (Sidebar 7 phân hệ, Header thao tác nhanh) và trang Tổng quan Live Dashboard kết nối trực tiếp dữ liệu Schema v2.0; tạo 4 trang khung (placeholders) loại bỏ nguy cơ 404 khi điều hướng.
+- **Files đã tạo mới & cập nhật:**
+  - `apps/admin-web/src/app/dashboard/sidebar-nav.tsx`: Nâng cấp điều hướng Sidebar 7 phân hệ phân chia theo 3 nhóm nghiệp vụ chuẩn ERP (Vận hành & Quầy lễ tân, Dịch vụ & Huấn luyện, Quản trị hệ thống) với icon SVG sắc nét, badge nổi bật (`Check-in`, `3-Tier`) và highlight trạng thái active chuẩn xác.
+  - `apps/admin-web/src/app/dashboard/layout.tsx`: Tự động đọc tên phòng gym từ bảng `public.gyms` hiển thị thương hiệu; tích hợp thanh Quick-Action Header với 2 nút thao tác nhanh (`⚡ Điểm danh nhanh` và `+ Đăng ký Hội viên`) kèm cụm tài khoản và nút Đăng xuất.
+  - `apps/admin-web/src/app/dashboard/page.tsx`: Tái thiết kế thành Command Center đa năng đọc song song dữ liệu thật từ Supabase: 4 thẻ KPI động (Tổng hội viên CRM & số đang tập, Thẻ tập hiệu lực & số sắp hết hạn trong 7 ngày, Doanh thu thu ngân VND, Hệ sinh thái Chi nhánh/Gói tập/Giáo án PT 3 tầng); bảng 5 hội viên CRM mới nhất (`member_code`, `full_name`, `phone`, `status`, `joined_at`) và khối lối tắt nghiệp vụ lễ tân/PT.
+  - `apps/admin-web/src/app/dashboard/check-in/page.tsx`: Tạo trang khung Quầy Điểm danh (Phase P04).
+  - `apps/admin-web/src/app/dashboard/plans/page.tsx`: Tạo trang khung Quản lý Gói tập & Bảng giá (Task P02-T03).
+  - `apps/admin-web/src/app/dashboard/workouts/page.tsx`: Tạo trang khung Trạm Giáo án PT (Phase P05).
+  - `apps/admin-web/src/app/dashboard/staff/page.tsx`: Tạo trang khung Quản lý Nhân sự & HLV (Task P02-T04).
+  - `docs/mindmap.md`: Cập nhật con trỏ `## 0` sang Phase P02 / Task P02-T01 IN_REVIEW, đánh dấu `[x] P02-T01`, ghi nhận Work Log 02/11/2026.
+- **Logic chính đã triển khai:**
+  1. Chuyển đổi toàn diện trải nghiệm người dùng từ Web Portal cơ bản sang Hệ điều hành phòng gym All-in-One ERP v2.0.
+  2. Kết nối trực tiếp dữ liệu thật giữa frontend Next.js 15 và PostgreSQL Schema v2.0, xử lý an toàn chống lỗi khi cơ sở dữ liệu trống.
+  3. Hoàn thiện hệ thống điều hướng toàn diện không có điểm chết (0 lỗi 404).
+- **Kết quả kiểm tra Quality Gates:**
+  - `npx.cmd tsc --project apps/mobile/tsconfig.json --noEmit`: 0 errors.
+  - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (12 routes tĩnh/động tối ưu, compiled thành công).
   - `npm.cmd run lint`: 0 errors.
   - `npm.cmd test`: 13 test suites passed, 54 tests passed.
