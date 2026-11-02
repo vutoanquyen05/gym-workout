@@ -11,12 +11,12 @@
 ## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)
 
 - **Current Architecture Version:** v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)
-- **Current Phase:** P02 — Admin Web Shell v2.0, Branches, Plans & Staff Management
-- **Current Active Task:** P02-T03 (Đại tu Giao diện Enterprise & CRUD Gói tập Plans)
+- **Current Phase:** P02 — Admin Web Shell v2.0, Branches, Plans & Staff Management (HOÀN TẤT 4/4 TASKS — SẴN SÀNG ĐÓNG GÓI)
+- **Current Active Task:** P02-T04 (Quản lý Nhân sự & Huấn luyện viên PT: Staff Management)
 - **Task Status:** IN_REVIEW
 - **Active Git Branch:** `feat/p02-admin-erp-foundation`
-- **Last Completed Task:** P02-T02 (Nâng cấp Quản lý Chi nhánh: Search, Filter, Edit & Status Toggle)
-- **Next Scheduled Task:** P02-T04 (Xây dựng Quản lý Nhân sự & Huấn luyện viên PT: Staff Management)
+- **Last Completed Task:** P02-T04 (Quản lý Nhân sự & Huấn luyện viên PT: Staff Management)
+- **Next Scheduled Task:** P03-T01 (CRM Member Directory 360° & Search/Filter)
 - **Last Updated:** 02/11/2026
 
 ---
@@ -86,7 +86,7 @@
 - [x] **P02-T03** `[Track: GM]` — **Xây dựng Quản lý Gói tập (`Membership Plans`)**:
   - Quản lý danh mục gói tập phòng gym (Gym tiêu chuẩn, PT 1 kèm 1, Combo).
   - Form tạo mới và chỉnh sửa: giá `BIGINT` VND, thời hạn ngày, số buổi tập, phạm vi áp dụng (toàn chuỗi / chi nhánh cụ thể).
-- [ ] **P02-T04** `[Track: GM]` — **Xây dựng Quản lý Nhân sự & Huấn Luyện Viên (`Staff & Trainers`)**:
+- [x] **P02-T04** `[Track: GM]` — **Xây dựng Quản lý Nhân sự & Huấn Luyện Viên (`Staff & Trainers`)**:
   - Danh sách nhân sự & huấn luyện viên cá nhân (PT), phân loại vai trò (manager, receptionist, trainer).
   - Form thêm nhân sự, gán chi nhánh công tác và quản lý trạng thái.
 
@@ -980,5 +980,34 @@
   - `node scratch/scan_emojis.js`: 0 emojis, 0 unrendered LaTeX strings.
   - `npx.cmd tsc --project apps/mobile/tsconfig.json --noEmit`: 0 errors.
   - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (14 routes tĩnh/động tối ưu, compiled thành công).
+  - `npm.cmd run lint`: 0 errors.
+  - `npm.cmd test`: 13 test suites passed, 54 tests passed.
+
+### 2026-11-03 — Hoàn Thành Phân Hệ Quản Lý Nhân Sự & PT (P02-T04: feat/p02-admin-erp-foundation)
+
+- **Mục tiêu:** Xây dựng hoàn chỉnh phân hệ Quản lý Nhân sự & Huấn luyện viên PT (`/dashboard/staff`), tạo migration thứ 11 gỡ bỏ ràng buộc `NOT NULL` trên `gym_staff.user_id`, cấp quyền RLS DELETE cho Owner, seed 2 Huấn luyện viên PT mẫu và 1 Lễ tân mẫu; hoàn tất toàn bộ 4/4 Tasks của Phase P02.
+- **Files đã tạo mới & cập nhật:**
+  - `supabase/migrations/20261102020000_v2_staff_profile_nullable_user_id.sql`: Migration thứ 11 bọc trong `BEGIN ... COMMIT`:
+    1. `ALTER TABLE public.gym_staff ALTER COLUMN user_id DROP NOT NULL;`
+    2. Cập nhật partial unique indexes `gym_staff_gym_user_null_branch_idx` và `gym_staff_gym_branch_user_idx` bổ sung `WHERE ... AND user_id IS NOT NULL`.
+    3. Thêm composite index `gym_staff_gym_role_status_idx` và `gym_staff_phone_idx`.
+    4. Cấp quyền & thiết lập policy RLS DELETE cho Gym Owner.
+    5. Khối DO block idempotent seed 2 PT mẫu (`Nguyễn Minh Quân`, `Lê Thảo Vy`) và 1 Lễ tân mẫu (`Trần Hoàng Yến`).
+  - `apps/admin-web/src/app/dashboard/staff/actions.ts`: Server Actions:
+    1. `getStaffMembers()`: Lấy danh sách nhân sự, map tên chi nhánh và thống kê số học viên đang phụ trách (`assigned_members_count`).
+    2. `getStaffById()`: Chi tiết nhân sự theo ID.
+    3. `getActiveBranchesForStaff()`: Danh sách chi nhánh hoạt động phục vụ form.
+    4. `createStaffMember()` & `updateStaffMember()`: Tạo và cập nhật hồ sơ nhân sự/PT không phụ thuộc Auth UID.
+    5. `updateStaffStatus()`: Đổi trạng thái nhanh (`active`, `suspended`, `revoked`).
+  - `apps/admin-web/src/app/dashboard/staff/staff-table.tsx`: Component bảng nhân sự chuyên nghiệp: 4 thẻ KPI nhanh, thanh tìm kiếm tức thời đa trường, tab lọc theo vai trò (`Huấn Luyện Viên PT`, `Lễ Tân`, `Quản Lý`), dropdown lọc theo chi nhánh, badge phân biệt màu sắc và các nút thao tác nhanh.
+  - `apps/admin-web/src/app/dashboard/staff/page.tsx`: Trang danh mục nhân sự chuẩn Enterprise với Page Header không đóng hộp.
+  - `apps/admin-web/src/app/dashboard/staff/staff-form.tsx`: Form 2 cột hiện đại: Cột trái nhập thông tin cá nhân, vai trò, chi nhánh, chip chọn nhanh chuyên môn và tiểu sử; Cột phải hiển thị Thẻ Hồ sơ Nhân sự/PT Xem trước (Live Staff Badge Preview).
+  - `apps/admin-web/src/app/dashboard/staff/create/page.tsx` & `[id]/edit/page.tsx`: Tuyến đường tạo mới và chỉnh sửa nhân sự tương thích Next.js 15 Server Components.
+  - `docs/supabase-schema.md`: Ghi nhận migration thứ 11 trong lộ trình GM và nhật ký chỉnh sửa.
+  - `docs/mindmap.md`: Cập nhật con trỏ trạng thái sang P02-T04 IN_REVIEW, đánh dấu `[x] P02-T04` và hoàn tất Phase P02.
+- **Kết quả kiểm tra Quality Gates:**
+  - `node scratch/scan_emojis.js`: 0 emojis, 0 unrendered LaTeX strings.
+  - `npx.cmd tsc --project apps/mobile/tsconfig.json --noEmit`: 0 errors.
+  - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (16 routes tĩnh/động tối ưu, compiled thành công).
   - `npm.cmd run lint`: 0 errors.
   - `npm.cmd test`: 13 test suites passed, 54 tests passed.
