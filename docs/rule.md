@@ -1,9 +1,12 @@
 # RULE.md — AI AGENT WORKING RULES (BỘ QUY TẮC THÉP)
 
-## 1. Quy tắc khởi động phiên làm việc & Ranh giới bắt buộc
+## 1. Quy tắc khởi động phiên làm việc & Ranh giới bắt buộc (Stateless Bootstrap Protocol)
 
-- Trước khi thực hiện bất kỳ công việc nào, AI Agent **BẮT BUỘC** đọc đầy đủ `docs/rule.md` và `docs/mindmap.md`.
-- Phải xác định chính xác Phase hiện tại, mục tiêu và task duy nhất cần thực thi.
+- **Giao thức Khởi động Không Trạng thái (Stateless Bootstrap):** Mọi AI Agent khi bắt đầu phiên làm việc mới (dù không có lịch sử trò chuyện) **BẮT BUỘC** thực hiện theo quy trình 4 bước:
+  1. Đọc đầy đủ `docs/rule.md` để nắm quy tắc làm việc, mô hình phân vai và mẫu báo cáo bắt buộc.
+  2. Đọc mục `## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)` ở ngay đầu tệp `docs/mindmap.md` để xác định chính xác: Phase hiện tại, Task ID cần thực thi, nhánh Git làm việc và hành động kỹ thuật kế tiếp.
+  3. Chạy `git status` và `git branch` để đối chiếu trạng thái kho lưu trữ thực tế với Pointer.
+  4. Sau khi hoàn thành Task, **BẮT BUỘC cập nhật lại mục `## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)`** trong `docs/mindmap.md` để phiên làm việc kế tiếp luôn tiếp quản chính xác tiến độ dự án.
 - Nếu thiếu file hoặc thông tin chưa rõ ràng, phải **DỪNG LẠI NGAY LẬP TỨC** và báo cáo Owner. Tuyệt đối không tự ý suy đoán hay bỏ qua quy tắc.
 
 ## 2. Cố định 8 File Tài liệu Cốt lõi & Bãi bỏ Quy tắc tạo File Module
@@ -11,13 +14,13 @@
 - **BÃI BỎ HOÀN TOÀN QUY TẮC TẠO FILE `[tenmodule].md`:** Tuyệt đối **CẤM** tạo thêm bất kỳ file `.md` mới nào trong thư mục `docs/`.
 - Toàn bộ tri thức, đặc tả và kiến trúc của dự án chỉ được lưu trữ trong **đúng 8 file Single Source of Truth (SSOT)** sau:
   1. `docs/rule.md`: Bộ quy tắc làm việc, mô hình phân vai Advisor/Coding Agent, kỷ luật Git branch workflow, tiêu chuẩn an toàn kỹ thuật.
-  2. `docs/mindmap.md`: Lộ trình tổng thể Unified Roadmap 9 Phase (Phase 0–8), ma trận 96 task và Work Log.
-  3. `docs/baocao.md`: Tầm nhìn sản phẩm (Product Vision), 8 chu trình nghiệp vụ E2E, kiến trúc hệ thống đa nền tảng.
-  4. `docs/risks-decisions.md`: Sổ bộ quyết định kiến trúc (Decision Register OD-01..06, D-MT) và ma trận rủi ro.
-  5. `docs/supabase-schema.md`: Toàn bộ Schema PostgreSQL, migrations DDL GM-1..5, RLS policies và mô hình RBAC Multi-Tenancy.
+  2. `docs/mindmap.md`: Stateless Pointer, Lộ trình tái kiến trúc v2.0, ma trận 96 task lịch sử và Work Log.
+  3. `docs/baocao.md`: Tầm nhìn sản phẩm v2.0 (All-in-One Gym ERP & Coaching), 8 chu trình nghiệp vụ E2E, kiến trúc hệ thống đa nền tảng.
+  4. `docs/risks-decisions.md`: Sổ bộ quyết định kiến trúc (Decision Register OD-01..08, D-MT) và ma trận rủi ro.
+  5. `docs/supabase-schema.md`: Toàn bộ Schema PostgreSQL v2.0, migrations DDL, RLS policies và mô hình RBAC Multi-Tenancy.
   6. `docs/data-offline.md`: Kiến trúc Offline-First, hợp đồng đồng bộ dữ liệu hai chiều và thực tế triển khai SQLite v1.
   7. `docs/design-system.md`: Toàn bộ Design System, bảng màu Dark/Light HEX, Theme Provider, Navigation và Routes mobile.
-  8. `docs/testing-acceptance.md`: Chiến lược kiểm thử tự động, danh mục 8 test suites `__tests__/` và tiêu chí nghiệm thu AC.
+  8. `docs/testing-acceptance.md`: Chiến lược kiểm thử tự động, danh mục test suites `__tests__/` và tiêu chí nghiệm thu AC.
 - Tuyệt đối **CẤM** tạo file tạm, file sao lưu như `.bak`, `.tmp`, `-copy`, `.old` trong toàn bộ repository.
 
 ## 3. Mô hình Điều phối & Phân vai Quản trị (Advisor Agent ↔ Coding Agent)
@@ -110,12 +113,25 @@ Mọi báo cáo kết thúc Task của Coding Agent bắt buộc phải xuất t
 - **Next Recommended Step:** [Bước tiếp theo kiến nghị cho Advisor Agent / Owner]
 ```
 
-## 9. Quy chuẩn Kỹ thuật của Dự án
+## 9. Quy chuẩn Kỹ thuật của Dự án (Kiến trúc v2.0)
 
-- **Expo SDK 58:** Ứng dụng di động xây dựng trên Expo SDK 58 (`~58.0.0`) và React Native `0.88.0`. Luôn đối chiếu phiên bản `package.json` và tài liệu chính thức Expo SDK 58; không suy diễn API từ các phiên bản cũ.
-- **Expo Router:** Toàn bộ điều hướng mobile nằm trong `src/app/` (routes, layouts). Các components, hooks, storage, utils dùng chung nằm ngoài thư mục `src/app/`.
+- **Nguyên tắc CRM Độc lập Auth (OD-07):** Mọi nghiệp vụ quản lý hội viên trên Admin Web xoay quanh bảng `public.gym_members` (định danh bằng mã thẻ `member_code` định dạng `MEM-XXXXXX` và số điện thoại `phone`). Khách hàng mua gói tập tại quầy (walk-in) không bắt buộc phải có tài khoản xác thực `auth.users` trước (`linked_user_id` là trường tùy chọn nullable). Khách hàng có thể liên kết tài khoản sau khi cài ứng dụng di động qua cơ chế xác thực số điện thoại/OTP an toàn.
+- **Nguyên tắc Giáo án 3 Tầng (3-Tier Workout Programming - OD-08):** Toàn bộ phân hệ quản lý và thiết kế giáo án thể hình vận hành theo mô hình phân cấp 3 tầng rõ rệt:
+  1. *Tầng 1 — Thư viện bài tập (`exercises`):* Danh mục các động tác kỹ thuật, nhóm cơ chính, dụng cụ và hướng dẫn.
+  2. *Tầng 2 — Giáo án Mẫu & Cá nhân (`workout_programs`):* Kế hoạch tập luyện tổng thể (chia theo `program_type` là `'template'` cho gym hoặc `'assigned'` cho hội viên).
+  3. *Tầng 3 — Buổi tập trong giáo án (`program_days`):* Chia tách cấu trúc split các ngày tập trong tuần (ví dụ: Day 1: Push, Day 2: Pull, Day 3: Legs).
+  4. *Tầng Chi tiết Bài tập (`program_day_exercises`):* Danh sách bài tập chỉ định trong từng buổi, cấu hình số hiệp (`target_sets`), số lần lặp (`target_reps_min`..`max`), thời gian nghỉ (`rest_seconds`), nhóm superset (`superset_group`) và ghi chú chuyên môn của PT (`pt_notes`).
+- **Quy chuẩn Next.js 15 App Router & Server-First Auth:**
+  - Admin Web xây dựng trên Next.js 15 App Router, React 19 và Tailwind CSS.
+  - Sử dụng `@supabase/ssr` theo mô hình Server-First Cookie SSR: Session lưu trữ an toàn trong Cookie `httpOnly`, `secure`, `sameSite: 'lax'`, không lưu token trong `localStorage`.
+  - Toàn bộ mutation đi qua Server Actions (`actions.ts`) hoặc PostgreSQL RPCs bảo mật.
+- **Quy chuẩn Mobile Offline-First SQLite v1:**
+  - Ứng dụng di động xây dựng trên Expo SDK 58 (`~58.0.0`) và React Native `0.88.0`.
+  - Điều hướng bằng Expo Router trong `src/app/`. Các components, hooks, storage, utils dùng chung nằm ngoài thư mục `src/app/`.
+  - Lưu trữ ngoại tuyến trên thiết bị di động bằng `expo-sqlite` v1 (`gym-workout.db`), mở bất đồng bộ qua `StorageProvider`.
+  - Dữ liệu tập cá nhân hoạt động độc lập không phụ thuộc kết nối mạng, chuẩn bị cho cơ chế hàng đợi Cloud Sync Outbox an toàn.
 - **Thực tế Dependencies:** `package.json` và `package-lock.json` là nguồn xác thực dependency duy nhất. Không coi thư viện được đề xuất trong tài liệu kế hoạch là đã cài đặt.
-- **Bảo vệ Native Output:** Thư mục `android/` là output sinh tự động của Continuous Native Generation (CNG) và bị Git ignore. Không sửa tay, không xóa và không tạo thủ công thư mục native. Mọi cấu hình native thực hiện qua `app.json` và Expo config plugins.
+- **Bảo vệ Native Output:** Thư mục `android/` và `ios/` là output sinh tự động của Continuous Native Generation (CNG) và bị Git ignore. Không sửa tay, không xóa và không tạo thủ công thư mục native. Mọi cấu hình native thực hiện qua `app.json` và Expo config plugins.
 - **An toàn Tuyệt đối Supabase Cloud:**
   - Migrations trong `supabase/migrations/` là mã nguồn phiên bản, không tự động apply lên Cloud.
   - Tuyệt đối **CẤM** tự ý chạy lệnh SQL, kết nối/thay đổi Cloud project, reset database hoặc áp dụng migration nếu chưa có phê duyệt bằng văn bản từ Owner.
@@ -126,9 +142,9 @@ Mọi báo cáo kết thúc Task của Coding Agent bắt buộc phải xuất t
 
 - Trước khi tuyên bố hoàn tất bất kỳ task nào, Agent bắt buộc phải chạy:
   ```bash
-  npm test              # Toàn bộ test suites pass
+  npm test              # Toàn bộ test suites pass (npm.cmd test trên Windows)
   npx tsc --noEmit      # Typecheck TypeScript không lỗi
-  npm run lint          # Linting tuân thủ Expo flat config
+  npm run lint          # Linting tuân thủ Expo flat config & Next.js config
   ```
 - Ghi nhận trung thực kết quả kiểm tra vào Work Log; không khẳng định đã chạy khi chưa thực thi.
 
@@ -141,3 +157,4 @@ Mọi báo cáo kết thúc Task của Coding Agent bắt buộc phải xuất t
 | 2026-10-22 | Bổ sung baseline Expo/Router/npm, quy tắc native output, phê duyệt Supabase và an toàn dọn dẹp. | Đồng bộ hướng dẫn với cấu trúc dự án thực tế. |
 | 2026-10-25 | Ban hành Bộ Quy tắc Thép: Bãi bỏ quy tắc tạo file `[tenmodule].md`, thu gọn tài liệu về đúng 8 file SSOT cốt lõi, áp dụng Strict Git Feature Branch Workflow (`feat/...`, cấm commit trên `main`, cấm nhánh `backup/...`), và Focus Roadmap 1 task kèm Auto-Logging vào `mindmap.md`. | Chấm dứt tình trạng phân mảnh tài liệu (25 files -> 8 files), thiết lập kỷ luật code và quy trình quản trị chuyên nghiệp. |
 | 2026-10-31 | Tích hợp mô hình phối hợp Advisor Agent ↔ Coding Agent, chuẩn hóa Vòng đời Task (`TODO → IN_PROGRESS → IN_REVIEW → DONE`), siết chặt quy tắc Git theo Phase và áp dụng mẫu báo cáo chuẩn `Task Execution Report`. | Nâng cấp hệ thống quản trị chuyên nghiệp hóa, chuẩn hóa giao thức bàn giao và kiểm soát chất lượng kỹ thuật. |
+| 2026-10-31 | Ban hành chuẩn Stateless Bootstrap Protocol và kiến trúc v2.0: CRM `gym_members` độc lập Auth (OD-07), Trạm xếp bài tập 3 tầng (OD-08), và quy chuẩn Next.js 15 Server-First Cookie SSR. | Khóa bản thiết kế kiến trúc v2.0 All-in-One Gym ERP & Coaching Platform, bảo đảm tính tự hành không trạng thái (Stateless Execution) cho mọi Agent. |
