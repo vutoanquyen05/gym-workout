@@ -744,6 +744,83 @@ COMMIT;
 
 ---
 
+## Bản thiết kế Chi tiết Schema v2.0 (CRM 360° & Workout Coaching 3 Tầng)
+
+Nhằm đáp ứng yêu cầu vận hành thực tế của phòng gym chuyên nghiệp và triết lý đào tạo thể hình cá nhân hóa, hệ thống nâng cấp lên kiến trúc **v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)** theo tệp migration thứ 9: `supabase/migrations/20261102000000_v2_crm_360_and_3tier_workout_schema.sql`.
+
+### 1. Nguyên tắc Cốt lõi & Quyết định Kiến trúc
+- **Tách biệt Hồ sơ Hội viên khỏi Auth (`OD-07`):** Bảng `public.gym_members` hoạt động độc lập hoàn toàn với `auth.users`. Khách hàng đăng ký thẻ, mua gói tại quầy tiếp tân không cần phải có tài khoản Supabase Auth ngay lập tức. Cột `linked_user_id` chỉ được liên kết khi hội viên tải app và kích hoạt tài khoản.
+- **Tiền tệ VND Chuẩn hóa & Thu ngân Chống trùng (`OD-05`):** Bảng `public.payment_transactions` lưu trữ số tiền bằng `BIGINT` (đơn vị Đồng - VND), hỗ trợ mã hóa đơn duy nhất `invoice_code` và khóa chống ghi trùng `idempotency_key` trong môi trường mạng chập chờn.
+- **Trạm Xếp Bài Tập 3 Tầng Linh hoạt (`OD-08`):** Kiến trúc phân cấp rõ ràng:
+  - Tầng 1 — Giáo án tổng thể (`workout_programs`): Phân biệt giáo án mẫu (`is_template = true`) dùng chung toàn gym hoặc giáo án gán riêng cho hội viên (`assigned_member_id`).
+  - Tầng 2 — Ngày tập trong tuần (`program_days`): Chia theo chu kỳ tuần (Thứ 2: Ngực/Tay sau, Thứ 3: Chân/Mông...).
+  - Tầng 3 — Chi tiết bài tập (`program_day_exercises`): Số hiệp (`sets`), số lần lặp dạng text (`reps` TEXT ví dụ `8-12` hoặc `Drop-set to failure`), mục tiêu RPE, thời gian nghỉ (`rest_seconds`), nhóm superset (`superset_group_id`), và ghi chú kỹ thuật từ PT.
+- **Theo dõi Thể chất InBody (`body_measurements`):** Lưu trữ lịch sử đo lường định kỳ của hội viên (Cân nặng, % Mỡ, Khối lượng cơ bắp, Vòng ngực/eo/mông, URL ảnh trước/sau và ghi chú thể trạng).
+- **Tương thích ngược 100%:** Bảng `memberships` và `attendance_logs` được bổ sung `member_id REFERENCES public.gym_members(id)`, đồng thời chuyển `user_id` sang nullable, hỗ trợ song song cả hội viên đã liên kết Auth và hội viên vãng lai tại quầy. Toàn bộ dữ liệu cũ được di trú an toàn qua khối backfill tự động.
+
+---
+
+### 2. Danh mục Bảng Mới & Mở rộng trong Schema v2.0
+
+#### A. Cụm Nhân sự & Quản trị (Staff & Gym Profile)
+- **`public.gym_staff` (Mở rộng):**
+  - Bổ sung: `full_name TEXT`, `phone TEXT`, `email TEXT`, `specialty TEXT`, `bio TEXT`.
+  - Quyền & RLS: Cấp `INSERT`, `UPDATE` cho `authenticated`. Cho phép Gym Owner và Branch Manager quản lý hồ sơ nhân viên; nhân viên tự cập nhật thông tin cá nhân của chính mình.
+
+#### B. Cụm CRM Hội viên 360° (Member CRM)
+- **`public.gym_members` (Tạo mới):**
+  - Cột: `id UUID PK`, `gym_id UUID NOT NULL REFERENCES gyms(id)`, `home_branch_id UUID REFERENCES branches(id)`, `linked_user_id UUID REFERENCES users(id)`, `assigned_pt_id UUID REFERENCES gym_staff(id)`, `member_code TEXT NOT NULL`, `full_name TEXT NOT NULL`, `phone TEXT NOT NULL`, `email TEXT`, `gender TEXT CHECK (male, female, other)`, `date_of_birth DATE`, `address TEXT`, `emergency_contact TEXT`, `health_notes TEXT`, `status TEXT CHECK (active, inactive, suspended)`, `joined_at DATE`, `created_at`, `updated_at`.
+  - Ràng buộc: `UNIQUE (gym_id, member_code)`.
+  - Indexes: `(gym_id, phone)`, `(gym_id, full_name)`, `(gym_id, status)`, `linked_user_id`, `assigned_pt_id`, `home_branch_id`.
+  - RLS Policies:
+    - `SELECT`: Gym Owner, Staff thuộc gym (hoặc chi nhánh), Trainer được phân công, và chính hội viên (`linked_user_id = auth.uid()`).
+    - `INSERT`: Gym Owner và Active Staff (`manager`, `receptionist`).
+    - `UPDATE`: Gym Owner, Active Staff (`manager`, `receptionist`), hoặc hội viên tự cập nhật thông tin không nhạy cảm của mình.
+    - `DELETE`: Gym Owner và Active Staff (`manager`).
+
+#### C. Cụm Gói tập, Thẻ & Thu ngân (Memberships, Attendance & Payments)
+- **`public.membership_plans` (Mở rộng):** Bổ sung `plan_type TEXT DEFAULT 'fixed_period' CHECK (fixed_period, session_pack, recurring)`, `description TEXT`.
+- **`public.memberships` (Mở rộng & Di trú):**
+  - Bổ sung `member_id UUID REFERENCES gym_members(id) ON DELETE CASCADE`.
+  - Chuyển `user_id DROP NOT NULL` để mở khóa đăng ký quầy không cần Auth.
+  - Bổ sung `notes TEXT`.
+  - RLS Policies: Cập nhật policy cho phép Owner, Manager, Receptionist tra cứu và quản lý thẻ theo `member_id` lẫn `user_id`.
+- **`public.attendance_logs` (Mở rộng & Di trú):**
+  - Bổ sung `member_id UUID REFERENCES gym_members(id) ON DELETE SET NULL`.
+  - Chuyển `user_id DROP NOT NULL`.
+  - RLS: Cho phép nhân viên tiếp tân check-in cho hội viên bằng `member_id` tại quầy.
+- **`public.payment_transactions` (Tạo mới - OD-05):**
+  - Cột: `id UUID PK`, `gym_id UUID NOT NULL REFERENCES gyms(id)`, `branch_id UUID REFERENCES branches(id)`, `member_id UUID NOT NULL REFERENCES gym_members(id)`, `membership_id UUID REFERENCES memberships(id)`, `amount BIGINT NOT NULL CHECK (amount >= 0)` (VND), `payment_method TEXT NOT NULL CHECK (cash, bank_transfer, credit_card, pos, other)`, `payment_status TEXT NOT NULL DEFAULT 'completed' CHECK (pending, completed, failed, refunded)`, `invoice_code TEXT`, `idempotency_key TEXT`, `processed_by_staff_id UUID REFERENCES gym_staff(id)`, `notes TEXT`, `created_at`, `updated_at`.
+  - Ràng buộc: `UNIQUE (gym_id, invoice_code)`, `UNIQUE (gym_id, idempotency_key)`.
+  - Indexes: `(gym_id, member_id)`, `(gym_id, created_at DESC)`, `(gym_id, invoice_code)`, `(gym_id, idempotency_key)`.
+  - RLS Policies:
+    - `SELECT`: Gym Owner, Active Staff (`manager`, `receptionist`), hoặc Member xem giao dịch của chính mình qua `member.linked_user_id = auth.uid()`.
+    - `INSERT`: Gym Owner, Active Staff (`manager`, `receptionist`).
+    - `UPDATE`: Chỉ Gym Owner hoặc Manager (ví dụ cập nhật trạng thái `refunded`).
+    - `DELETE`: Bị cấm hoàn toàn (Fail-closed) để bảo toàn vết kiểm toán kế toán.
+
+#### D. Cụm Huấn luyện & Trạm Xếp Bài Tập 3 Tầng (3-Tier Workout Coaching)
+- **`public.exercises` (Mở rộng Quyền):** Cấp quyền `INSERT, UPDATE, DELETE` cho `authenticated`. Thiết lập RLS policies cho phép Gym Owner và Active Staff (`manager`, `trainer`) bổ sung và biên soạn bài tập nội bộ của phòng gym (`scope = 'gym'`).
+- **`public.workout_programs` (Tầng 1 - Tạo mới):**
+  - Cột: `id UUID PK`, `gym_id UUID NOT NULL REFERENCES gyms(id)`, `is_template BOOLEAN NOT NULL DEFAULT false`, `assigned_member_id UUID REFERENCES gym_members(id) ON DELETE CASCADE`, `created_by_staff_id UUID REFERENCES gym_staff(id) ON DELETE SET NULL`, `title TEXT NOT NULL`, `description TEXT`, `duration_weeks INT DEFAULT 4 CHECK (duration_weeks > 0)`, `difficulty_level TEXT CHECK (beginner, intermediate, advanced)`, `status TEXT DEFAULT 'active' CHECK (draft, active, completed, archived)`, `created_at`, `updated_at`.
+  - RLS: Owner/Staff có toàn quyền quản lý; Member được xem giáo án gán cho mình hoặc template công khai của gym.
+- **`public.program_days` (Tầng 2 - Tạo mới):**
+  - Cột: `id UUID PK`, `gym_id UUID NOT NULL REFERENCES gyms(id)`, `program_id UUID NOT NULL REFERENCES workout_programs(id) ON DELETE CASCADE`, `day_number INT NOT NULL CHECK (day_number >= 1)`, `day_name TEXT NOT NULL`, `target_muscle_groups TEXT[]`, `notes TEXT`, `created_at`, `updated_at`.
+  - Indexes: `(program_id, day_number)`.
+  - RLS: Kế thừa quyền theo `program_id` thông qua quan hệ với `workout_programs`.
+- **`public.program_day_exercises` (Tầng 3 - Tạo mới):**
+  - Cột: `id UUID PK`, `gym_id UUID NOT NULL REFERENCES gyms(id)`, `program_day_id UUID NOT NULL REFERENCES program_days(id) ON DELETE CASCADE`, `exercise_id UUID NOT NULL REFERENCES exercises(id) ON DELETE RESTRICT`, `order_index INT NOT NULL CHECK (order_index >= 0)`, `sets INT NOT NULL DEFAULT 3 CHECK (sets > 0)`, `reps TEXT NOT NULL DEFAULT '10-12'`, `rpe_target NUMERIC(3,1) CHECK (rpe_target >= 0 AND rpe_target <= 10)`, `rest_seconds INT DEFAULT 60 CHECK (rest_seconds >= 0)`, `superset_group_id TEXT`, `coach_notes TEXT`, `created_at`, `updated_at`.
+  - Indexes: `(program_day_id, order_index)`.
+  - RLS: Kế thừa quyền theo `program_day_id` qua `program_days` và `workout_programs`.
+
+#### E. Cụm Đo lường Thể chất InBody (Body Measurements)
+- **`public.body_measurements` (Tạo mới):**
+  - Cột: `id UUID PK`, `gym_id UUID NOT NULL REFERENCES gyms(id)`, `member_id UUID NOT NULL REFERENCES gym_members(id) ON DELETE CASCADE`, `recorded_by_staff_id UUID REFERENCES gym_staff(id) ON DELETE SET NULL`, `measured_at DATE NOT NULL DEFAULT CURRENT_DATE`, `weight_kg NUMERIC(5,2) CHECK (weight_kg > 0)`, `height_cm NUMERIC(5,2) CHECK (height_cm > 0)`, `body_fat_percentage NUMERIC(4,2) CHECK (body_fat_percentage >= 0 AND body_fat_percentage <= 100)`, `muscle_mass_kg NUMERIC(5,2) CHECK (muscle_mass_kg > 0)`, `chest_cm NUMERIC(5,2)`, `waist_cm NUMERIC(5,2)`, `hips_cm NUMERIC(5,2)`, `biceps_cm NUMERIC(5,2)`, `thighs_cm NUMERIC(5,2)`, `notes TEXT`, `photo_urls TEXT[]`, `created_at`, `updated_at`.
+  - Indexes: `(gym_id, member_id, measured_at DESC)`.
+  - RLS: Owner và Active Staff (`trainer`, `manager`) đọc/ghi; Member tự xem lịch sử đo của chính mình khi đã liên kết tài khoản.
+
+---
+
 ### Lộ trình migration tổng thể cho gym management
 
 | Nhóm | Nội dung | Trạng thái | Điều kiện tiên quyết |
@@ -755,6 +832,7 @@ COMMIT;
 | **GM-4** | `attendance_logs` | Thiết kế tổng quan | Sau GM-3 |
 | **GM-5** | `payment_transactions` & idempotency | Thiết kế tổng quan | Sau GM-3 & chốt OD-05 |
 | **GM-6** | RPC Mutation Gateway: GM-1 Core RPCs (`rpc_create_gym`, `rpc_manage_branch`, `rpc_revoke_or_update_staff`) | **Đã tạo migration file** (`20261025160000_gm1_mutation_rpcs.sql`) | Hoàn thành Phase 1 Core |
+| **v2.0 CRM & 3-Tier** | CRM Hội viên 360° (`gym_members`), Thu ngân (`payment_transactions`), Xếp bài tập 3 tầng (`workout_programs`, `program_days`, `program_day_exercises`), InBody (`body_measurements`), mở rộng `gym_staff`, `memberships`, `attendance_logs`, `exercises` | **Đã tạo migration file** (`20261102000000_v2_crm_360_and_3tier_workout_schema.sql`) | Đóng Phase P00, hoàn thành P01-T01 |
 
 > **Cam kết an toàn:** Migration GM-1, GM-1 Mutation RPCs, GM-2 Core và GM-2 Patch được tạo sẵn dưới dạng file migration SQL độc lập (`supabase/migrations/`), tuân thủ Zero Hard Delete `OD-02=A`, Fail-Closed và RPC Gateway `OD-04`. Tuyệt đối không tự ý áp dụng hay kết nối Supabase Cloud khi chưa có phê duyệt runtime.
 
@@ -770,3 +848,4 @@ COMMIT;
 | 2026-10-25 | Hoàn tất migration file GM-1 (`20261025150000_gm1_tenant_branch_staff.sql`), chuẩn hóa `ON DELETE RESTRICT` (`OD-02=A`), status `'revoked'`, cột `revoked_at`/`revoked_by`, 2 partial unique indexes `WHERE status = 'active'`, helper function `is_active_staff` hỗ trợ `allowed_roles TEXT[]`. | Đóng Gate P0.T08 theo chỉ đạo Owner. | Đã tạo migration file GM-1, RLS fail-closed, sẵn sàng triển khai. |
 | 2026-10-26 | Hoàn tất migration file GM-1 Mutation RPCs (`20261025160000_gm1_mutation_rpcs.sql`): `rpc_create_gym`, `rpc_manage_branch`, `rpc_revoke_or_update_staff` (SECURITY DEFINER, pg_advisory_xact_lock, Mutual Exclusivity OD-02=A); tạo module `src/modules/gym-management` và bộ unit test `__tests__/gm1-service-test.ts`. | Thực thi Phase 1 Core theo chỉ đạo Owner. | 3 RPCs hoàn tất, 9 test suites passed. |
 | 2026-10-31 | Tạo migration file GM-2 Patch (`20261031000000_gm2_admin_member_policies_and_user_fields.sql`): bổ sung cột `phone`, `address` bảng `users`, bổ sung policy INSERT/UPDATE cho `memberships` và `membership_plans`, siết chặt bảo mật `users_update_policy` (chống `USING (true)`). | Đồng bộ schema drift và vá lỗi bảo mật RLS phục vụ tính năng quản lý hội viên Admin Web. | Migration GM-2 Patch hoàn tất, RLS an toàn. |
+| 2026-11-02 | Hoàn tất migration file v2.0 (`20261102000000_v2_crm_360_and_3tier_workout_schema.sql`): CRM Hội viên 360° (`gym_members`), Thu ngân (`payment_transactions`), Trạm xếp bài tập 3 tầng (`workout_programs`, `program_days`, `program_day_exercises`), Đo lường InBody (`body_measurements`), mở rộng `gym_staff`, `memberships`, `attendance_logs`, `exercises`. | Thực thi Task P01-T01 nâng cấp kiến trúc Database v2.0 theo OD-05, OD-07, OD-08. | File migration thứ 9 hoàn tất, RLS fail-closed siết chặt, backfill dữ liệu an toàn. |

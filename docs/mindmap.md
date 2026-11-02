@@ -11,13 +11,13 @@
 ## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)
 
 - **Current Architecture Version:** v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)
-- **Current Phase:** P00 — Governance & Architecture v2.0 Foundation
-- **Current Active Task:** P00-T04 (Stateless Governance & v2.0 Architecture Blueprint Lock)
+- **Current Phase:** P01 — Database v2.0 Refactoring
+- **Current Active Task:** P01-T01 (Supabase Schema v2.0 Migration: CRM gym_members, payment_transactions & 3-Tier Workout Programming)
 - **Task Status:** IN_REVIEW
-- **Active Git Branch:** `chore/governance-and-schema-sync` (Ready for Phase P00 Package & Merge Approval into `main`)
-- **Last Completed Task:** P00-T03 (Deep Architectural & Governance Inspection)
-- **Next Scheduled Task:** P01-T01 (Supabase Schema v2.0 Migration: CRM gym_members, payment_transactions & 3-Tier Workout Programming)
-- **Last Updated:** 31/10/2026
+- **Active Git Branch:** `feat/p01-t01-schema-v2`
+- **Last Completed Task:** P00-T04 (Stateless Governance & v2.0 Architecture Blueprint Lock)
+- **Next Scheduled Task:** P01-T02 (Seed Data & Helper RPCs v2.0)
+- **Last Updated:** 02/11/2026
 
 ---
 
@@ -61,7 +61,7 @@
 ### PHASE P01 — DATABASE V2.0 REFACTORING (CRM 360° & 3-TIER WORKOUT SCHEMA)
 *Mục tiêu: Triển khai Migration SQL v2.0 trên Supabase: tạo bảng `gym_members`, `payment_transactions`, `workout_programs`, `program_days`, `program_day_exercises`, `body_measurements`; nâng cấp RLS policies và seed data chuẩn.*
 
-- [ ] **P01-T01** `[Track: SP]` — **Migration SQL v2.0 Additive Non-Breaking**:
+- [x] **P01-T01** `[Track: SP]` — **Migration SQL v2.0 Additive Non-Breaking**:
   - Tạo bảng CRM `public.gym_members` (id, gym_id, branch_id, member_code UNIQUE `MEM-XXXXXX`, full_name, phone, email, gender, dob, address, status, linked_user_id nullable REFERENCES auth.users, avatar_url, notes).
   - Tạo bảng Hóa đơn `public.payment_transactions` (id, gym_id, branch_id, member_id, membership_id, amount BIGINT VND, payment_method, status, cashier_id, idempotency_key, note).
   - Tạo Trạm Xếp bài tập 3 tầng: `public.workout_programs` (id, gym_id, name, program_type 'template'/'assigned', member_id, assigned_by), `public.program_days` (id, program_id, day_name, order_index), `public.program_day_exercises` (id, program_day_id, exercise_id, order_index, target_sets, target_reps_min, target_reps_max, rest_seconds, superset_group, pt_notes).
@@ -866,3 +866,25 @@
   - `npx tsc --noEmit`: 0 errors.
   - `npm run lint`: 0 errors.
   - `npm test`: 13 test suites passed, 54 tests passed.
+
+### 2026-11-02 — Đóng gói Phase P00 và Triển khai Database v2.0 Schema Migration (P01-T01: feat/p01-t01-schema-v2)
+
+- **Mục tiêu:** Hợp nhất nhánh `chore/governance-and-schema-sync` vào `main`, tạo nhánh mới `feat/p01-t01-schema-v2` để thực thi Task P01-T01; xây dựng tệp migration SQL thứ 9 triển khai toàn bộ cấu trúc Database v2.0 (CRM Hội viên 360°, Thu ngân thanh toán VND, Trạm xếp bài tập 3 tầng, Theo dõi InBody) và đồng bộ tài liệu kiến trúc.
+- **Files đã tạo mới & cập nhật:**
+  - `supabase/migrations/20261102000000_v2_crm_360_and_3tier_workout_schema.sql`: Tệp migration thứ 9 (781 dòng SQL):
+    1. Mở rộng `public.gym_staff`: Thêm `full_name`, `phone`, `email`, `specialty`, `bio`; cấp quyền ghi và thiết lập RLS INSERT/UPDATE cho Owner/Manager/Self.
+    2. CRM Hội viên 360° `public.gym_members` (OD-07): Độc lập với `auth.users`, khóa ngoại `gym_id`, `home_branch_id`, nullable `linked_user_id`, `assigned_pt_id`, mã thẻ `member_code` UNIQUE `(gym_id, member_code)`, 6 indexes tối ưu tra cứu, đầy đủ RLS fail-closed.
+    3. Quản lý Thẻ & Thu ngân (OD-05): Mở rộng `membership_plans` (`plan_type`, `description`), mở rộng `memberships` (`member_id`, nullable `user_id`, `notes`), mở rộng `attendance_logs` (`member_id`, nullable `user_id`, RLS quầy tiếp tân); tạo bảng `payment_transactions` (số tiền `BIGINT` VND, `invoice_code`, `idempotency_key`, audit trail, không cho phép hard delete).
+    4. Trạm Xếp Bài Tập 3 Tầng & InBody (OD-08): Mở rộng quyền ghi `exercises` cho Owner/Staff (`scope = 'gym'`); tạo bảng `workout_programs` (Tier 1 - Giáo án tổng thể/template), `program_days` (Tier 2 - Ngày tập trong tuần), `program_day_exercises` (Tier 3 - Chi tiết hiệp, reps text, rest, superset, PT notes); tạo bảng `body_measurements` (InBody history, các chỉ số cơ thể, URL ảnh).
+    5. Khối Backfill an toàn: Tự động khởi tạo hồ sơ `gym_members` và gán `member_id` cho toàn bộ bản ghi `memberships` cũ có `member_id IS NULL`.
+  - `docs/supabase-schema.md`: Bổ sung toàn văn đặc tả kiến trúc Schema v2.0 (Mục tiêu, quyết định OD-05/07/08, DDL chi tiết 6 bảng mới/mở rộng, indexes, ma trận RLS, cập nhật lộ trình và nhật ký).
+  - `docs/mindmap.md`: Cập nhật `## 0. CURRENT EXECUTION POINTER` sang Phase P01 / Task P01-T01 IN_REVIEW; đánh dấu `[x] P01-T01`; ghi nhận Work Log 02/11/2026.
+- **Logic chính đã triển khai:**
+  1. Tháo gỡ nút thắt phụ thuộc Auth: Hội viên vãng lai, khách đăng ký tại quầy tiếp tân được quản lý độc lập 100% qua `gym_members`.
+  2. Chuẩn hóa dòng tiền và chống ghi trùng đơn hàng: Sử dụng `BIGINT` VND và `idempotency_key`.
+  3. Hoàn thiện mô hình giáo án thể hình 3 tầng linh hoạt, hỗ trợ cả giáo án mẫu (template) và giáo án cá nhân hóa do PT thiết kế.
+- **Kết quả kiểm tra Quality Gates:**
+  - `npx.cmd tsc --project apps/mobile/tsconfig.json --noEmit`: 0 errors.
+  - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (Next.js production build passed).
+  - `npm.cmd run lint`: 0 errors.
+  - `npm.cmd test`: 13 test suites passed, 54 tests passed.
