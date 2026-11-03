@@ -2,18 +2,18 @@
 
 import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
-import { BranchWithStats, updateBranchStatus } from './actions';
+import { BranchWithStats, toggleBranchStatus } from './actions';
 import {
   Search,
   X,
   Building2,
-  UserCheck,
-  Users,
   Phone,
   MapPin,
   Pencil,
   AlertTriangle,
   CheckCircle2,
+  Users,
+  UserCheck,
 } from 'lucide-react';
 
 interface BranchTableProps {
@@ -23,40 +23,43 @@ interface BranchTableProps {
 export function BranchTable({ initialBranches }: BranchTableProps) {
   const [branches, setBranches] = useState<BranchWithStats[]>(initialBranches);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended' | 'archived'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
   const [isPending, startTransition] = useTransition();
   const [actionAlert, setActionAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [pendingBranchId, setPendingBranchId] = useState<string | null>(null);
 
-  // Đếm theo từng trạng thái
-  const counts = {
-    all: branches.length,
-    active: branches.filter((b) => b.status === 'active' || !b.status).length,
-    suspended: branches.filter((b) => b.status === 'suspended').length,
-    archived: branches.filter((b) => b.status === 'archived').length,
-  };
-
-  // Lọc kết quả tìm kiếm và bộ lọc trạng thái
-  const filteredBranches = branches.filter((b) => {
+  // Lọc dữ liệu theo Search và Trạng thái
+  const filteredBranches = branches.filter((branch) => {
+    const term = searchTerm.toLowerCase();
     const matchesSearch =
-      b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (b.slug && b.slug.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (b.address && b.address.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (b.phone && b.phone.toLowerCase().includes(searchTerm.toLowerCase()));
+      branch.name.toLowerCase().includes(term) ||
+      (branch.address && branch.address.toLowerCase().includes(term)) ||
+      (branch.phone && branch.phone.toLowerCase().includes(term)) ||
+      (branch.slug && branch.slug.toLowerCase().includes(term));
 
-    const currentStatus = b.status || 'active';
     const matchesStatus =
-      statusFilter === 'all' ? true : currentStatus === statusFilter;
+      statusFilter === 'all'
+        ? true
+        : statusFilter === 'active'
+        ? branch.status === 'active' || !branch.status
+        : branch.status === 'suspended';
 
     return matchesSearch && matchesStatus;
   });
 
-  // Xử lý chuyển đổi trạng thái nhanh (active <-> suspended)
-  const handleToggleStatus = (branchId: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
-    const actionLabel = newStatus === 'suspended' ? 'Tạm ngưng hoạt động' : 'Kích hoạt lại';
+  // Tính toán số lượng theo trạng thái
+  const counts = {
+    all: branches.length,
+    active: branches.filter((b) => b.status === 'active' || !b.status).length,
+    suspended: branches.filter((b) => b.status === 'suspended').length,
+  };
 
-    if (!confirm(`Bạn có chắc chắn muốn ${actionLabel.toLowerCase()} chi nhánh này?`)) {
+  // Xử lý đổi trạng thái
+  const handleToggleStatus = (branchId: string, currentStatus: string | null) => {
+    const nextStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
+    const actionLabel = nextStatus === 'suspended' ? 'tạm ngưng' : 'kích hoạt';
+
+    if (!confirm(`Bạn có chắc chắn muốn ${actionLabel} chi nhánh này?`)) {
       return;
     }
 
@@ -64,19 +67,18 @@ export function BranchTable({ initialBranches }: BranchTableProps) {
     setActionAlert(null);
 
     startTransition(async () => {
-      const res = await updateBranchStatus(branchId, newStatus);
+      const res = await toggleBranchStatus(branchId, currentStatus);
       setPendingBranchId(null);
 
-      if (res.error) {
+      if (res?.error) {
         setActionAlert({ type: 'error', message: res.error });
       } else {
         setActionAlert({
           type: 'success',
-          message: `Đã ${actionLabel.toLowerCase()} chi nhánh thành công.`,
+          message: `Đã ${actionLabel} chi nhánh thành công.`,
         });
-        // Cập nhật state nội bộ
         setBranches((prev) =>
-          prev.map((b) => (b.id === branchId ? { ...b, status: newStatus } : b))
+          prev.map((b) => (b.id === branchId ? { ...b, status: nextStatus } : b))
         );
       }
     });
@@ -84,7 +86,7 @@ export function BranchTable({ initialBranches }: BranchTableProps) {
 
   return (
     <div className="space-y-4">
-      {/* Alert thông báo hành động */}
+      {/* Alert Thông báo thao tác */}
       {actionAlert && (
         <div
           className={`p-3.5 rounded-xl border text-xs sm:text-sm flex items-center justify-between ${
@@ -119,15 +121,15 @@ export function BranchTable({ initialBranches }: BranchTableProps) {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Tìm theo tên chi nhánh, địa chỉ, số điện thoại..."
-            className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-slate-50/50"
+            className="w-full h-10 pl-9 pr-8 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-slate-50/50"
           />
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
               className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -136,9 +138,9 @@ export function BranchTable({ initialBranches }: BranchTableProps) {
         <div className="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 ${
+            className={`h-10 px-4 rounded-xl text-sm font-semibold transition-colors shrink-0 ${
               statusFilter === 'all'
-                ? 'bg-indigo-600 text-white shadow-2xs'
+                ? 'bg-indigo-600 text-white shadow-xs'
                 : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
@@ -146,9 +148,9 @@ export function BranchTable({ initialBranches }: BranchTableProps) {
           </button>
           <button
             onClick={() => setStatusFilter('active')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 ${
+            className={`h-10 px-4 rounded-xl text-sm font-semibold transition-colors shrink-0 ${
               statusFilter === 'active'
-                ? 'bg-emerald-600 text-white shadow-2xs'
+                ? 'bg-emerald-600 text-white shadow-xs'
                 : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
@@ -156,35 +158,25 @@ export function BranchTable({ initialBranches }: BranchTableProps) {
           </button>
           <button
             onClick={() => setStatusFilter('suspended')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 ${
+            className={`h-10 px-4 rounded-xl text-sm font-semibold transition-colors shrink-0 ${
               statusFilter === 'suspended'
-                ? 'bg-amber-600 text-white shadow-2xs'
+                ? 'bg-amber-600 text-white shadow-xs'
                 : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
             Tạm ngưng ({counts.suspended})
           </button>
-          <button
-            onClick={() => setStatusFilter('archived')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 ${
-              statusFilter === 'archived'
-                ? 'bg-slate-700 text-white shadow-2xs'
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            Lưu trữ ({counts.archived})
-          </button>
         </div>
       </div>
 
-      {/* Table Card */}
+      {/* Main Table */}
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
         {filteredBranches.length === 0 ? (
           <div className="p-12 text-center space-y-3">
             <Search className="w-8 h-8 text-slate-300 mx-auto" />
             <h3 className="text-sm font-semibold text-slate-800">Không tìm thấy chi nhánh phù hợp</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Không có cơ sở nào khớp với từ khóa &quot;{searchTerm}&quot; hoặc bộ lọc trạng thái đã chọn.
+              Không có chi nhánh nào khớp với từ khóa &quot;{searchTerm}&quot; hoặc bộ lọc trạng thái hiện tại.
             </p>
             {(searchTerm || statusFilter !== 'all') && (
               <button
@@ -192,7 +184,7 @@ export function BranchTable({ initialBranches }: BranchTableProps) {
                   setSearchTerm('');
                   setStatusFilter('all');
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                className="inline-flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
               >
                 Đặt lại bộ lọc
               </button>
@@ -297,7 +289,7 @@ export function BranchTable({ initialBranches }: BranchTableProps) {
                           {/* Edit Button */}
                           <Link
                             href={`/dashboard/branches/${branch.id}/edit`}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-indigo-300 hover:text-indigo-600 transition-colors shadow-2xs"
+                            className="inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-indigo-300 hover:text-indigo-600 transition-colors shadow-2xs"
                           >
                             <Pencil className="w-3 h-3" />
                             <span>Sửa</span>
@@ -308,7 +300,7 @@ export function BranchTable({ initialBranches }: BranchTableProps) {
                             <button
                               disabled={isCurrentPending}
                               onClick={() => handleToggleStatus(branch.id, 'active')}
-                              className="px-2.5 py-1 rounded-lg text-xs font-medium border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 disabled:opacity-50 transition-colors"
+                              className="h-8 px-3 rounded-lg text-xs font-semibold border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 disabled:opacity-50 transition-colors"
                             >
                               {isCurrentPending ? '...' : 'Tạm ngưng'}
                             </button>
@@ -318,7 +310,7 @@ export function BranchTable({ initialBranches }: BranchTableProps) {
                             <button
                               disabled={isCurrentPending}
                               onClick={() => handleToggleStatus(branch.id, 'suspended')}
-                              className="px-2.5 py-1 rounded-lg text-xs font-medium border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50 transition-colors"
+                              className="h-8 px-3 rounded-lg text-xs font-semibold border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50 transition-colors"
                             >
                               {isCurrentPending ? '...' : 'Mở lại'}
                             </button>

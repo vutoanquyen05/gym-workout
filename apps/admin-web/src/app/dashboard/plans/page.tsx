@@ -4,8 +4,6 @@ import { getMembershipPlans } from './actions';
 import { PlanTable } from './plan-table';
 import { CreditCard, Plus, AlertTriangle } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
-
 export default async function PlansPage() {
   const { data: plans, error } = await getMembershipPlans();
 
@@ -25,7 +23,7 @@ export default async function PlansPage() {
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
               Quản lý gói tập và bảng giá
             </h1>
-            <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
               Membership Plans
             </span>
           </div>
@@ -36,9 +34,9 @@ export default async function PlansPage() {
 
         <Link
           href="/dashboard/plans/create"
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs self-start sm:self-center"
+          className="inline-flex items-center gap-2 h-11 px-5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs self-start sm:self-center"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="w-4 h-4" />
           <span>Tạo gói tập mới</span>
         </Link>
       </div>
@@ -72,9 +70,9 @@ export default async function PlansPage() {
           <div className="mt-6">
             <Link
               href="/dashboard/plans/create"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
+              className="inline-flex items-center gap-2 h-11 px-5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               <span>Tạo gói tập đầu tiên</span>
             </Link>
           </div>

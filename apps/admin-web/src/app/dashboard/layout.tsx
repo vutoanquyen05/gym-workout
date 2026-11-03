@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { signOut } from './actions';
 import { SidebarNav } from './sidebar-nav';
-import { ScanLine, UserPlus, LogOut, Database, Sparkles } from 'lucide-react';
+import { ScanLine, UserPlus, LogOut, Database, Activity } from 'lucide-react';
 
 export default async function DashboardLayout({
   children,
@@ -19,14 +19,6 @@ export default async function DashboardLayout({
   if (!user) {
     redirect('/login');
   }
-
-  // Tự động truy vấn tên phòng gym hiện tại (RLS policy gyms_select_policy)
-  const { data: gyms } = await supabase
-    .from('gyms')
-    .select('id, name')
-    .limit(1);
-
-  const gymName = gyms?.[0]?.name || 'GymOS Fitness Center';
 
   return (
     <div className="min-h-screen flex bg-slate-50">
@@ -78,17 +70,16 @@ export default async function DashboardLayout({
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Quick-Action Topbar Header - h-16 */}
-        <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-10 shadow-2xs">
-          {/* Left: Tên phòng tập thực tế & Trạng thái */}
+        <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-10 shadow-2xs">
+          {/* Left: Trạng thái vận hành trực tuyến */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2.5">
-              <span className="text-sm font-semibold text-slate-900 tracking-tight">
-                {gymName}
-              </span>
-              <span className="px-2.5 py-0.5 text-[11px] font-medium rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-                Hệ thống ERP
-              </span>
-            </div>
+            <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-700 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Hệ thống trực tuyến</span>
+            </span>
+            <span className="text-xs text-slate-400 hidden lg:inline">
+              • Sẵn sàng tiếp nhận điểm danh và đăng ký hội viên
+            </span>
           </div>
 
           {/* Right: Quick Action Buttons & Account */}
@@ -96,22 +87,22 @@ export default async function DashboardLayout({
             {/* Quick Action 1: Điểm danh nhanh */}
             <Link
               href="/dashboard/check-in"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 transition-colors shadow-2xs"
+              className="inline-flex items-center gap-2 px-4 h-10 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 transition-colors shadow-2xs"
             >
-              <ScanLine className="w-3.5 h-3.5 text-emerald-600" />
+              <ScanLine className="w-4 h-4 text-emerald-600" />
               <span>Điểm danh nhanh</span>
             </Link>
 
             {/* Quick Action 2: Đăng ký hội viên */}
             <Link
               href="/dashboard/members/create"
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
+              className="inline-flex items-center gap-2 px-4.5 h-10 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
             >
-              <UserPlus className="w-3.5 h-3.5 text-white" />
+              <UserPlus className="w-4 h-4 text-white" />
               <span>Đăng ký hội viên</span>
             </Link>
 
-            <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block" />
+            <div className="h-5 w-px bg-slate-200 mx-1 hidden sm:block" />
 
             {/* User Account Info */}
             <div className="text-right hidden md:block">
@@ -125,10 +116,10 @@ export default async function DashboardLayout({
             <form action={signOut}>
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 text-xs py-1.5 px-2.5 rounded-lg font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition-colors"
+                className="inline-flex items-center gap-1.5 h-10 px-3.5 rounded-xl text-sm font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition-colors shadow-2xs"
                 title="Đăng xuất khỏi hệ thống"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <LogOut className="w-4 h-4" />
                 <span className="hidden sm:inline">Đăng xuất</span>
               </button>
             </form>

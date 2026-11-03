@@ -133,31 +133,31 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
     switch (status) {
       case 'active':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             <span>Đang làm việc</span>
           </span>
         );
       case 'suspended':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
             <span>Tạm ngưng</span>
           </span>
         );
       case 'revoked':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-            <span>Đã thu hồi</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+            <span>Đã thu hồi quyền</span>
           </span>
         );
       case 'invited':
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
             <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-            <span>Chờ kích hoạt</span>
+            <span>Đã mời</span>
           </span>
         );
     }
@@ -170,10 +170,10 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
         <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-              Tổng nhân sự
+              Tổng số nhân sự
             </span>
             <div className="text-xl font-bold text-slate-900 mt-1 tabular-nums">
-              {totalCount} nhân sự
+              {totalCount} thành viên
             </div>
           </div>
           <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
@@ -259,15 +259,15 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Tìm theo tên HLV, số điện thoại, email, chuyên môn..."
-            className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-slate-50/50"
+            className="w-full h-10 pl-9 pr-8 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-slate-50/50"
           />
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
               className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -278,9 +278,9 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
           <div className="flex items-center gap-1 overflow-x-auto pb-1 lg:pb-0">
             <button
               onClick={() => setRoleFilter('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 ${
+              className={`h-10 px-4 rounded-xl text-sm font-semibold transition-colors shrink-0 ${
                 roleFilter === 'all'
-                  ? 'bg-indigo-600 text-white shadow-2xs'
+                  ? 'bg-indigo-600 text-white shadow-xs'
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
@@ -288,9 +288,9 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
             </button>
             <button
               onClick={() => setRoleFilter('trainer')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 ${
+              className={`h-10 px-4 rounded-xl text-sm font-semibold transition-colors shrink-0 ${
                 roleFilter === 'trainer'
-                  ? 'bg-indigo-600 text-white shadow-2xs'
+                  ? 'bg-indigo-600 text-white shadow-xs'
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
@@ -298,9 +298,9 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
             </button>
             <button
               onClick={() => setRoleFilter('receptionist')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 ${
+              className={`h-10 px-4 rounded-xl text-sm font-semibold transition-colors shrink-0 ${
                 roleFilter === 'receptionist'
-                  ? 'bg-sky-600 text-white shadow-2xs'
+                  ? 'bg-sky-600 text-white shadow-xs'
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
@@ -308,9 +308,9 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
             </button>
             <button
               onClick={() => setRoleFilter('manager')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 ${
+              className={`h-10 px-4 rounded-xl text-sm font-semibold transition-colors shrink-0 ${
                 roleFilter === 'manager'
-                  ? 'bg-purple-600 text-white shadow-2xs'
+                  ? 'bg-purple-600 text-white shadow-xs'
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
@@ -318,13 +318,13 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
             </button>
           </div>
 
-          <div className="h-4 w-px bg-slate-200 hidden sm:block mx-1" />
+          <div className="h-5 w-px bg-slate-200 hidden sm:block mx-1" />
 
           {/* Branch Filter */}
           <select
             value={branchFilter}
             onChange={(e) => setBranchFilter(e.target.value)}
-            className="text-xs py-1.5 px-2.5 rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:border-indigo-500"
+            className="h-10 text-sm px-3.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium focus:outline-none focus:border-indigo-500"
           >
             <option value="all">Mọi chi nhánh</option>
             <option value="all_branches">Toàn hệ thống</option>
@@ -344,7 +344,7 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
             <Search className="w-8 h-8 text-slate-300 mx-auto" />
             <h3 className="text-sm font-semibold text-slate-800">Không tìm thấy nhân sự phù hợp</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Không có nhân sự nào khớp với từ khóa &quot;{searchTerm}&quot; hoặc tiêu chí lọc vai trò/chi nhánh.
+              Không có nhân sự nào khớp với từ khóa &quot;{searchTerm}&quot; hoặc tiêu chí lọc vai trò và chi nhánh.
             </p>
             {(searchTerm || roleFilter !== 'all' || branchFilter !== 'all') && (
               <button
@@ -353,7 +353,7 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
                   setRoleFilter('all');
                   setBranchFilter('all');
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                className="inline-flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
               >
                 Đặt lại bộ lọc
               </button>
@@ -364,10 +364,10 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
             <table className="w-full text-left border-collapse text-xs">
               <thead className="bg-slate-50/70 border-b border-slate-200/80 text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
                 <tr>
-                  <th className="py-3 px-5">Nhân sự hoặc huấn luyện viên</th>
-                  <th className="py-3 px-4">Vai trò</th>
-                  <th className="py-3 px-4">Chi nhánh</th>
-                  <th className="py-3 px-4">Chuyên môn và kỹ năng</th>
+                  <th className="py-3 px-5">Nhân sự</th>
+                  <th className="py-3 px-4">Vai trò đảm nhiệm</th>
+                  <th className="py-3 px-4">Chi nhánh phân công</th>
+                  <th className="py-3 px-4">Chuyên môn</th>
                   <th className="py-3 px-4">Học viên phụ trách</th>
                   <th className="py-3 px-4">Trạng thái</th>
                   <th className="py-3 px-5 text-right">Thao tác</th>
@@ -385,25 +385,25 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
 
                   return (
                     <tr key={staff.id} className="hover:bg-slate-50/60 transition-colors">
-                      {/* Nhân sự & Liên hệ */}
-                      <td className="py-3.5 px-5">
-                        <div className="flex items-center gap-3">
+                      {/* Avatar & Name */}
+                      <td className="py-3.5 px-5 max-w-xs">
+                        <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0 border border-indigo-100">
                             {initials}
                           </div>
                           <div>
                             <span className="font-semibold text-slate-900 block text-xs">
-                              {staff.full_name || 'Chưa đặt tên'}
+                              {staff.full_name}
                             </span>
-                            <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
+                            <div className="flex flex-col gap-0.5 mt-0.5 text-[11px] text-slate-500">
                               {staff.phone && (
-                                <span className="flex items-center gap-1 font-mono text-slate-500">
+                                <span className="inline-flex items-center gap-1 font-mono">
                                   <Phone className="w-3 h-3 text-slate-400" />
                                   <span>{staff.phone}</span>
                                 </span>
                               )}
                               {staff.email && (
-                                <span className="flex items-center gap-1 font-mono text-slate-400">
+                                <span className="inline-flex items-center gap-1 truncate max-w-[180px]">
                                   <Mail className="w-3 h-3 text-slate-400" />
                                   <span>{staff.email}</span>
                                 </span>
@@ -414,15 +414,21 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
                       </td>
 
                       {/* Vai trò */}
-                      <td className="py-3.5 px-4">
-                        {renderRoleBadge(staff.role)}
-                      </td>
+                      <td className="py-3.5 px-4">{renderRoleBadge(staff.role)}</td>
 
                       {/* Chi nhánh */}
                       <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center gap-1 text-[11px] text-slate-600 font-medium">
-                          <Building2 className="w-3 h-3 text-slate-400" />
-                          <span>{staff.branch_name}</span>
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-700">
+                          {staff.branch_name ? (
+                            <>
+                              <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <span>{staff.branch_name}</span>
+                            </>
+                          ) : (
+                            <span className="text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded text-[10px] border border-indigo-100">
+                              Toàn hệ thống
+                            </span>
+                          )}
                         </span>
                       </td>
 
@@ -456,7 +462,7 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
                         <div className="inline-flex items-center gap-1.5">
                           <Link
                             href={`/dashboard/staff/${staff.id}/edit`}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-indigo-300 hover:text-indigo-600 transition-colors shadow-2xs"
+                            className="inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-indigo-300 hover:text-indigo-600 transition-colors shadow-2xs"
                           >
                             <Pencil className="w-3 h-3" />
                             <span>Sửa</span>
@@ -466,7 +472,7 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
                             <button
                               disabled={isCurrentPending}
                               onClick={() => handleToggleStatus(staff.id, staff.status)}
-                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50 ${
+                              className={`inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-semibold border transition-colors disabled:opacity-50 ${
                                 staff.status === 'active'
                                   ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
                                   : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'

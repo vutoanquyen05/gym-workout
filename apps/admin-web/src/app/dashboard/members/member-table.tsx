@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import Link from 'next/link';
 import { MemberWithDetails, MemberBranchOption, updateMemberStatus } from './actions';
 import {
   Search,
@@ -187,15 +186,15 @@ export function MemberTable({ initialMembers, branches }: MemberTableProps) {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Tìm theo mã hội viên, họ tên, số điện thoại..."
-            className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-slate-50/50"
+            className="w-full h-10 pl-9 pr-8 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-slate-50/50"
           />
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
               className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -206,9 +205,9 @@ export function MemberTable({ initialMembers, branches }: MemberTableProps) {
           <div className="flex items-center gap-1 overflow-x-auto pb-1 lg:pb-0">
             <button
               onClick={() => setStatusFilter('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 ${
+              className={`h-10 px-4 rounded-xl text-sm font-semibold transition-colors shrink-0 ${
                 statusFilter === 'all'
-                  ? 'bg-indigo-600 text-white shadow-2xs'
+                  ? 'bg-indigo-600 text-white shadow-xs'
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
@@ -216,9 +215,9 @@ export function MemberTable({ initialMembers, branches }: MemberTableProps) {
             </button>
             <button
               onClick={() => setStatusFilter('active')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 ${
+              className={`h-10 px-4 rounded-xl text-sm font-semibold transition-colors shrink-0 ${
                 statusFilter === 'active'
-                  ? 'bg-emerald-600 text-white shadow-2xs'
+                  ? 'bg-emerald-600 text-white shadow-xs'
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
@@ -226,9 +225,9 @@ export function MemberTable({ initialMembers, branches }: MemberTableProps) {
             </button>
             <button
               onClick={() => setStatusFilter('suspended')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 ${
+              className={`h-10 px-4 rounded-xl text-sm font-semibold transition-colors shrink-0 ${
                 statusFilter === 'suspended'
-                  ? 'bg-amber-600 text-white shadow-2xs'
+                  ? 'bg-amber-600 text-white shadow-xs'
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
@@ -236,13 +235,13 @@ export function MemberTable({ initialMembers, branches }: MemberTableProps) {
             </button>
           </div>
 
-          <div className="h-4 w-px bg-slate-200 hidden sm:block mx-1" />
+          <div className="h-5 w-px bg-slate-200 hidden sm:block mx-1" />
 
           {/* Branch Filter */}
           <select
             value={branchFilter}
             onChange={(e) => setBranchFilter(e.target.value)}
-            className="text-xs py-1.5 px-2.5 rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:border-indigo-500"
+            className="h-10 text-sm px-3.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium focus:outline-none focus:border-indigo-500"
           >
             <option value="all">Mọi chi nhánh</option>
             {branches.map((b) => (
@@ -270,7 +269,7 @@ export function MemberTable({ initialMembers, branches }: MemberTableProps) {
                   setStatusFilter('all');
                   setBranchFilter('all');
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                className="inline-flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
               >
                 Đặt lại bộ lọc
               </button>
@@ -303,7 +302,7 @@ export function MemberTable({ initialMembers, branches }: MemberTableProps) {
 
                   return (
                     <tr key={member.id} className="hover:bg-slate-50/60 transition-colors">
-                      {/* Mã hội viên & Avatar */}
+                      {/* Mã hội viên và Avatar */}
                       <td className="py-3.5 px-5">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0 border border-indigo-100">
@@ -320,58 +319,66 @@ export function MemberTable({ initialMembers, branches }: MemberTableProps) {
                         </div>
                       </td>
 
-                      {/* Họ và tên & Liên hệ */}
+                      {/* Họ và tên, SĐT, Email */}
                       <td className="py-3.5 px-5">
-                        <div>
-                          <span className="font-semibold text-slate-900 block text-xs">
-                            {member.full_name}
-                          </span>
-                          <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
-                            {member.phone && (
-                              <span className="flex items-center gap-1 font-mono text-slate-500">
-                                <Phone className="w-3 h-3 text-slate-400" />
-                                <span>{member.phone}</span>
-                              </span>
-                            )}
-                            {member.email && (
-                              <span className="flex items-center gap-1 font-mono text-slate-400">
-                                <Mail className="w-3 h-3 text-slate-400" />
-                                <span className="truncate max-w-[120px]" title={member.email}>
-                                  {member.email}
-                                </span>
-                              </span>
-                            )}
-                          </div>
+                        <span className="font-semibold text-slate-900 block text-xs">
+                          {member.full_name}
+                        </span>
+                        <div className="flex flex-col gap-0.5 mt-0.5 text-[11px] text-slate-500">
+                          {member.phone && (
+                            <span className="inline-flex items-center gap-1 font-mono">
+                              <Phone className="w-3 h-3 text-slate-400" />
+                              <span>{member.phone}</span>
+                            </span>
+                          )}
+                          {member.email && (
+                            <span className="inline-flex items-center gap-1 truncate max-w-[180px]">
+                              <Mail className="w-3 h-3 text-slate-400" />
+                              <span>{member.email}</span>
+                            </span>
+                          )}
                         </div>
                       </td>
 
                       {/* Cơ sở gốc */}
                       <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center gap-1 text-[11px] text-slate-600 font-medium">
-                          <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span>{member.home_branch?.name || <span className="text-slate-400 italic">Toàn hệ thống</span>}</span>
-                        </span>
+                        <div className="inline-flex items-center gap-1.5 text-xs text-slate-700">
+                          <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span className="font-medium">
+                            {member.home_branch?.name || (
+                              <span className="text-slate-400 italic">Chưa phân bổ</span>
+                            )}
+                          </span>
+                        </div>
                       </td>
 
-                      {/* Gói tập & Hạn dùng */}
+                      {/* Gói tập và hạn dùng */}
                       <td className="py-3.5 px-4">
                         {member.active_membership ? (
-                          <div className="space-y-0.5">
-                            <span className="font-medium text-slate-900 block text-xs">
-                              {member.active_membership.plan_name}
+                          <div>
+                            <span className="font-semibold text-slate-900 block text-xs">
+                              {member.active_membership.plan_name || 'Gói hội viên'}
                             </span>
-                            <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                            <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
                               <Calendar className="w-3 h-3 text-slate-400" />
-                              <span>Đến {new Date(member.active_membership.end_date).toLocaleDateString('vi-VN')}</span>
-                              {member.active_membership.remaining_sessions !== null && (
-                                <span className="text-indigo-600 font-medium">
-                                  ({member.active_membership.remaining_sessions} buổi)
+                              <span>
+                                Đến{' '}
+                                {new Date(
+                                  member.active_membership.end_date
+                                ).toLocaleDateString('vi-VN')}
+                              </span>
+                            </div>
+                            {member.active_membership.remaining_sessions !== null &&
+                              member.active_membership.remaining_sessions !== undefined && (
+                                <span className="text-[10px] font-mono text-indigo-600 block mt-0.5">
+                                  Còn {member.active_membership.remaining_sessions} buổi
                                 </span>
                               )}
-                            </div>
                           </div>
                         ) : (
-                          <span className="text-[11px] text-slate-400 italic">Chưa có gói tập</span>
+                          <span className="text-[11px] text-slate-400 italic">
+                            Chưa có gói hiệu lực
+                          </span>
                         )}
                       </td>
 
@@ -411,14 +418,14 @@ export function MemberTable({ initialMembers, branches }: MemberTableProps) {
                           <button
                             disabled={isCurrentPending}
                             onClick={() => handleToggleStatus(member.id, member.status)}
-                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50 ${
+                            className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold border transition-colors disabled:opacity-50 ${
                               isActive
                                 ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
                                 : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                             }`}
                             title={isActive ? 'Tạm ngưng hồ sơ hội viên' : 'Kích hoạt lại'}
                           >
-                            <ShieldAlert className="w-3 h-3" />
+                            <ShieldAlert className="w-3.5 h-3.5" />
                             <span>
                               {isCurrentPending ? '...' : isActive ? 'Tạm ngưng' : 'Mở lại'}
                             </span>
@@ -436,4 +443,3 @@ export function MemberTable({ initialMembers, branches }: MemberTableProps) {
     </div>
   );
 }
-

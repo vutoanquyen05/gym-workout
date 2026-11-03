@@ -92,16 +92,16 @@ export default async function DashboardPage() {
         <div className="flex items-center gap-2.5 shrink-0">
           <Link
             href="/dashboard/check-in"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 transition-colors shadow-2xs"
+            className="inline-flex items-center gap-2 h-11 px-5 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 transition-colors shadow-xs"
           >
-            <ScanLine className="w-3.5 h-3.5 text-emerald-600" />
+            <ScanLine className="w-4 h-4 text-emerald-600" />
             <span>Quầy điểm danh</span>
           </Link>
           <Link
             href="/dashboard/members/create"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
+            className="inline-flex items-center gap-2 h-11 px-5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
           >
-            <UserPlus className="w-3.5 h-3.5" />
+            <UserPlus className="w-4 h-4" />
             <span>Thêm hội viên</span>
           </Link>
         </div>
@@ -285,9 +285,9 @@ export default async function DashboardPage() {
                       </p>
                       <Link
                         href="/dashboard/members/create"
-                        className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-700"
+                        className="inline-flex items-center gap-2 mt-3 h-10 px-4 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700"
                       >
-                        <UserPlus className="w-3.5 h-3.5" />
+                        <UserPlus className="w-4 h-4" />
                         <span>Đăng ký hội viên ngay</span>
                       </Link>
                     </td>

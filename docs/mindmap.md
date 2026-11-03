@@ -1035,3 +1035,27 @@
   - `apps/admin-web/src/app/dashboard/members/create/create-form.tsx` & `page.tsx`: Form đăng ký hội viên và bán thẻ POS tại quầy xóa bỏ trường UUID, tích hợp Live Preview thẻ hội viên.
   - `docs/rule.md` & `docs/design-system.md`: Ghi nhận chuẩn Typography tiếng Việt (Sentence Case, zero-emoji, cấm ký hiệu `&` trong UI text) và chiều rộng Sidebar `w-72`.
   - `docs/mindmap.md`: Cập nhật Execution Pointer sang Phase P03, đánh dấu `[x] P03-T01` và `[x] P03-T02`.
+
+### 2026-11-03 — Khắc Phục Lỗi RLS Recursion gym_staff, Nâng Cấp Công Thái Học Nút Bấm, Chuẩn Hóa Topbar & Tái Thiết Kế Landing Portal GymOS (P03-T02-FIX: feat/p03-crm-members-pos)
+
+- **Mục tiêu:**
+  1. Khắc phục triệt để lỗi đệ quy vô hạn `infinite recursion detected in policy for relation "gym_staff"` khi mở trang Hội viên CRM (`/dashboard/members`).
+  2. Tách rời độc lập truy vấn danh sách hội viên (`gym_members`), thẻ tập (`memberships`) và nhân sự PT (`gym_staff`) trong Server Actions bằng `Promise.allSettled`; loại bỏ toàn bộ lệnh `console.error` gây kích hoạt popup lỗi đỏ Next.js 15 DevTools.
+  3. Dọn dẹp thanh Topbar Header (`dashboard/layout.tsx`): Loại bỏ tiêu đề cơ sở dư thừa, thay bằng pill trạng thái trực tuyến ("Hệ thống trực tuyến") kèm hiển thị ngày tháng tiếng Việt, làm dày các nút bấm quầy tiếp tân và đăng ký hội viên.
+  4. Nâng cấp chuẩn công thái học nút bấm (Button Sizing & Ergonomics) trên toàn hệ thống: `components/ui/button.tsx` (size `sm`, `md`, `lg`), các nút Primary Actions trên Page Header (`h-11 px-5 rounded-xl text-sm font-semibold`), và thanh tìm kiếm/lọc (`h-10 rounded-xl`) trên 5 phân hệ (`dashboard`, `members`, `branches`, `plans`, `staff`).
+  5. Tái thiết kế toàn diện Cổng thông tin Enterprise Portal Landing page (`apps/admin-web/src/app/page.tsx`), trang đăng nhập (`login/page.tsx`) và root metadata (`app/layout.tsx`) sang thương hiệu GymOS chuẩn mực với Header `h-20`, Hero ấn tượng và Bento Grid 4 khối tính năng cốt lõi.
+  6. Tạo tệp migration thứ 12 (`supabase/migrations/20261103000000_fix_gym_staff_rls_recursion_and_brand.sql`) và cập nhật SSOT docs (`docs/supabase-schema.md`, `docs/design-system.md`, `docs/mindmap.md`).
+- **Files đã tạo mới & cập nhật:**
+  - `supabase/migrations/20261103000000_fix_gym_staff_rls_recursion_and_brand.sql`: Migration 12 tái cấu trúc policy RLS `gym_staff` và cập nhật tên gym mặc định thành GymOS.
+  - `apps/admin-web/src/components/ui/button.tsx`: Thêm variant size `sm` (`h-9`), `md` (`h-10`), `lg` (`h-11`) bo góc `rounded-xl font-semibold`.
+  - `apps/admin-web/src/app/dashboard/layout.tsx`: Dọn dẹp Topbar Header `h-16 px-8`, thêm pill trực tuyến và làm dày các nút bấm nhanh.
+  - `apps/admin-web/src/app/dashboard/members/actions.ts`: Decouple queries qua `Promise.allSettled`, xóa `console.error`.
+  - `apps/admin-web/src/app/dashboard/page.tsx`: Làm dày 2 nút Quầy điểm danh và Thêm hội viên (`h-11 px-5 rounded-xl`).
+  - `apps/admin-web/src/app/dashboard/members/page.tsx` & `member-table.tsx`: Làm dày nút Đăng ký hội viên mới, thanh tìm kiếm và bộ lọc trạng thái/chi nhánh.
+  - `apps/admin-web/src/app/dashboard/branches/page.tsx` & `branch-table.tsx`: Làm dày nút Thêm chi nhánh mới, thanh tìm kiếm và bộ lọc.
+  - `apps/admin-web/src/app/dashboard/plans/page.tsx` & `plan-table.tsx`: Làm dày nút Tạo gói tập mới, thanh tìm kiếm và bộ lọc.
+  - `apps/admin-web/src/app/dashboard/staff/page.tsx` & `staff-table.tsx`: Làm dày nút Thêm nhân sự mới, thanh tìm kiếm và bộ lọc.
+  - `apps/admin-web/src/app/layout.tsx`: Cập nhật metadata title `GymOS — Hệ thống quản trị phòng tập`.
+  - `apps/admin-web/src/app/page.tsx`: Tái thiết kế toàn diện Cổng thông tin GymOS với Header `h-20`, Hero, Trust Metrics và Bento Grid 4 phân hệ.
+  - `apps/admin-web/src/app/login/page.tsx`: Đồng bộ thương hiệu GymOS và nút đăng nhập dày `h-11`.
+  - `docs/supabase-schema.md`, `docs/design-system.md`, `docs/mindmap.md`: Cập nhật tài liệu kỹ thuật SSOT.

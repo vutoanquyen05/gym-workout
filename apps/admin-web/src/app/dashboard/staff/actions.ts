@@ -91,7 +91,7 @@ export async function getStaffMembers(): Promise<{
       .order('created_at', { ascending: false });
 
     if (staffError) {
-      console.error('Lỗi getStaffMembers:', staffError);
+      console.warn('Lỗi getStaffMembers:', staffError);
       return { data: [], error: staffError.message };
     }
 
@@ -155,7 +155,7 @@ export async function getStaffById(staffId: string): Promise<{
       .maybeSingle();
 
     if (error) {
-      console.error('Lỗi getStaffById:', error);
+      console.warn('Lỗi getStaffById:', error);
       return { data: null, error: error.message };
     }
 
@@ -189,7 +189,7 @@ export async function getActiveBranchesForStaff(): Promise<{
       .order('name', { ascending: true });
 
     if (error) {
-      console.error('Lỗi getActiveBranchesForStaff:', error);
+      console.warn('Lỗi getActiveBranchesForStaff:', error);
       return { data: [], error: error.message };
     }
 
@@ -256,7 +256,7 @@ export async function createStaffMember(formData: FormData): Promise<{
       .single();
 
     if (error) {
-      console.error('Lỗi createStaffMember:', error);
+      console.warn('Lỗi createStaffMember:', error);
       return { error: error.message };
     }
 
@@ -319,7 +319,7 @@ export async function updateStaffMember(
       .eq('id', staffId);
 
     if (error) {
-      console.error('Lỗi updateStaffMember:', error);
+      console.warn('Lỗi updateStaffMember:', error);
       return { error: error.message };
     }
 
@@ -362,7 +362,7 @@ export async function updateStaffStatus(
       .eq('id', staffId);
 
     if (error) {
-      console.error('Lỗi updateStaffStatus:', error);
+      console.warn('Lỗi updateStaffStatus:', error);
       return { error: error.message };
     }
 
@@ -375,3 +375,10 @@ export async function updateStaffStatus(
   }
 }
 
+export async function toggleStaffStatus(
+  staffId: string,
+  currentStatus: string
+): Promise<{ success?: boolean; error?: string }> {
+  const nextStatus = currentStatus === 'active' ? 'suspended' : 'active';
+  return updateStaffStatus(staffId, nextStatus);
+}

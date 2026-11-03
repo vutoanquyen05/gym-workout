@@ -4,8 +4,6 @@ import { getBranches } from './actions';
 import { BranchTable } from './branch-table';
 import { Building2, Plus, AlertTriangle } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
-
 export default async function BranchesPage() {
   const { data: branches, error } = await getBranches();
 
@@ -25,7 +23,7 @@ export default async function BranchesPage() {
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
               Quản lý chi nhánh cơ sở
             </h1>
-            <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
               ERP v2.0
             </span>
           </div>
@@ -36,9 +34,9 @@ export default async function BranchesPage() {
 
         <Link
           href="/dashboard/branches/create"
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs self-start sm:self-center"
+          className="inline-flex items-center gap-2 h-11 px-5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs self-start sm:self-center"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="w-4 h-4" />
           <span>Thêm chi nhánh mới</span>
         </Link>
       </div>
@@ -67,14 +65,14 @@ export default async function BranchesPage() {
             Chưa có chi nhánh nào trong hệ thống
           </h2>
           <p className="text-xs text-slate-500 max-w-md mx-auto mt-2 leading-relaxed">
-            Hệ thống quản lý phòng tập Gym Tracker sẵn sàng tiếp nhận cơ sở phòng tập đầu tiên của bạn để thiết lập cấu hình phân quyền và hội viên.
+            Hệ thống quản lý phòng tập GymOS sẵn sàng tiếp nhận cơ sở phòng tập đầu tiên của bạn để thiết lập cấu hình phân quyền và hội viên.
           </p>
           <div className="mt-6">
             <Link
               href="/dashboard/branches/create"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
+              className="inline-flex items-center gap-2 h-11 px-5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               <span>Thêm chi nhánh đầu tiên</span>
             </Link>
           </div>

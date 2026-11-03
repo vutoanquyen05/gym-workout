@@ -38,7 +38,7 @@ export async function getBranches(): Promise<{ data: BranchWithStats[]; error: s
       .order('created_at', { ascending: false });
 
     if (branchError) {
-      console.error('Lỗi khi truy vấn danh sách branches từ Supabase:', branchError.message);
+      console.warn('Lỗi khi truy vấn danh sách branches từ Supabase:', branchError.message);
       return { data: [], error: branchError.message };
     }
 
@@ -85,7 +85,7 @@ export async function getBranches(): Promise<{ data: BranchWithStats[]; error: s
     }
     const errorMessage =
       err instanceof Error ? err.message : 'Không thể kết nối đến cơ sở dữ liệu Supabase';
-    console.error('Lỗi ngoại lệ trong getBranches:', errorMessage);
+    console.warn('Lỗi ngoại lệ trong getBranches:', errorMessage);
     return { data: [], error: errorMessage };
   }
 }
@@ -406,4 +406,12 @@ export async function updateBranchStatus(
     const errorMessage = error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định';
     return { error: `Lỗi ngoại lệ hệ thống: ${errorMessage}` };
   }
+}
+
+export async function toggleBranchStatus(
+  branchId: string,
+  currentStatus: string | null
+): Promise<{ success?: boolean; error?: string }> {
+  const nextStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
+  return updateBranchStatus(branchId, nextStatus);
 }

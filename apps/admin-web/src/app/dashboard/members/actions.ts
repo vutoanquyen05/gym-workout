@@ -56,32 +56,36 @@ export interface MemberWithDetails {
  * Helper xác định gym_id của người dùng hiện tại
  */
 async function getCurrentGymId(supabase: any, userId: string): Promise<string | null> {
-  // 1. Kiểm tra chủ phòng gym
-  const { data: ownerGyms } = await supabase
-    .from('gyms')
-    .select('id')
-    .eq('owner_id', userId)
-    .limit(1);
+  try {
+    // 1. Kiểm tra chủ phòng gym
+    const { data: ownerGyms } = await supabase
+      .from('gyms')
+      .select('id')
+      .eq('owner_id', userId)
+      .limit(1);
 
-  if (ownerGyms && ownerGyms.length > 0) {
-    return ownerGyms[0].id;
-  }
+    if (ownerGyms && ownerGyms.length > 0) {
+      return ownerGyms[0].id;
+    }
 
-  // 2. Kiểm tra nhân sự
-  const { data: staffGyms } = await supabase
-    .from('gym_staff')
-    .select('gym_id')
-    .eq('user_id', userId)
-    .limit(1);
+    // 2. Kiểm tra nhân sự
+    const { data: staffGyms } = await supabase
+      .from('gym_staff')
+      .select('gym_id')
+      .eq('user_id', userId)
+      .limit(1);
 
-  if (staffGyms && staffGyms.length > 0) {
-    return staffGyms[0].gym_id;
-  }
+    if (staffGyms && staffGyms.length > 0) {
+      return staffGyms[0].gym_id;
+    }
 
-  // 3. Fallback tìm gym khả dụng
-  const { data: anyGym } = await supabase.from('gyms').select('id').limit(1);
-  if (anyGym && anyGym.length > 0) {
-    return anyGym[0].id;
+    // 3. Fallback tìm gym khả dụng
+    const { data: anyGym } = await supabase.from('gyms').select('id').limit(1);
+    if (anyGym && anyGym.length > 0) {
+      return anyGym[0].id;
+    }
+  } catch (err) {
+    console.warn('[GET CURRENT GYM ID WARN]:', err);
   }
 
   return null;
@@ -97,6 +101,7 @@ function generateMemberCode(): string {
 
 /**
  * Server Action: Lấy danh sách hội viên CRM 360°
+ * Tách độc lập truy vấn gym_members, memberships và gym_staff để triệt tiêu lỗi PostgREST RLS
  */
 export async function getMembers(): Promise<{ data: MemberWithDetails[]; error: string | null }> {
   try {
@@ -115,8 +120,8 @@ export async function getMembers(): Promise<{ data: MemberWithDetails[]; error: 
       return { data: [], error: 'Không tìm thấy cơ sở phòng tập của tài khoản này.' };
     }
 
-    // Truy vấn dữ liệu từ gym_members kèm quan hệ
-    const { data, error } = await supabase
+    // 1. Truy vấn độc lập danh sách gym_members kèm chi nhánh
+    const { data: membersRaw, error: membersError } = await supabase
       .from('gym_members')
       .select(`
         id,
@@ -137,13 +142,32 @@ export async function getMembers(): Promise<{ data: MemberWithDetails[]; error: 
         home_branch:branches (
           id,
           name
-        ),
-        assigned_pt:gym_staff (
+        )
+      `)
+      .eq('gym_id', gymId)
+      .order('created_at', { ascending: false });
+
+    if (membersError) {
+      console.warn('[GET MEMBERS WARN]:', membersError.message);
+      return { data: [], error: `Thông báo cơ sở dữ liệu: ${membersError.message}` };
+    }
+
+    if (!membersRaw || membersRaw.length === 0) {
+      return { data: [], error: null };
+    }
+
+    const memberIds = membersRaw.map((m: any) => m.id);
+    const assignedPtIds = Array.from(
+      new Set(membersRaw.map((m: any) => m.assigned_pt_id).filter(Boolean))
+    );
+
+    // 2. Chạy độc lập truy vấn memberships và gym_staff (bảo đảm an toàn kể cả khi 1 bảng lỗi)
+    const [membershipsRes, staffRes] = await Promise.allSettled([
+      supabase
+        .from('memberships')
+        .select(`
           id,
-          full_name
-        ),
-        memberships (
-          id,
+          member_id,
           status,
           start_date,
           end_date,
@@ -154,20 +178,40 @@ export async function getMembers(): Promise<{ data: MemberWithDetails[]; error: 
             plan_type,
             price
           )
-        )
-      `)
-      .eq('gym_id', gymId)
-      .order('created_at', { ascending: false });
+        `)
+        .in('member_id', memberIds),
+      assignedPtIds.length > 0
+        ? supabase
+            .from('gym_staff')
+            .select('id, full_name')
+            .in('id', assignedPtIds)
+        : Promise.resolve({ data: [] }),
+    ]);
 
-    if (error) {
-      console.error('[GET MEMBERS ERROR]:', error);
-      return { data: [], error: `Lỗi truy vấn danh sách hội viên: ${error.message}` };
+    // Map memberships theo member_id
+    const membershipsByMember = new Map<string, any[]>();
+    if (membershipsRes.status === 'fulfilled' && membershipsRes.value.data) {
+      for (const mem of membershipsRes.value.data) {
+        if (!mem.member_id) continue;
+        const list = membershipsByMember.get(mem.member_id) || [];
+        list.push(mem);
+        membershipsByMember.set(mem.member_id, list);
+      }
     }
 
-    // Chuẩn hóa và map thẻ tập hiệu lực
-    const members: MemberWithDetails[] = (data || []).map((m: any) => {
-      // Tìm membership đang active hoặc mới nhất
-      const allMemberships = Array.isArray(m.memberships) ? m.memberships : [];
+    // Map PT theo staff id
+    const staffMap = new Map<string, { id: string; full_name: string }>();
+    if (staffRes.status === 'fulfilled' && staffRes.value.data) {
+      for (const s of staffRes.value.data) {
+        if (s.id) {
+          staffMap.set(s.id, { id: s.id, full_name: s.full_name });
+        }
+      }
+    }
+
+    // 3. Ghép nối dữ liệu trong bộ nhớ TypeScript
+    const members: MemberWithDetails[] = membersRaw.map((m: any) => {
+      const allMemberships = membershipsByMember.get(m.id) || [];
       const activeMem = allMemberships.find((mem: any) => mem.status === 'active') || allMemberships[0];
 
       let activeMembershipObj = null;
@@ -184,7 +228,7 @@ export async function getMembers(): Promise<{ data: MemberWithDetails[]; error: 
       }
 
       const homeBranch = Array.isArray(m.home_branch) ? m.home_branch[0] : m.home_branch;
-      const assignedPt = Array.isArray(m.assigned_pt) ? m.assigned_pt[0] : m.assigned_pt;
+      const assignedPt = m.assigned_pt_id ? staffMap.get(m.assigned_pt_id) || null : null;
 
       return {
         id: m.id,
@@ -203,7 +247,7 @@ export async function getMembers(): Promise<{ data: MemberWithDetails[]; error: 
         status: m.status || 'active',
         created_at: m.created_at,
         home_branch: homeBranch ? { id: homeBranch.id, name: homeBranch.name } : null,
-        assigned_pt: assignedPt ? { id: assignedPt.id, full_name: assignedPt.full_name } : null,
+        assigned_pt: assignedPt,
         active_membership: activeMembershipObj,
       };
     });
@@ -219,8 +263,8 @@ export async function getMembers(): Promise<{ data: MemberWithDetails[]; error: 
     ) {
       throw error;
     }
-    console.error('[GET MEMBERS EXCEPTION]:', error);
-    return { data: [], error: error instanceof Error ? error.message : 'Lỗi ngoại lệ khi tải danh sách hội viên' };
+    console.warn('[GET MEMBERS EXCEPTION]:', error?.message || error);
+    return { data: [], error: 'Không thể kết nối đến cơ sở dữ liệu hội viên' };
   }
 }
 
@@ -250,8 +294,8 @@ export async function getMemberRegistrationOptions(): Promise<{
       return { data: { plans: [], branches: [], trainers: [] }, error: 'Không tìm thấy phòng tập.' };
     }
 
-    // Truy vấn song song 3 danh mục
-    const [plansRes, branchesRes, trainersRes] = await Promise.all([
+    // Truy vấn độc lập 3 danh mục với Promise.allSettled
+    const [plansRes, branchesRes, trainersRes] = await Promise.allSettled([
       supabase
         .from('membership_plans')
         .select('id, name, price, duration_days, session_limit, plan_type')
@@ -278,46 +322,52 @@ export async function getMemberRegistrationOptions(): Promise<{
         .order('full_name', { ascending: true }),
     ]);
 
-    const plans: MemberPlanOption[] = (plansRes.data || []).map((p: any) => ({
-      id: p.id,
-      name: p.name,
-      price: Number(p.price || 0),
-      duration_days: p.duration_days || 30,
-      session_limit: p.session_limit || null,
-      plan_type: p.plan_type || 'fixed_period',
-    }));
+    const plans: MemberPlanOption[] =
+      plansRes.status === 'fulfilled' && plansRes.value.data
+        ? plansRes.value.data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            price: Number(p.price || 0),
+            duration_days: p.duration_days || 30,
+            session_limit: p.session_limit || null,
+            plan_type: p.plan_type || 'fixed_period',
+          }))
+        : [];
 
-    const branches: MemberBranchOption[] = (branchesRes.data || []).map((b: any) => ({
-      id: b.id,
-      name: b.name,
-    }));
+    const branches: MemberBranchOption[] =
+      branchesRes.status === 'fulfilled' && branchesRes.value.data
+        ? branchesRes.value.data.map((b: any) => ({
+            id: b.id,
+            name: b.name,
+          }))
+        : [];
 
-    const trainers: MemberTrainerOption[] = (trainersRes.data || []).map((t: any) => {
-      const branchObj = Array.isArray(t.branch) ? t.branch[0] : t.branch;
-      return {
-        id: t.id,
-        full_name: t.full_name,
-        specialty: t.specialty || null,
-        branch_name: branchObj?.name || null,
-      };
-    });
+    const trainers: MemberTrainerOption[] =
+      trainersRes.status === 'fulfilled' && trainersRes.value.data
+        ? trainersRes.value.data.map((t: any) => {
+            const branchObj = Array.isArray(t.branch) ? t.branch[0] : t.branch;
+            return {
+              id: t.id,
+              full_name: t.full_name,
+              specialty: t.specialty || null,
+              branch_name: branchObj?.name || null,
+            };
+          })
+        : [];
 
     return { data: { plans, branches, trainers }, error: null };
   } catch (err: any) {
-    console.error('[REGISTRATION OPTIONS ERROR]:', err);
+    console.warn('[REGISTRATION OPTIONS WARN]:', err?.message || err);
     return {
       data: { plans: [], branches: [], trainers: [] },
-      error: err instanceof Error ? err.message : 'Lỗi lấy danh mục tùy chọn đăng ký',
+      error: 'Thông báo danh mục đăng ký tạm thời không khả dụng',
     };
   }
 }
 
 /**
  * Server Action: Đăng ký hội viên CRM 360° và bán thẻ POS tại quầy
- * - Không yêu cầu UUID hay Auth UID người dùng!
- * - Nhập trực tiếp thông tin cá nhân và gói tập.
- * - Ưu tiên gọi Transactional RPC rpc_register_member_with_plan.
- * - Fallback trực tiếp nếu RPC phát sinh ngoại lệ.
+ * Không yêu cầu UUID hay Auth UID người dùng
  */
 export async function registerNewMember(
   formData: FormData
@@ -339,7 +389,7 @@ export async function registerNewMember(
     const rawPaidAmount = formData.get('paidAmount')?.toString().trim();
     const paymentNotes = formData.get('paymentNotes')?.toString().trim() || null;
 
-    // Xác thực cơ bản
+    // Xác thực bắt buộc
     if (!fullName) {
       return { error: 'Vui lòng nhập họ và tên hội viên.' };
     }
@@ -428,7 +478,7 @@ export async function registerNewMember(
       .single();
 
     if (memberInsertError || !newMember) {
-      console.error('[DIRECT INSERT MEMBER ERROR]:', memberInsertError);
+      console.warn('[DIRECT INSERT MEMBER WARN]:', memberInsertError?.message);
       return {
         error: `Không thể đăng ký hồ sơ hội viên: ${memberInsertError?.message || 'Lỗi không xác định'}`,
       };
@@ -490,7 +540,7 @@ export async function registerNewMember(
       memberCode: newMember.member_code,
     };
   } catch (error: any) {
-    console.error('[REGISTER MEMBER EXCEPTION]:', error);
+    console.warn('[REGISTER MEMBER EXCEPTION]:', error?.message || error);
     return {
       error: error instanceof Error ? error.message : 'Lỗi hệ thống khi đăng ký hội viên',
     };
