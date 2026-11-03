@@ -11,12 +11,12 @@
 ## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)
 
 - **Current Architecture Version:** v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)
-- **Current Phase:** P01 — Database v2.0 Refactoring
-- **Current Active Task:** P01-T02 (Seed Data & Helper RPCs v2.0)
+- **Current Phase:** P02 — Admin Web Shell v2.0, Branches, Plans & Staff Management (HOÀN TẤT 4/4 TASKS — SẴN SÀNG ĐÓNG GÓI)
+- **Current Active Task:** P02-T04 (Quản lý Nhân sự & Huấn luyện viên PT: Staff Management)
 - **Task Status:** IN_REVIEW
-- **Active Git Branch:** `feat/p01-t01-schema-v2`
-- **Last Completed Task:** P01-T01 (Supabase Schema v2.0 Migration: CRM gym_members, payment_transactions & 3-Tier Workout Programming)
-- **Next Scheduled Task:** P02-T01 (Nâng cấp Dashboard Layout & Sidebar 7 phân hệ chuẩn ERP)
+- **Active Git Branch:** `feat/p02-admin-erp-foundation`
+- **Last Completed Task:** P02-T04 (Quản lý Nhân sự & Huấn luyện viên PT: Staff Management)
+- **Next Scheduled Task:** P03-T01 (CRM Member Directory 360° & Search/Filter)
 - **Last Updated:** 02/11/2026
 
 ---
@@ -78,15 +78,15 @@
 ### PHASE P02 — ADMIN WEB SHELL V2.0, BRANCHES, PLANS & STAFF MANAGEMENT
 *Mục tiêu: Nâng cấp toàn diện giao diện Admin Web thành trung tâm điều hành phòng gym chuẩn ERP; quản lý chi nhánh, gói tập và nhân sự/PT.*
 
-- [ ] **P02-T01** `[Track: GM]` — **Nâng cấp Dashboard Layout & Sidebar 7 phân hệ**:
+- [x] **P02-T01** `[Track: GM]` — **Nâng cấp Dashboard Layout & Sidebar 7 phân hệ**:
   - Thiết kế Sidebar 7 module chuẩn ERP: Tổng quan, Hội viên & POS, Gói tập, Chi nhánh, Nhân sự & PT, Điểm danh, Trạm xếp bài tập.
   - Header tích hợp chọn nhanh Chi nhánh (Branch Switcher) và nút Quick Actions ("Đăng ký hội viên", "Check-in nhanh").
-- [ ] **P02-T02** `[Track: GM]` — **Nâng cấp Quản lý Chi nhánh (`Branches`)**:
+- [x] **P02-T02** `[Track: GM]` — **Nâng cấp Quản lý Chi nhánh (`Branches`)**:
   - Danh sách chi nhánh dạng bảng/thẻ với tìm kiếm, lọc trạng thái, form tạo mới và chỉnh sửa thông tin/đổi trạng thái (active/suspended/archived).
-- [ ] **P02-T03** `[Track: GM]` — **Xây dựng Quản lý Gói tập (`Membership Plans`)**:
+- [x] **P02-T03** `[Track: GM]` — **Xây dựng Quản lý Gói tập (`Membership Plans`)**:
   - Quản lý danh mục gói tập phòng gym (Gym tiêu chuẩn, PT 1 kèm 1, Combo).
   - Form tạo mới và chỉnh sửa: giá `BIGINT` VND, thời hạn ngày, số buổi tập, phạm vi áp dụng (toàn chuỗi / chi nhánh cụ thể).
-- [ ] **P02-T04** `[Track: GM]` — **Xây dựng Quản lý Nhân sự & Huấn Luyện Viên (`Staff & Trainers`)**:
+- [x] **P02-T04** `[Track: GM]` — **Xây dựng Quản lý Nhân sự & Huấn Luyện Viên (`Staff & Trainers`)**:
   - Danh sách nhân sự & huấn luyện viên cá nhân (PT), phân loại vai trò (manager, receptionist, trainer).
   - Form thêm nhân sự, gán chi nhánh công tác và quản lý trạng thái.
 
@@ -908,5 +908,106 @@
 - **Kết quả kiểm tra Quality Gates:**
   - `npx.cmd tsc --project apps/mobile/tsconfig.json --noEmit`: 0 errors.
   - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (Next.js production build passed).
+  - `npm.cmd run lint`: 0 errors.
+  - `npm.cmd test`: 13 test suites passed, 54 tests passed.
+
+### 2026-11-02 — Đóng gói Phase P01 và Xây dựng Khung Điều hành Admin ERP Shell v2.0 & Live Dashboard (P02-T01: feat/p02-admin-erp-foundation)
+
+- **Mục tiêu:** Hợp nhất thành công toàn bộ Phase P01 (Database v2.0 Refactoring) vào nhánh `main`, khởi tạo nhánh mới `feat/p02-admin-erp-foundation`; tái thiết kế khung điều hành Admin Web (Sidebar 7 phân hệ, Header thao tác nhanh) và trang Tổng quan Live Dashboard kết nối trực tiếp dữ liệu Schema v2.0; tạo 4 trang khung (placeholders) loại bỏ nguy cơ 404 khi điều hướng.
+- **Files đã tạo mới & cập nhật:**
+  - `apps/admin-web/src/app/dashboard/sidebar-nav.tsx`: Nâng cấp điều hướng Sidebar 7 phân hệ phân chia theo 3 nhóm nghiệp vụ chuẩn ERP (Vận hành & Quầy lễ tân, Dịch vụ & Huấn luyện, Quản trị hệ thống) với icon SVG sắc nét, badge nổi bật (`Check-in`, `3-Tier`) và highlight trạng thái active chuẩn xác.
+  - `apps/admin-web/src/app/dashboard/layout.tsx`: Tự động đọc tên phòng gym từ bảng `public.gyms` hiển thị thương hiệu; tích hợp thanh Quick-Action Header với 2 nút thao tác nhanh (`⚡ Điểm danh nhanh` và `+ Đăng ký Hội viên`) kèm cụm tài khoản và nút Đăng xuất.
+  - `apps/admin-web/src/app/dashboard/page.tsx`: Tái thiết kế thành Command Center đa năng đọc song song dữ liệu thật từ Supabase: 4 thẻ KPI động (Tổng hội viên CRM & số đang tập, Thẻ tập hiệu lực & số sắp hết hạn trong 7 ngày, Doanh thu thu ngân VND, Hệ sinh thái Chi nhánh/Gói tập/Giáo án PT 3 tầng); bảng 5 hội viên CRM mới nhất (`member_code`, `full_name`, `phone`, `status`, `joined_at`) và khối lối tắt nghiệp vụ lễ tân/PT.
+  - `apps/admin-web/src/app/dashboard/check-in/page.tsx`: Tạo trang khung Quầy Điểm danh (Phase P04).
+  - `apps/admin-web/src/app/dashboard/plans/page.tsx`: Tạo trang khung Quản lý Gói tập & Bảng giá (Task P02-T03).
+  - `apps/admin-web/src/app/dashboard/workouts/page.tsx`: Tạo trang khung Trạm Giáo án PT (Phase P05).
+  - `apps/admin-web/src/app/dashboard/staff/page.tsx`: Tạo trang khung Quản lý Nhân sự & HLV (Task P02-T04).
+  - `docs/mindmap.md`: Cập nhật con trỏ `## 0` sang Phase P02 / Task P02-T01 IN_REVIEW, đánh dấu `[x] P02-T01`, ghi nhận Work Log 02/11/2026.
+- **Logic chính đã triển khai:**
+  1. Chuyển đổi toàn diện trải nghiệm người dùng từ Web Portal cơ bản sang Hệ điều hành phòng gym All-in-One ERP v2.0.
+  2. Kết nối trực tiếp dữ liệu thật giữa frontend Next.js 15 và PostgreSQL Schema v2.0, xử lý an toàn chống lỗi khi cơ sở dữ liệu trống.
+  3. Hoàn thiện hệ thống điều hướng toàn diện không có điểm chết (0 lỗi 404).
+- **Kết quả kiểm tra Quality Gates:**
+  - `npx.cmd tsc --project apps/mobile/tsconfig.json --noEmit`: 0 errors.
+  - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (12 routes tĩnh/động tối ưu, compiled thành công).
+  - `npm.cmd run lint`: 0 errors.
+  - `npm.cmd test`: 13 test suites passed, 54 tests passed.
+
+### 2026-11-02 — Nâng cấp Toàn diện Quản lý Chi nhánh: Tìm kiếm, Bộ lọc & Chỉnh sửa (P02-T02: feat/p02-admin-erp-foundation)
+
+- **Mục tiêu:** Nâng cấp toàn diện phân hệ Quản lý Chi nhánh cơ sở (`/dashboard/branches`) từ chế độ xem tĩnh sang giao diện quản trị động: tìm kiếm thời gian thực, lọc theo 4 trạng thái, hiển thị số lượng nhân sự/hội viên trực thuộc, đổi trạng thái nhanh (Active/Suspended) và trang form chỉnh sửa chi nhánh an toàn.
+- **Files đã tạo mới & cập nhật:**
+  - `apps/admin-web/src/app/dashboard/branches/actions.ts`:
+    1. Bổ sung `BranchWithStats` và cập nhật `getBranches()` để truy vấn song song số lượng nhân sự active (`gym_staff`) và số lượng hội viên đăng ký (`gym_members`) theo từng chi nhánh.
+    2. Bổ sung `getBranchById(branchId)` truy vấn chi tiết 1 cơ sở.
+    3. Bổ sung `updateBranch(branchId, formData)` cập nhật tên, slug, phone, address, status qua RPC `rpc_manage_branch` (với fallback direct update) kèm kiểm tra regex slug và revalidate path.
+    4. Bổ sung `updateBranchStatus(branchId, status)` đổi nhanh trạng thái hoạt động của cơ sở.
+  - `apps/admin-web/src/app/dashboard/branches/branch-table.tsx`: Tạo component Client tương tác cao: thanh tìm kiếm tức thì theo Tên/Slug/SĐT/Địa chỉ; 4 tab lọc trạng thái (Tất cả, Hoạt động, Tạm ngưng, Lưu trữ); hiển thị badge quy mô nhân sự & hội viên; cột thao tác gồm nút Chỉnh sửa và nút Đổi trạng thái nhanh kèm hộp thoại xác nhận.
+  - `apps/admin-web/src/app/dashboard/branches/page.tsx`: Tích hợp `BranchTable` và breadcrumb ERP v2.0.
+  - `apps/admin-web/src/app/dashboard/branches/[id]/edit/branch-edit-form.tsx`: Form chỉnh sửa chi nhánh với prefill dữ liệu, slug generator, chọn trạng thái và thông báo phản hồi inline.
+  - `apps/admin-web/src/app/dashboard/branches/[id]/edit/page.tsx`: Server component định tuyến động với xử lý `params` Promise Next.js 15 và kiểm tra 404 khi không tìm thấy cơ sở.
+  - `docs/mindmap.md`: Cập nhật con trỏ `## 0` sang Task P02-T02 IN_REVIEW, đánh dấu `[x] P02-T02`, ghi nhận Work Log 02/11/2026.
+- **Logic chính đã triển khai:**
+  1. Hỗ trợ đa dạng phương thức tìm kiếm và lọc danh sách chi nhánh mượt mà trên client mà không gây tải lại toàn trang.
+  2. Tích hợp đầy đủ luồng chỉnh sửa dữ liệu và chuyển trạng thái cơ sở phòng tập tuân thủ cơ chế bảo mật RLS và RPC gateway của hệ thống.
+  3. Hoàn thiện báo cáo thống kê quy mô cơ sở (số lượng nhân sự & hội viên) ngay trên từng dòng danh sách.
+- **Kết quả kiểm tra Quality Gates:**
+  - `npx.cmd tsc --project apps/mobile/tsconfig.json --noEmit`: 0 errors.
+  - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (13 routes tĩnh/động tối ưu, compiled thành công).
+  - `npm.cmd run lint`: 0 errors.
+  - `npm.cmd test`: 13 test suites passed, 54 tests passed.
+
+### 2026-11-02 — Đại tu Giao diện Enterprise & Xây dựng Quản lý Gói tập Plans (P02-T03: feat/p02-admin-erp-foundation)
+
+- **Mục tiêu:** Cài đặt thư viện `lucide-react` cho phân hệ `@gym-tracker/admin-web`, thực hiện quy tắc Zero-Emoji và nâng cấp toàn bộ hệ thống giao diện theo chuẩn Enterprise SaaS (Devias Kit Pro & Shadcn UI style), khắc phục lỗi chuỗi LaTeX thô `($\rightarrow$)`, sửa lỗi nút Next.js DevTools che khuất thông tin chân Sidebar; đồng thời xây dựng hoàn chỉnh phân hệ Quản lý Gói tập & Bảng giá (`/dashboard/plans`).
+- **Files đã tạo mới & cập nhật:**
+  - `apps/admin-web/package.json` & `package-lock.json`: Cài đặt gói `lucide-react` (^1.66.0).
+  - `apps/admin-web/src/app/dashboard/layout.tsx`: Đại tu khung điều hành: Topbar Header `h-14` với nút Điểm danh nhanh (`ScanLine`) và Đăng ký Hội viên (`UserPlus`); Sidebar tối màu Devias `bg-slate-950`, chân Sidebar thêm khoảng đệm `pb-16` không bị nút Next.js DevTools che khuất; tích hợp icon Đăng xuất `LogOut`.
+  - `apps/admin-web/src/app/dashboard/sidebar-nav.tsx`: Thay toàn bộ icon SVG/Emoji bằng `lucide-react` (`LayoutDashboard`, `ScanLine`, `Users`, `CreditCard`, `Dumbbell`, `Building2`, `ShieldCheck`, `Settings`); hiệu ứng active item `bg-indigo-600/15 text-indigo-400 font-semibold ring-1 ring-inset ring-indigo-500/30`.
+  - `apps/admin-web/src/app/dashboard/page.tsx`: Xóa bỏ thẻ banner "Xin chào, admin! 👋" cồng kềnh; chuẩn hóa Page Header không đóng hộp trên nền trang; tái thiết kế 4 KPI Cards theo chuẩn tài chính Stripe/Devias (`tabular-nums`, icon trong hộp `w-9 h-9`); xóa bỏ 100% Emoji.
+  - `apps/admin-web/src/app/dashboard/workouts/page.tsx`: Xóa triệt để lỗi chuỗi LaTeX thô `($\rightarrow$)`, thay bằng `ArrowRight` và mũi tên trực quan; loại bỏ hoàn toàn Emoji `🏋️`.
+  - `apps/admin-web/src/app/dashboard/check-in/page.tsx`, `staff/page.tsx`, `settings/page.tsx`: Chuẩn hóa Page Header không đóng hộp, thay thế toàn bộ emoji `⚡`, `👥`, `⚙️` bằng icon Lucide tương ứng.
+  - `apps/admin-web/src/app/dashboard/branches/*` (`page.tsx`, `branch-table.tsx`, `create/page.tsx`, `[id]/edit/*`): Chuẩn hóa Page Header, xóa sạch toàn bộ emoji (`🏢`, `👥`, `💪`, `📞`, `📍`, `⚠️`, `🟢`, `🟡`, `⚪`), thay thế bằng các component Lucide chuẩn.
+  - `apps/admin-web/src/app/dashboard/members/*` (`page.tsx`, `create-form.tsx`): Xóa sạch emoji `⚠️`, `👤`, `👥`, `🎫`.
+  - `apps/admin-web/src/app/dashboard/plans/actions.ts`: Xây dựng đầy đủ CRUD Server Actions: `getMembershipPlans()` kèm thống kê số thẻ active, `getMembershipPlanById()`, `createMembershipPlan()` (hỗ trợ `fixed_period`, `session_pack`, `recurring` kèm cơ chế tự động mapping fallback cho constraint DB), `updateMembershipPlan()` và `togglePlanStatus()`.
+  - `apps/admin-web/src/app/dashboard/plans/plan-table.tsx`: Giao diện bảng gói tập thông minh: 3 thẻ tóm tắt nhanh, thanh tìm kiếm thời gian thực, các tab lọc phân loại (`Tất cả`, `Thẻ Thời Hạn`, `Gói Buổi PT`, `Định Kỳ`), lọc trạng thái mở bán, hiển thị đơn giá VNĐ định dạng chuẩn, số buổi, phạm vi chi nhánh, số hội viên đang dùng và nút thao tác nhanh.
+  - `apps/admin-web/src/app/dashboard/plans/page.tsx`: Trang danh mục gói tập chuẩn Enterprise.
+  - `apps/admin-web/src/app/dashboard/plans/plan-form.tsx`: Form nhập liệu 2 cột thông minh: chọn nhanh thời hạn (`30 ngày`, `90 ngày`, `180 ngày`, `365 ngày`), nổi bật hạn mức buổi tập khi chọn Gói PT, và Live Pricing Card Preview thời gian thực chuẩn POS quầy tiếp tân.
+  - `apps/admin-web/src/app/dashboard/plans/create/page.tsx` & `[id]/edit/page.tsx`: Tuyến đường tạo mới và chỉnh sửa gói tập tương thích Next.js 15 `await params`.
+  - `docs/design-system.md`: Bổ sung mục 3 quy chuẩn Admin Web Enterprise Design System v2.0 (Zero-Emoji, Lucide React, Devias Shell, Page Header không đóng hộp).
+  - `docs/mindmap.md`: Cập nhật con trỏ trạng thái sang P02-T03 IN_REVIEW, đánh dấu `[x] P02-T03` và ghi nhận Work Log chi tiết.
+- **Kết quả kiểm tra Quality Gates:**
+  - `node scratch/scan_emojis.js`: 0 emojis, 0 unrendered LaTeX strings.
+  - `npx.cmd tsc --project apps/mobile/tsconfig.json --noEmit`: 0 errors.
+  - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (14 routes tĩnh/động tối ưu, compiled thành công).
+  - `npm.cmd run lint`: 0 errors.
+  - `npm.cmd test`: 13 test suites passed, 54 tests passed.
+
+### 2026-11-03 — Hoàn Thành Phân Hệ Quản Lý Nhân Sự & PT (P02-T04: feat/p02-admin-erp-foundation)
+
+- **Mục tiêu:** Xây dựng hoàn chỉnh phân hệ Quản lý Nhân sự & Huấn luyện viên PT (`/dashboard/staff`), tạo migration thứ 11 gỡ bỏ ràng buộc `NOT NULL` trên `gym_staff.user_id`, cấp quyền RLS DELETE cho Owner, seed 2 Huấn luyện viên PT mẫu và 1 Lễ tân mẫu; hoàn tất toàn bộ 4/4 Tasks của Phase P02.
+- **Files đã tạo mới & cập nhật:**
+  - `supabase/migrations/20261102020000_v2_staff_profile_nullable_user_id.sql`: Migration thứ 11 bọc trong `BEGIN ... COMMIT`:
+    1. `ALTER TABLE public.gym_staff ALTER COLUMN user_id DROP NOT NULL;`
+    2. Cập nhật partial unique indexes `gym_staff_gym_user_null_branch_idx` và `gym_staff_gym_branch_user_idx` bổ sung `WHERE ... AND user_id IS NOT NULL`.
+    3. Thêm composite index `gym_staff_gym_role_status_idx` và `gym_staff_phone_idx`.
+    4. Cấp quyền & thiết lập policy RLS DELETE cho Gym Owner.
+    5. Khối DO block idempotent seed 2 PT mẫu (`Nguyễn Minh Quân`, `Lê Thảo Vy`) và 1 Lễ tân mẫu (`Trần Hoàng Yến`).
+  - `apps/admin-web/src/app/dashboard/staff/actions.ts`: Server Actions:
+    1. `getStaffMembers()`: Lấy danh sách nhân sự, map tên chi nhánh và thống kê số học viên đang phụ trách (`assigned_members_count`).
+    2. `getStaffById()`: Chi tiết nhân sự theo ID.
+    3. `getActiveBranchesForStaff()`: Danh sách chi nhánh hoạt động phục vụ form.
+    4. `createStaffMember()` & `updateStaffMember()`: Tạo và cập nhật hồ sơ nhân sự/PT không phụ thuộc Auth UID.
+    5. `updateStaffStatus()`: Đổi trạng thái nhanh (`active`, `suspended`, `revoked`).
+  - `apps/admin-web/src/app/dashboard/staff/staff-table.tsx`: Component bảng nhân sự chuyên nghiệp: 4 thẻ KPI nhanh, thanh tìm kiếm tức thời đa trường, tab lọc theo vai trò (`Huấn Luyện Viên PT`, `Lễ Tân`, `Quản Lý`), dropdown lọc theo chi nhánh, badge phân biệt màu sắc và các nút thao tác nhanh.
+  - `apps/admin-web/src/app/dashboard/staff/page.tsx`: Trang danh mục nhân sự chuẩn Enterprise với Page Header không đóng hộp.
+  - `apps/admin-web/src/app/dashboard/staff/staff-form.tsx`: Form 2 cột hiện đại: Cột trái nhập thông tin cá nhân, vai trò, chi nhánh, chip chọn nhanh chuyên môn và tiểu sử; Cột phải hiển thị Thẻ Hồ sơ Nhân sự/PT Xem trước (Live Staff Badge Preview).
+  - `apps/admin-web/src/app/dashboard/staff/create/page.tsx` & `[id]/edit/page.tsx`: Tuyến đường tạo mới và chỉnh sửa nhân sự tương thích Next.js 15 Server Components.
+  - `docs/supabase-schema.md`: Ghi nhận migration thứ 11 trong lộ trình GM và nhật ký chỉnh sửa.
+  - `docs/mindmap.md`: Cập nhật con trỏ trạng thái sang P02-T04 IN_REVIEW, đánh dấu `[x] P02-T04` và hoàn tất Phase P02.
+- **Kết quả kiểm tra Quality Gates:**
+  - `node scratch/scan_emojis.js`: 0 emojis, 0 unrendered LaTeX strings.
+  - `npx.cmd tsc --project apps/mobile/tsconfig.json --noEmit`: 0 errors.
+  - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (16 routes tĩnh/động tối ưu, compiled thành công).
   - `npm.cmd run lint`: 0 errors.
   - `npm.cmd test`: 13 test suites passed, 54 tests passed.

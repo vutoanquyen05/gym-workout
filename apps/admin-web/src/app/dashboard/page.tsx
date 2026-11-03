@@ -1,154 +1,415 @@
 import React from 'react';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
+import {
+  Users,
+  CreditCard,
+  Building2,
+  TrendingUp,
+  ScanLine,
+  UserPlus,
+  ArrowUpRight,
+  Dumbbell,
+  Settings,
+  ShieldCheck,
+  CheckCircle2,
+  Clock,
+} from 'lucide-react';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  const stats = [
-    {
-      title: 'Tổng học viên',
-      value: '0',
-      change: 'Chưa có dữ liệu',
-      icon: '👥',
-      color: 'blue',
-    },
-    {
-      title: 'Số chi nhánh',
-      value: '0',
-      change: 'Cần cấu hình',
-      icon: '🏢',
-      color: 'indigo',
-    },
-    {
-      title: 'Doanh thu tháng',
-      value: '0 ₫',
-      change: 'Kỳ thanh toán này',
-      icon: '💰',
-      color: 'emerald',
-    },
-    {
-      title: 'Huấn luyện viên (PT)',
-      value: '0',
-      change: 'Đang hoạt động',
-      icon: '🏋️',
-      color: 'amber',
-    },
-  ];
+  // 1. Truy vấn thống kê CRM Hội viên
+  const { count: totalMembersCount } = await supabase
+    .from('gym_members')
+    .select('*', { count: 'exact', head: true });
+
+  const { count: activeMembersCount } = await supabase
+    .from('gym_members')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'active');
+
+  // 2. Truy vấn số lượng thẻ tập đang có hiệu lực
+  const { count: activeMembershipsCount } = await supabase
+    .from('memberships')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'active');
+
+  // 3. Truy vấn tổng doanh thu tích lũy (từ payment_transactions v2.0)
+  const { data: transactions } = await supabase
+    .from('payment_transactions')
+    .select('amount, payment_status')
+    .eq('payment_status', 'completed');
+
+  const totalRevenue = (transactions || []).reduce(
+    (sum, t) => sum + Number(t.amount || 0),
+    0
+  );
+
+  // 4. Truy vấn số lượng Chi nhánh đang hoạt động
+  const { count: activeBranchesCount } = await supabase
+    .from('branches')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'active');
+
+  // 5. Truy vấn danh sách 5 Hội viên mới nhất (CRM 360°)
+  const { data: recentMembers } = await supabase
+    .from('gym_members')
+    .select(`
+      id,
+      member_code,
+      full_name,
+      phone,
+      status,
+      created_at,
+      home_branch:branches (
+        name
+      )
+    `)
+    .order('created_at', { ascending: false })
+    .limit(5);
+
+  const totalMembers = totalMembersCount || 0;
+  const activeMembers = activeMembersCount || 0;
+  const activeMemberships = activeMembershipsCount || 0;
+  const activeBranches = activeBranchesCount || 0;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Welcome Card */}
-      <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
-              Xin chào, {user?.email || 'Quản trị viên'}! 👋
-            </h2>
-            <p className="text-slate-600 text-sm mt-1">
-              Chào mừng bạn đến với Hệ thống Quản trị Gym Tracker. Nền tảng Cloud đã sẵn sàng cho vận hành.
-            </p>
+    <div className="max-w-[1600px] mx-auto px-6 py-6 space-y-6">
+      {/* Enterprise Page Header (Không đóng hộp) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
+            <span>Hệ thống</span>
+            <span>/</span>
+            <span className="font-medium text-slate-700">Tổng quan điều hành</span>
           </div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium self-start sm:self-center">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            Hệ thống Cloud Online
-          </div>
-        </div>
-      </div>
-
-      {/* Metrics Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {stats.map((stat) => (
-          <div
-            key={stat.title}
-            className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                {stat.title}
-              </span>
-              <span className="text-2xl" role="img" aria-label={stat.title}>
-                {stat.icon}
-              </span>
-            </div>
-            <div className="mt-3">
-              <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
-                {stat.value}
-              </span>
-              <span className="text-xs text-slate-400 block mt-1">
-                {stat.change}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Operational Highlights & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Cloud Readiness Information */}
-        <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-slate-200 space-y-4">
-          <h3 className="text-base font-semibold text-slate-900">
-            Trạng thái Hạ tầng Quản lý Phòng tập
-          </h3>
-          <p className="text-sm text-slate-600 leading-relaxed">
-            Kiến trúc cơ sở dữ liệu Multi-Tenant (GM-1 đến GM-5) đã được triển khai trên Supabase PostgreSQL Cloud. 
-            Hệ thống phân quyền Role-Based Access Control (RBAC) đã kích hoạt cho Tenant Owner, Branch Manager, PT và Member.
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+            Trung tâm chỉ huy
+          </h1>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Giám sát thời gian thực: thẻ hội viên, phân bổ chi nhánh, dòng tiền giao dịch và giáo án PT.
           </p>
+        </div>
+        <div className="flex items-center gap-2.5 shrink-0">
+          <Link
+            href="/dashboard/check-in"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 transition-colors shadow-2xs"
+          >
+            <ScanLine className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Quầy Điểm danh</span>
+          </Link>
+          <Link
+            href="/dashboard/members/create"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>Thêm Hội viên</span>
+          </Link>
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
-              <span className="text-xs font-medium text-slate-500 block">Xác thực người dùng</span>
-              <span className="text-sm font-semibold text-slate-800">Supabase SSR Auth</span>
+      {/* 4 Executive KPI Cards (Stripe / Devias Style) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: CRM Members */}
+        <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
+              Tổng Hội Viên CRM
+            </span>
+            <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center">
+              <Users className="w-4 h-4" />
             </div>
-            <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
-              <span className="text-xs font-medium text-slate-500 block">Mô hình phân vùng</span>
-              <span className="text-sm font-semibold text-slate-800">Multi-Tenancy (RLS Isolation)</span>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl font-bold text-slate-900 tracking-tight tabular-nums">
+              {totalMembers.toLocaleString('vi-VN')}
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium mt-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>{activeMembers} đang hoạt động</span>
             </div>
           </div>
         </div>
 
-        {/* Quick Links */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between">
-          <div>
-            <h3 className="text-base font-semibold text-slate-900 mb-2">
-              Lối tắt nhanh
-            </h3>
+        {/* Card 2: Active Memberships */}
+        <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
+              Thẻ Tập Hiệu Lực
+            </span>
+            <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
+              <CreditCard className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl font-bold text-slate-900 tracking-tight tabular-nums">
+              {activeMemberships.toLocaleString('vi-VN')}
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mt-1">
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              <span>Thời hạn & gói buổi</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Total Revenue */}
+        <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
+              Doanh Thu Tích Lũy
+            </span>
+            <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl font-bold text-slate-900 tracking-tight tabular-nums">
+              {totalRevenue.toLocaleString('vi-VN')} <span className="text-base font-semibold text-slate-500">₫</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium mt-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span>POS Quầy & Chuyển khoản</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Active Branches */}
+        <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
+              Chi Nhánh Hoạt Động
+            </span>
+            <div className="w-9 h-9 rounded-lg bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center">
+              <Building2 className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl font-bold text-slate-900 tracking-tight tabular-nums">
+              {activeBranches}
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mt-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+              <span>Cơ sở đồng bộ v2.0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Grid: Recent Members (Left) & Quick Access Modules (Right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column: Recent CRM Members Table (2 cols) */}
+        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200/80 flex items-center justify-between bg-white">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-900">
+                Hội Viên CRM Mới Đăng Ký
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                5 hồ sơ thành viên cập nhật gần nhất trên toàn hệ thống
+              </p>
+            </div>
+            <Link
+              href="/dashboard/members"
+              className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700"
+            >
+              <span>Xem tất cả</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50/70 border-b border-slate-200/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <tr>
+                  <th className="px-5 py-3">Mã Hội Viên</th>
+                  <th className="px-5 py-3">Họ và Tên</th>
+                  <th className="px-5 py-3">Số Điện Thoại</th>
+                  <th className="px-5 py-3">Cơ Sở Gốc</th>
+                  <th className="px-5 py-3">Trạng Thái</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {recentMembers && recentMembers.length > 0 ? (
+                  recentMembers.map((member) => (
+                    <tr key={member.id} className="hover:bg-slate-50/60 transition-colors">
+                      <td className="px-5 py-3.5 font-mono font-semibold text-slate-900">
+                        {member.member_code}
+                      </td>
+                      <td className="px-5 py-3.5 font-medium text-slate-900">
+                        {member.full_name}
+                      </td>
+                      <td className="px-5 py-3.5 text-slate-600 font-mono">
+                        {member.phone || <span className="text-slate-400 italic">Chưa có SĐT</span>}
+                      </td>
+                      <td className="px-5 py-3.5 text-slate-600">
+                        {Array.isArray(member.home_branch) && member.home_branch[0]?.name
+                          ? member.home_branch[0].name
+                          : (member.home_branch as unknown as { name?: string })?.name || (
+                              <span className="text-slate-400 italic">Chưa phân bổ</span>
+                            )}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                            member.status === 'active'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : member.status === 'suspended'
+                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                          }`}
+                        >
+                          <span
+                            className={`w-1 h-1 rounded-full ${
+                              member.status === 'active'
+                                ? 'bg-emerald-500'
+                                : member.status === 'suspended'
+                                ? 'bg-amber-500'
+                                : 'bg-slate-400'
+                            }`}
+                          />
+                          {member.status === 'active'
+                            ? 'Hoạt động'
+                            : member.status === 'suspended'
+                            ? 'Tạm dừng'
+                            : 'Hết hạn'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-10 text-center text-slate-500">
+                      <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                      <p className="font-medium text-slate-700">Chưa có dữ liệu hội viên CRM</p>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Bắt đầu đăng ký hội viên đầu tiên để theo dõi dữ liệu.
+                      </p>
+                      <Link
+                        href="/dashboard/members/create"
+                        className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-700"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" />
+                        <span>Đăng ký hội viên ngay</span>
+                      </Link>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Right Column: ERP Shortcuts & System Health (1 col) */}
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-5">
+            <h2 className="text-sm font-semibold text-slate-900 mb-1">
+              Lối Tắt Vận Hành ERP
+            </h2>
             <p className="text-xs text-slate-500 mb-4">
-              Các tính năng quản lý cốt lõi tiếp theo:
+              Truy cập nhanh các nghiệp vụ quản trị hàng ngày
             </p>
 
             <div className="space-y-2">
               <Link
+                href="/dashboard/check-in"
+                className="group flex items-center justify-between p-3 rounded-lg border border-slate-200/80 hover:border-indigo-300 hover:bg-indigo-50/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+                    <ScanLine className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors block">
+                      Quầy Tiếp Tân & Check-in
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      Điểm danh thẻ & trừ buổi tự động
+                    </span>
+                  </div>
+                </div>
+                <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+              </Link>
+
+              <Link
+                href="/dashboard/plans"
+                className="group flex items-center justify-between p-3 rounded-lg border border-slate-200/80 hover:border-indigo-300 hover:bg-indigo-50/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0">
+                    <CreditCard className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors block">
+                      Gói Tập & Bảng Giá
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      Cấu hình gói tháng & gói buổi PT
+                    </span>
+                  </div>
+                </div>
+                <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+              </Link>
+
+              <Link
+                href="/dashboard/workouts"
+                className="group flex items-center justify-between p-3 rounded-lg border border-slate-200/80 hover:border-indigo-300 hover:bg-indigo-50/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 border border-violet-100 flex items-center justify-center shrink-0">
+                    <Dumbbell className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors block">
+                      Trạm Giáo Án PT (3 Tầng)
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      Biên soạn chương trình & gán học viên
+                    </span>
+                  </div>
+                </div>
+                <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+              </Link>
+
+              <Link
                 href="/dashboard/branches"
-                className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition-colors group"
+                className="group flex items-center justify-between p-3 rounded-lg border border-slate-200/80 hover:border-indigo-300 hover:bg-indigo-50/30 transition-colors"
               >
-                <span className="text-sm font-medium text-slate-700 group-hover:text-blue-700">
-                  🏢 Cấu hình Chi nhánh
-                </span>
-                <span className="text-xs text-slate-400 group-hover:text-blue-600">→</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center shrink-0">
+                    <Building2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors block">
+                      Quản Trị Chi Nhánh
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      Mạng lưới cơ sở & phân quyền
+                    </span>
+                  </div>
+                </div>
+                <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
               </Link>
+            </div>
+          </div>
 
-              <Link
-                href="/dashboard/members"
-                className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition-colors group"
-              >
-                <span className="text-sm font-medium text-slate-700 group-hover:text-blue-700">
-                  👥 Quản lý Hội viên
-                </span>
-                <span className="text-xs text-slate-400 group-hover:text-blue-600">→</span>
-              </Link>
-
-              <Link
-                href="/dashboard/settings"
-                className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition-colors group"
-              >
-                <span className="text-sm font-medium text-slate-700 group-hover:text-blue-700">
-                  ⚙️ Cài đặt Hệ thống
-                </span>
-                <span className="text-xs text-slate-400 group-hover:text-blue-600">→</span>
+          <div className="bg-slate-900 text-white rounded-xl p-4.5 border border-slate-800 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-slate-300">Kiến Trúc Vận Hành</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                v2.0 Locked
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Hệ thống tách biệt hoàn toàn giữa danh tính đăng nhập (<code className="text-slate-300 font-mono">auth.users</code>) và hồ sơ hội viên (<code className="text-slate-300 font-mono">gym_members</code>), bảo vệ toàn vẹn bằng RLS Policies và Transactional RPCs.
+            </p>
+            <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Multi-tenant RLS</span>
+              </span>
+              <Link href="/dashboard/settings" className="text-indigo-400 hover:text-indigo-300 font-medium">
+                Cài đặt hệ thống
               </Link>
             </div>
           </div>

@@ -1,5 +1,7 @@
 'use client';
 
+import { Users, QrCode, AlertTriangle } from 'lucide-react';
+
 import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -84,9 +86,7 @@ export function CreateMemberForm({
       {/* Header Form */}
       <div className="border-b border-slate-100 pb-5 mb-8">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl shadow-sm">
-            👥
-          </div>
+          <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100"><Users className="w-5 h-5" /></div>
           <div>
             <h2 className="text-xl font-bold text-slate-900 tracking-tight">
               Thêm Hội Viên Mới
@@ -227,7 +227,7 @@ export function CreateMemberForm({
                 <option value="">Tất cả chi nhánh (Toàn hệ thống)</option>
                 {branches.map((b) => (
                   <option key={b.id} value={b.id}>
-                    🏢 {b.name}
+                    {b.name}
                   </option>
                 ))}
               </select>
@@ -279,7 +279,7 @@ export function CreateMemberForm({
           {/* Hộp xem trước mã thẻ tự động */}
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className="text-base">🎫</span>
+              <QrCode className="w-4 h-4 text-slate-500" />
               <span className="text-xs text-slate-600 font-medium">
                 Mã hội viên tự động sinh:
               </span>
@@ -293,7 +293,7 @@ export function CreateMemberForm({
         {/* Thông báo lỗi nổi bật ngay trên nút hành động */}
         {errorMessage && (
           <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3 shadow-sm animate-in fade-in duration-200">
-            <span className="text-lg leading-none shrink-0">⚠️</span>
+            <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
             <div className="flex-1 overflow-hidden">
               <span className="font-semibold block text-red-800">
                 Lỗi xử lý khi cấp thẻ hội viên:
