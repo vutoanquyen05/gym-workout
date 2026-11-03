@@ -26,10 +26,10 @@ export default async function StaffPage() {
           </div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-              Quản Lý Nhân Sự & Huấn Luyện Viên
+              Quản lý nhân sự và huấn luyện viên
             </h1>
             <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-              Staff & PT Hub
+              Nhân sự và PT
             </span>
           </div>
           <p className="text-sm text-slate-500 mt-0.5">

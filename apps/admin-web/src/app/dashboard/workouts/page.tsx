@@ -13,11 +13,11 @@ export default function WorkoutsPage() {
               Tổng quan
             </Link>
             <span>/</span>
-            <span className="font-medium text-slate-700">Dịch vụ & Giáo án</span>
+            <span className="font-medium text-slate-700">Dịch vụ và giáo án</span>
           </div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-              Trạm Xếp Bài Tập & Giáo Án PT
+              Trạm xếp bài tập và giáo án PT
             </h1>
             <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
               3-Tier Coaching
@@ -37,7 +37,7 @@ export default function WorkoutsPage() {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Về Tổng quan</span>
+            <span>Về tổng quan</span>
           </Link>
         </div>
       </div>
@@ -49,7 +49,7 @@ export default function WorkoutsPage() {
         </div>
         <div className="max-w-md mx-auto space-y-2">
           <h2 className="text-base font-semibold text-slate-900">
-            Trạm Giáo Án 3 Tầng & InBody Sẵn Sàng
+            Trạm giáo án 3 tầng và InBody sẵn sàng
           </h2>
           <p className="text-xs text-slate-500 leading-relaxed">
             Hạ tầng Database v2.0 (<code className="font-mono text-slate-700">workout_programs</code>, <code className="font-mono text-slate-700">program_days</code>, <code className="font-mono text-slate-700">program_day_exercises</code>, <code className="font-mono text-slate-700">body_measurements</code>) và RPC deep-clone <code className="font-mono text-slate-700">rpc_assign_program_template</code> đã sẵn sàng hoạt động. Giao diện trực quan sẽ được triển khai tại Phase P05.
@@ -59,7 +59,7 @@ export default function WorkoutsPage() {
         <div className="pt-4 border-t border-slate-100 flex flex-wrap justify-center gap-3">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-medium">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            <span>12 Bài tập Hệ thống Chuẩn</span>
+            <span>12 bài tập hệ thống chuẩn</span>
           </span>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-medium">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />

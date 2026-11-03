@@ -23,7 +23,7 @@ export default async function BranchesPage() {
           </div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-              Quản Lý Chi Nhánh Cơ Sở
+              Quản lý chi nhánh cơ sở
             </h1>
             <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
               ERP v2.0

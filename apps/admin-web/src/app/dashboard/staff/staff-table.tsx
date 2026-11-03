@@ -100,21 +100,21 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
             <Crown className="w-3 h-3 text-amber-600" />
-            <span>Chủ Phòng Tập</span>
+            <span>Chủ phòng tập</span>
           </span>
         );
       case 'manager':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
             <ShieldCheck className="w-3 h-3 text-purple-600" />
-            <span>Quản Lý Cơ Sở</span>
+            <span>Quản lý cơ sở</span>
           </span>
         );
       case 'receptionist':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
             <UserCheck className="w-3 h-3 text-sky-600" />
-            <span>Lễ Tân & Thu Ngân</span>
+            <span>Lễ tân và thu ngân</span>
           </span>
         );
       case 'trainer':
@@ -122,7 +122,7 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
             <Dumbbell className="w-3 h-3 text-indigo-600" />
-            <span>Huấn Luyện Viên PT</span>
+            <span>Huấn luyện viên PT</span>
           </span>
         );
     }
@@ -170,7 +170,7 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
         <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-              Tổng Nhân Sự
+              Tổng nhân sự
             </span>
             <div className="text-xl font-bold text-slate-900 mt-1 tabular-nums">
               {totalCount} nhân sự
@@ -184,7 +184,7 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
         <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-              Huấn Luyện Viên PT
+              Huấn luyện viên PT
             </span>
             <div className="text-xl font-bold text-indigo-600 mt-1 tabular-nums">
               {trainerCount} HLV
@@ -198,7 +198,7 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
         <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-              Quản Lý & Lễ Tân
+              Quản lý và lễ tân
             </span>
             <div className="text-xl font-bold text-sky-600 mt-1 tabular-nums">
               {frontDeskCount} nhân sự
@@ -212,10 +212,10 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
         <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-              Đang Làm Việc
+              Đang làm việc
             </span>
             <div className="text-xl font-bold text-emerald-600 mt-1 tabular-nums">
-              {activeCount} active
+              {activeCount} đang hoạt động
             </div>
           </div>
           <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
@@ -294,7 +294,7 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Huấn Luyện Viên PT
+              Huấn luyện viên PT
             </button>
             <button
               onClick={() => setRoleFilter('receptionist')}
@@ -304,7 +304,7 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Lễ Tân
+              Lễ tân
             </button>
             <button
               onClick={() => setRoleFilter('manager')}
@@ -314,7 +314,7 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Quản Lý
+              Quản lý
             </button>
           </div>
 
@@ -364,13 +364,13 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
             <table className="w-full text-left border-collapse text-xs">
               <thead className="bg-slate-50/70 border-b border-slate-200/80 text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
                 <tr>
-                  <th className="py-3 px-5">Nhân Sự / Huấn Luyện Viên</th>
-                  <th className="py-3 px-4">Vai Trò</th>
-                  <th className="py-3 px-4">Chi Nhánh</th>
-                  <th className="py-3 px-4">Chuyên Môn & Kỹ Năng</th>
-                  <th className="py-3 px-4">Học Viên Phụ Trách</th>
-                  <th className="py-3 px-4">Trạng Thái</th>
-                  <th className="py-3 px-5 text-right">Thao Tác</th>
+                  <th className="py-3 px-5">Nhân sự hoặc huấn luyện viên</th>
+                  <th className="py-3 px-4">Vai trò</th>
+                  <th className="py-3 px-4">Chi nhánh</th>
+                  <th className="py-3 px-4">Chuyên môn và kỹ năng</th>
+                  <th className="py-3 px-4">Học viên phụ trách</th>
+                  <th className="py-3 px-4">Trạng thái</th>
+                  <th className="py-3 px-5 text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -492,4 +492,3 @@ export function StaffTable({ initialStaff, branches }: StaffTableProps) {
     </div>
   );
 }
-

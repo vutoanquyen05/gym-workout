@@ -54,11 +54,11 @@ export function StaffForm({ initialStaff, branches, isEdit = false }: StaffFormP
   // Gợi ý chuyên môn nhanh
   const specialtySuggestions = [
     'Tăng cơ - Giảm mỡ (Hypertrophy)',
-    'Phục hồi chấn thương & Vận động',
-    'Powerlifting & Sức mạnh',
+    'Phục hồi chấn thương và vận động',
+    'Powerlifting và sức mạnh',
     'Tư vấn dinh dưỡng thể thao',
     'Định hình vóc dáng nữ',
-    'CSKH & Thu ngân POS',
+    'CSKH và thu ngân POS',
     'Quản trị vận hành phòng gym',
   ];
 
@@ -127,7 +127,7 @@ export function StaffForm({ initialStaff, branches, isEdit = false }: StaffFormP
             </div>
             <div>
               <h2 className="text-sm font-semibold text-slate-900">
-                {isEdit ? 'Chỉnh Sửa Hồ Sơ Nhân Sự' : 'Thông Tin Nhân Sự / Huấn Luyện Viên'}
+                {isEdit ? 'Chỉnh sửa hồ sơ nhân sự' : 'Thông tin nhân sự và huấn luyện viên'}
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Thiết lập thông tin cá nhân, phân quyền chi nhánh và hồ sơ chuyên môn PT
@@ -161,7 +161,7 @@ export function StaffForm({ initialStaff, branches, isEdit = false }: StaffFormP
             {/* 1. Họ và tên */}
             <div>
               <label htmlFor="full_name" className="block font-medium text-slate-700 mb-1.5">
-                Họ và tên nhân sự / PT <span className="text-rose-500">*</span>
+                Họ và tên nhân sự hoặc PT <span className="text-rose-500">*</span>
               </label>
               <Input
                 id="full_name"
@@ -195,7 +195,7 @@ export function StaffForm({ initialStaff, branches, isEdit = false }: StaffFormP
 
               <div>
                 <label htmlFor="email" className="block font-medium text-slate-700 mb-1.5">
-                  Địa chỉ Email
+                  Địa chỉ email
                 </label>
                 <Input
                   id="email"
@@ -227,7 +227,7 @@ export function StaffForm({ initialStaff, branches, isEdit = false }: StaffFormP
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <Dumbbell className="w-4 h-4 text-indigo-600" />
-                    <span className="font-semibold text-xs">Huấn Luyện Viên PT</span>
+                    <span className="font-semibold text-xs">Huấn luyện viên PT</span>
                   </div>
                   <p className="text-[11px] text-slate-500">Kèm cặp học viên, biên tập giáo án</p>
                 </button>
@@ -243,9 +243,9 @@ export function StaffForm({ initialStaff, branches, isEdit = false }: StaffFormP
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <UserCheck className="w-4 h-4 text-sky-600" />
-                    <span className="font-semibold text-xs">Lễ Tân & Thu Ngân</span>
+                    <span className="font-semibold text-xs">Lễ tân và thu ngân</span>
                   </div>
-                  <p className="text-[11px] text-slate-500">Quầy tiếp tân, điểm danh & bán thẻ</p>
+                  <p className="text-[11px] text-slate-500">Quầy tiếp tân, điểm danh và bán thẻ</p>
                 </button>
 
                 <button
@@ -259,7 +259,7 @@ export function StaffForm({ initialStaff, branches, isEdit = false }: StaffFormP
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <ShieldCheck className="w-4 h-4 text-purple-600" />
-                    <span className="font-semibold text-xs">Quản Lý Cơ Sở</span>
+                    <span className="font-semibold text-xs">Quản lý cơ sở</span>
                   </div>
                   <p className="text-[11px] text-slate-500">Điều phối cơ sở và đội ngũ nhân sự</p>
                 </button>
@@ -280,7 +280,7 @@ export function StaffForm({ initialStaff, branches, isEdit = false }: StaffFormP
                   disabled={isPending}
                   className="w-full h-10 px-3 text-xs sm:text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 >
-                  <option value="">Toàn hệ thống (Mọi chi nhánh)</option>
+                  <option value="">Toàn hệ thống (mọi chi nhánh)</option>
                   {branches.map((b) => (
                     <option key={b.id} value={b.id}>
                       {b.name}
@@ -312,7 +312,7 @@ export function StaffForm({ initialStaff, branches, isEdit = false }: StaffFormP
             {/* 5. Chuyên môn chính */}
             <div>
               <label htmlFor="specialty" className="block font-medium text-slate-700 mb-1.5">
-                Chuyên môn đào tạo / Kỹ năng chuyên sâu
+                Chuyên môn đào tạo hoặc kỹ năng chuyên sâu
               </label>
               <Input
                 id="specialty"
@@ -342,7 +342,7 @@ export function StaffForm({ initialStaff, branches, isEdit = false }: StaffFormP
             {/* 6. Tiểu sử & Kinh nghiệm */}
             <div>
               <label htmlFor="bio" className="block font-medium text-slate-700 mb-1.5">
-                Tiểu sử & Giới thiệu kinh nghiệm (Bio)
+                Tiểu sử và giới thiệu kinh nghiệm (Bio)
               </label>
               <textarea
                 id="bio"
@@ -392,7 +392,7 @@ export function StaffForm({ initialStaff, branches, isEdit = false }: StaffFormP
       <div className="lg:col-span-5 space-y-4">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
           <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-          <span>Thẻ Nhân Sự Xem Trước (Live Staff Badge Preview)</span>
+          <span>Thẻ nhân sự xem trước (Live Staff Badge Preview)</span>
         </div>
 
         {/* Live Preview Card */}
@@ -440,29 +440,29 @@ export function StaffForm({ initialStaff, branches, isEdit = false }: StaffFormP
 
           {/* Tên & Vai trò */}
           <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-            {fullName || 'Họ và Tên Nhân Sự'}
+            {fullName || 'Họ và tên nhân sự'}
           </h3>
 
           <div className="mt-2 mb-4">
             {role === 'trainer' ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
                 <Dumbbell className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Huấn Luyện Viên Cá Nhân (PT)</span>
+                <span>Huấn luyện viên cá nhân (PT)</span>
               </span>
             ) : role === 'manager' ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
                 <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
-                <span>Quản Lý Cơ Sở Chi Nhánh</span>
+                <span>Quản lý cơ sở chi nhánh</span>
               </span>
             ) : role === 'receptionist' ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200">
                 <UserCheck className="w-3.5 h-3.5 text-sky-600" />
-                <span>Lễ Tân & Quầy Thu Ngân</span>
+                <span>Lễ tân và quầy thu ngân</span>
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                 <Crown className="w-3.5 h-3.5 text-amber-600" />
-                <span>Chủ Phòng Tập</span>
+                <span>Chủ phòng tập</span>
               </span>
             )}
           </div>
@@ -506,4 +506,3 @@ export function StaffForm({ initialStaff, branches, isEdit = false }: StaffFormP
     </div>
   );
 }
-

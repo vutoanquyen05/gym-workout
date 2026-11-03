@@ -126,7 +126,7 @@ export function PlanForm({ initialPlan, isEdit = false }: PlanFormProps) {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-slate-900">
-                {isEdit ? 'Chỉnh Sửa Gói Tập' : 'Thông Tin Cấu Hình Gói Tập'}
+                {isEdit ? 'Chỉnh sửa gói tập' : 'Thông tin cấu hình gói tập'}
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Thiết lập quyền lợi thời hạn, số buổi và đơn giá niêm yết
@@ -168,7 +168,7 @@ export function PlanForm({ initialPlan, isEdit = false }: PlanFormProps) {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="VD: Gói Hội Viên 1 Tháng, Gói PT 12 Buổi..."
+                placeholder="VD: Gói hội viên 1 tháng, Gói PT 12 buổi..."
                 disabled={isPending}
                 className="w-full text-xs sm:text-sm"
               />
@@ -191,7 +191,7 @@ export function PlanForm({ initialPlan, isEdit = false }: PlanFormProps) {
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <Calendar className="w-4 h-4 text-indigo-600" />
-                    <span className="font-semibold text-xs">Thẻ Thời Hạn</span>
+                    <span className="font-semibold text-xs">Thẻ thời hạn</span>
                   </div>
                   <p className="text-[11px] text-slate-500">Tập không giới hạn số lượt theo ngày</p>
                 </button>
@@ -207,7 +207,7 @@ export function PlanForm({ initialPlan, isEdit = false }: PlanFormProps) {
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <Dumbbell className="w-4 h-4 text-violet-600" />
-                    <span className="font-semibold text-xs">Gói Buổi PT</span>
+                    <span className="font-semibold text-xs">Gói buổi PT</span>
                   </div>
                   <p className="text-[11px] text-slate-500">Giới hạn số buổi tập cùng HLV</p>
                 </button>
@@ -223,7 +223,7 @@ export function PlanForm({ initialPlan, isEdit = false }: PlanFormProps) {
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <Tag className="w-4 h-4 text-amber-600" />
-                    <span className="font-semibold text-xs">Gói Định Kỳ</span>
+                    <span className="font-semibold text-xs">Gói định kỳ</span>
                   </div>
                   <p className="text-[11px] text-slate-500">Combo tiện ích hoặc tự động gia hạn</p>
                 </button>
@@ -327,7 +327,7 @@ export function PlanForm({ initialPlan, isEdit = false }: PlanFormProps) {
                 className="w-full text-xs sm:text-sm bg-white"
               />
               <p className="text-[11px] text-slate-500 mt-1">
-                Khi hội viên check-in thành công tại quầy, hệ thống tự động trừ 1 buổi trong hạn mức này.
+                Khi hội viên điểm danh thành công tại quầy, hệ thống tự động trừ 1 buổi trong hạn mức này.
               </p>
             </div>
 
@@ -345,8 +345,8 @@ export function PlanForm({ initialPlan, isEdit = false }: PlanFormProps) {
                   disabled={isPending}
                   className="w-full h-10 px-3 text-xs sm:text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 >
-                  <option value="all_branches">Toàn hệ thống (Mọi chi nhánh)</option>
-                  <option value="single_branch">Giới hạn 1 Chi nhánh gốc</option>
+                  <option value="all_branches">Toàn hệ thống (mọi chi nhánh)</option>
+                  <option value="single_branch">Giới hạn 1 chi nhánh gốc</option>
                 </select>
               </div>
 
@@ -362,8 +362,8 @@ export function PlanForm({ initialPlan, isEdit = false }: PlanFormProps) {
                   disabled={isPending}
                   className="w-full h-10 px-3 text-xs sm:text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 >
-                  <option value="true">Đang mở bán (Hiển thị tại POS quầy)</option>
-                  <option value="false">Tạm ngừng bán (Ẩn khỏi POS)</option>
+                  <option value="true">Đang mở bán (hiển thị tại POS quầy)</option>
+                  <option value="false">Tạm ngừng bán (ẩn khỏi POS)</option>
                 </select>
               </div>
             </div>
@@ -371,7 +371,7 @@ export function PlanForm({ initialPlan, isEdit = false }: PlanFormProps) {
             {/* 6. Mô tả quyền lợi */}
             <div>
               <label htmlFor="description" className="block font-medium text-slate-700 mb-1.5">
-                Mô tả quyền lợi & điều khoản
+                Mô tả quyền lợi và điều khoản
               </label>
               <textarea
                 id="description"
@@ -421,7 +421,7 @@ export function PlanForm({ initialPlan, isEdit = false }: PlanFormProps) {
       <div className="lg:col-span-5 space-y-4">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
           <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-          <span>Xem Trước Thẻ Bảng Giá (Live POS Card Preview)</span>
+          <span>Xem trước thẻ bảng giá (Live POS Preview)</span>
         </div>
 
         {/* Live Preview Card */}
@@ -434,17 +434,17 @@ export function PlanForm({ initialPlan, isEdit = false }: PlanFormProps) {
             {planType === 'session_pack' ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-800 border border-violet-200">
                 <Dumbbell className="w-3.5 h-3.5 text-violet-600" />
-                <span>Gói PT 1-Kèm-1</span>
+                <span>Gói PT 1 kèm 1</span>
               </span>
             ) : planType === 'recurring' ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
                 <Tag className="w-3.5 h-3.5 text-amber-600" />
-                <span>Gói Định Kỳ</span>
+                <span>Gói định kỳ</span>
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
                 <Calendar className="w-3.5 h-3.5 text-blue-600" />
-                <span>Thẻ Thời Hạn</span>
+                <span>Thẻ thời hạn</span>
               </span>
             )}
 
@@ -462,7 +462,7 @@ export function PlanForm({ initialPlan, isEdit = false }: PlanFormProps) {
 
           {/* Tên gói */}
           <h3 className="text-xl font-bold text-slate-900 tracking-tight mb-2">
-            {name || 'Tên Gói Tập Của Bạn'}
+            {name || 'Tên gói tập của bạn'}
           </h3>
 
           {/* Đơn giá */}
@@ -530,4 +530,3 @@ export function PlanForm({ initialPlan, isEdit = false }: PlanFormProps) {
     </div>
   );
 }
-

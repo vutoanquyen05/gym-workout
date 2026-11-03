@@ -56,7 +56,7 @@ export function BranchTable({ initialBranches }: BranchTableProps) {
     const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
     const actionLabel = newStatus === 'suspended' ? 'Tạm ngưng hoạt động' : 'Kích hoạt lại';
 
-    if (!confirm(`Bạn có chắc chắn muốn ${actionLabel} chi nhánh này?`)) {
+    if (!confirm(`Bạn có chắc chắn muốn ${actionLabel.toLowerCase()} chi nhánh này?`)) {
       return;
     }
 
@@ -203,11 +203,11 @@ export function BranchTable({ initialBranches }: BranchTableProps) {
             <table className="w-full text-left border-collapse text-xs">
               <thead className="bg-slate-50/70 border-b border-slate-200/80 text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
                 <tr>
-                  <th className="py-3 px-4">Tên Cơ Sở & Slug</th>
-                  <th className="py-3 px-4">Quy Mô Quản Lý</th>
-                  <th className="py-3 px-4">Liên Hệ & Địa Chỉ</th>
-                  <th className="py-3 px-4">Trạng Thái</th>
-                  <th className="py-3 px-4 text-right">Thao Tác</th>
+                  <th className="py-3 px-4">Tên cơ sở và đường dẫn</th>
+                  <th className="py-3 px-4">Quy mô quản lý</th>
+                  <th className="py-3 px-4">Liên hệ và địa chỉ</th>
+                  <th className="py-3 px-4">Trạng thái</th>
+                  <th className="py-3 px-4 text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -242,7 +242,7 @@ export function BranchTable({ initialBranches }: BranchTableProps) {
                         <div className="flex items-center gap-2">
                           <span
                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200"
-                            title="Số nhân viên & PT active được gán tại cơ sở"
+                            title="Số nhân viên và PT đang hoạt động tại cơ sở"
                           >
                             <UserCheck className="w-3 h-3 text-slate-500" />
                             <span>{branch.staff_count || 0} HLV/NV</span>
@@ -252,7 +252,7 @@ export function BranchTable({ initialBranches }: BranchTableProps) {
                             title="Số hội viên đăng ký tại cơ sở này"
                           >
                             <Users className="w-3 h-3 text-indigo-600" />
-                            <span>{branch.member_count || 0} Hội viên</span>
+                            <span>{branch.member_count || 0} hội viên</span>
                           </span>
                         </div>
                       </td>

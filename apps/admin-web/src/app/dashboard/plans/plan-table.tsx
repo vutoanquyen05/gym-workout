@@ -99,7 +99,7 @@ export function PlanTable({ initialPlans }: PlanTableProps) {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200">
           <Dumbbell className="w-3 h-3 text-violet-600" />
-          <span>Gói Buổi PT</span>
+          <span>Gói buổi PT</span>
         </span>
       );
     }
@@ -107,14 +107,14 @@ export function PlanTable({ initialPlans }: PlanTableProps) {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
           <Tag className="w-3 h-3 text-amber-600" />
-          <span>Gói Định Kỳ</span>
+          <span>Gói định kỳ</span>
         </span>
       );
     }
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
         <Calendar className="w-3 h-3 text-blue-600" />
-        <span>Thẻ Thời Hạn</span>
+        <span>Thẻ thời hạn</span>
       </span>
     );
   };
@@ -236,7 +236,7 @@ export function PlanTable({ initialPlans }: PlanTableProps) {
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Thẻ Thời Hạn
+              Thẻ thời hạn
             </button>
             <button
               onClick={() => setTypeFilter('session_pack')}
@@ -246,7 +246,7 @@ export function PlanTable({ initialPlans }: PlanTableProps) {
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Gói Buổi PT
+              Gói buổi PT
             </button>
             <button
               onClick={() => setTypeFilter('recurring')}
@@ -256,7 +256,7 @@ export function PlanTable({ initialPlans }: PlanTableProps) {
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Định Kỳ
+              Định kỳ
             </button>
           </div>
 
@@ -302,14 +302,14 @@ export function PlanTable({ initialPlans }: PlanTableProps) {
             <table className="w-full text-left border-collapse text-xs">
               <thead className="bg-slate-50/70 border-b border-slate-200/80 text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
                 <tr>
-                  <th className="py-3 px-5">Tên Gói Tập & Quyền Lợi</th>
-                  <th className="py-3 px-4">Phân Loại</th>
-                  <th className="py-3 px-4">Đơn Giá (VNĐ)</th>
-                  <th className="py-3 px-4">Thời Hạn & Buổi</th>
-                  <th className="py-3 px-4">Phạm Vi</th>
-                  <th className="py-3 px-4">Hội Viên Dùng</th>
-                  <th className="py-3 px-4">Trạng Thái</th>
-                  <th className="py-3 px-5 text-right">Thao Tác</th>
+                  <th className="py-3 px-5">Tên gói tập và quyền lợi</th>
+                  <th className="py-3 px-4">Phân loại</th>
+                  <th className="py-3 px-4">Đơn giá (VNĐ)</th>
+                  <th className="py-3 px-4">Thời hạn và buổi</th>
+                  <th className="py-3 px-4">Phạm vi</th>
+                  <th className="py-3 px-4">Hội viên đang dùng</th>
+                  <th className="py-3 px-4">Trạng thái</th>
+                  <th className="py-3 px-5 text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -379,7 +379,7 @@ export function PlanTable({ initialPlans }: PlanTableProps) {
                           {plan.scope === 'single_branch' ? (
                             <>
                               <Building className="w-3 h-3 text-slate-400" />
-                              <span>1 Chi nhánh</span>
+                              <span>1 chi nhánh</span>
                             </>
                           ) : (
                             <>
@@ -455,4 +455,3 @@ export function PlanTable({ initialPlans }: PlanTableProps) {
     </div>
   );
 }
-

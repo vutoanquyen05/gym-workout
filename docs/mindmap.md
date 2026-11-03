@@ -11,13 +11,13 @@
 ## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)
 
 - **Current Architecture Version:** v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)
-- **Current Phase:** P02 — Admin Web Shell v2.0, Branches, Plans & Staff Management (HOÀN TẤT 4/4 TASKS — SẴN SÀNG ĐÓNG GÓI)
-- **Current Active Task:** P02-T04 (Quản lý Nhân sự & Huấn luyện viên PT: Staff Management)
+- **Current Phase:** P03 — CRM Hội viên 360° & Thu ngân tại quầy (Members & POS)
+- **Current Active Task:** P03-T01 + P03-T02 (CRM Directory & Member Registration Form Lock)
 - **Task Status:** IN_REVIEW
-- **Active Git Branch:** `feat/p02-admin-erp-foundation`
-- **Last Completed Task:** P02-T04 (Quản lý Nhân sự & Huấn luyện viên PT: Staff Management)
-- **Next Scheduled Task:** P03-T01 (CRM Member Directory 360° & Search/Filter)
-- **Last Updated:** 02/11/2026
+- **Active Git Branch:** `feat/p03-crm-members-pos`
+- **Last Completed Task:** P03-T01 + P03-T02 (Bảng danh sách Hội viên CRM và Luồng đăng ký hội viên không dùng Auth UUID)
+- **Next Scheduled Task:** P03-T03 (Trang Hồ sơ Chi tiết Hội viên 360° - Member Detail 4-Tab View)
+- **Last Updated:** 03/11/2026
 
 ---
 
@@ -95,10 +95,10 @@
 ### PHASE P03 — CRM HỘI VIÊN 360° & THU NGÂN TẠI QUẦY (MEMBERS & POS)
 *Mục tiêu: Xây dựng trung tâm CRM hội viên hoàn chỉnh; luồng bán gói/thu tiền tại quầy không phụ thuộc Auth và hồ sơ hội viên 360° đa tab.*
 
-- [ ] **P03-T01** `[Track: GM]` — **Bảng Danh sách Hội viên CRM (`gym_members`)**:
+- [x] **P03-T01** `[Track: GM]` — **Bảng Danh sách Hội viên CRM (`gym_members`)**:
   - Bảng danh sách hội viên hiển thị: Họ tên, SĐT, Mã thẻ `MEM-XXXXXX`, Trạng thái thẻ, Gói đang tập, Thời hạn còn lại, PT phụ trách.
   - Bộ lọc nâng cao theo trạng thái thẻ (Đang tập, Hết hạn, Bảo lưu, Sắp hết hạn trong 7 ngày) và thanh tìm kiếm đa năng.
-- [ ] **P03-T02** `[Track: GM]` — **Luồng Đăng ký Hội viên & POS Checkout 1 bước**:
+- [x] **P03-T02** `[Track: GM]` — **Luồng Đăng ký Hội viên & POS Checkout 1 bước**:
   - Form tiếp nhận khách hàng walk-in: nhập thông tin cá nhân, chọn gói tập, ghi nhận thanh toán tiền mặt/chuyển khoản/POS qua `payment_transactions`, kích hoạt thẻ và sinh mã thẻ `MEM-XXXXXX` tức thì mà không cần tài khoản Auth.
 - [ ] **P03-T03** `[Track: GM]` — **Trang Hồ sơ Chi tiết Hội viên 360° (`Member Detail 4-Tab View`)**:
   - *Tab 1 — Thẻ & Gói tập:* Xem chi tiết gói hiện tại, nút Gia hạn gói, nút Nâng cấp gói, nút Bảo lưu thẻ.
@@ -1011,3 +1011,27 @@
   - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (16 routes tĩnh/động tối ưu, compiled thành công).
   - `npm.cmd run lint`: 0 errors.
   - `npm.cmd test`: 13 test suites passed, 54 tests passed.
+
+### 2026-11-03 — Chuẩn Hóa Typography Tiếng Việt, Giao Diện ERP & Hoàn Thành Phân Hệ Hội Viên CRM (P03-T01 + P03-T02: feat/p03-crm-members-pos)
+
+- **Mục tiêu:**
+  1. Hợp nhất nhánh `feat/p02-admin-erp-foundation` vào `main` (--no-ff) để đóng Phase P02 và khởi tạo nhánh `feat/p03-crm-members-pos`.
+  2. Mở rộng Sidebar lên `w-72` (288px), tăng kích thước font menu và icon Lucide `w-5 h-5`; đổi tên thương hiệu thành "GymOS" (Hệ thống quản trị phòng tập) và bổ sung tính năng tùy biến tên phòng tập trong Cài đặt (`/dashboard/settings`).
+  3. Xóa bỏ hoàn toàn hộp đen "Kiến Trúc Vận Hành" ở góc phải màn hình tổng quan (`/dashboard/page.tsx`).
+  4. Thiết lập quy chuẩn Typography tiếng Việt: 100% văn bản UI theo chuẩn Sentence Case, xóa bỏ hoàn toàn việc viết hoa mọi chữ cái đầu (Title Case) và loại bỏ 100% ký hiệu `&` trong câu tiếng Việt trên toàn bộ các phân hệ Admin Web.
+  5. Xây dựng hoàn chỉnh phân hệ Hội viên CRM 360° (`/dashboard/members`): Bảng danh sách hội viên đa tiêu chí (`gym_members`), 4 thẻ KPI tài chính/vận hành, bộ lọc tìm kiếm và trạng thái.
+  6. Đại tu form Đăng ký Hội viên mới (`/dashboard/members/create`): Xóa bỏ hoàn toàn trường nhập UUID/Auth UID; bố cục 2 phân vùng (Thông tin cá nhân & Gói tập/Thanh toán POS tại quầy); Live Member Card & Receipt Preview thời gian thực.
+- **Files đã tạo mới & cập nhật:**
+  - `apps/admin-web/src/app/dashboard/sidebar-nav.tsx` & `layout.tsx`: Mở rộng Sidebar `w-72`, cập nhật nhãn Sentence Case không dùng `&`, thương hiệu GymOS.
+  - `apps/admin-web/src/app/dashboard/settings/*` (`actions.ts`, `settings-form.tsx`, `page.tsx`): Tính năng tùy biến tên phòng tập lưu vào `public.gyms`.
+  - `apps/admin-web/src/app/dashboard/page.tsx`: Xóa bỏ hộp đen "Kiến Trúc Vận Hành", chuẩn hóa toàn bộ Sentence Case và zero `&`.
+  - `apps/admin-web/src/app/dashboard/branches/*`: Chuẩn hóa Sentence Case và zero `&`.
+  - `apps/admin-web/src/app/dashboard/plans/*`: Chuẩn hóa Sentence Case và zero `&`.
+  - `apps/admin-web/src/app/dashboard/staff/*`: Chuẩn hóa Sentence Case và zero `&`.
+  - `apps/admin-web/src/app/dashboard/check-in/page.tsx` & `workouts/page.tsx`: Chuẩn hóa Sentence Case và zero `&`.
+  - `apps/admin-web/src/app/dashboard/members/actions.ts`: Server Actions v2.0 `getMembers()` truy vấn CRM 360°, `getMemberRegistrationOptions()` và `registerNewMember()` tích hợp RPC `rpc_register_member_with_plan` kèm fallback direct insert (không cần Auth UUID).
+  - `apps/admin-web/src/app/dashboard/members/member-table.tsx`: Bảng hội viên CRM 360° tương tác thời gian thực, 4 thẻ KPI, thanh tìm kiếm và bộ lọc.
+  - `apps/admin-web/src/app/dashboard/members/page.tsx`: Trang CRM hội viên chuẩn Enterprise.
+  - `apps/admin-web/src/app/dashboard/members/create/create-form.tsx` & `page.tsx`: Form đăng ký hội viên và bán thẻ POS tại quầy xóa bỏ trường UUID, tích hợp Live Preview thẻ hội viên.
+  - `docs/rule.md` & `docs/design-system.md`: Ghi nhận chuẩn Typography tiếng Việt (Sentence Case, zero-emoji, cấm ký hiệu `&` trong UI text) và chiều rộng Sidebar `w-72`.
+  - `docs/mindmap.md`: Cập nhật Execution Pointer sang Phase P03, đánh dấu `[x] P03-T01` và `[x] P03-T02`.

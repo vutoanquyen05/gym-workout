@@ -15,13 +15,13 @@ export default function CreatePlanPage() {
             </Link>
             <span>/</span>
             <Link href="/dashboard/plans" className="hover:text-indigo-600 transition-colors">
-              Gói tập & Bảng giá
+              Gói tập và bảng giá
             </Link>
             <span>/</span>
             <span className="font-medium text-slate-700">Tạo mới</span>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-            Tạo Gói Tập Mới
+            Tạo gói tập mới
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
             Khởi tạo gói tập mới: xác định thời hạn ngày, hạn mức buổi tập PT, quyền lợi chi nhánh và đơn giá niêm yết.
@@ -33,7 +33,7 @@ export default function CreatePlanPage() {
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs self-start sm:self-center"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Về Danh sách</span>
+          <span>Về danh sách</span>
         </Link>
       </div>
 
@@ -42,4 +42,3 @@ export default function CreatePlanPage() {
     </div>
   );
 }
-

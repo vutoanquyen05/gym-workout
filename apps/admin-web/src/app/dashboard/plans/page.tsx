@@ -19,18 +19,18 @@ export default async function PlansPage() {
               Tổng quan
             </Link>
             <span>/</span>
-            <span className="font-medium text-slate-700">Dịch vụ & Giáo án</span>
+            <span className="font-medium text-slate-700">Dịch vụ và giáo án</span>
           </div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-              Quản Lý Gói Tập & Bảng Giá
+              Quản lý gói tập và bảng giá
             </h1>
             <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
               Membership Plans
             </span>
           </div>
           <p className="text-sm text-slate-500 mt-0.5">
-            Cấu hình bảng giá dịch vụ phòng gym: Thẻ hội viên theo thời hạn, Gói buổi huấn luyện PT và gói định kỳ.
+            Cấu hình bảng giá dịch vụ phòng gym: thẻ hội viên theo thời hạn, gói buổi huấn luyện PT và gói định kỳ.
           </p>
         </div>
 
@@ -67,7 +67,7 @@ export default async function PlansPage() {
             Chưa có gói tập nào trong danh mục
           </h2>
           <p className="text-xs text-slate-500 max-w-md mx-auto mt-2 leading-relaxed">
-            Hãy khởi tạo gói tập đầu tiên (Gói tháng, Gói năm hoặc Gói PT cá nhân) để bắt đầu bán thẻ và phục vụ hội viên tại quầy.
+            Hãy khởi tạo gói tập đầu tiên (gói tháng, gói năm hoặc gói PT cá nhân) để bắt đầu bán thẻ và phục vụ hội viên tại quầy.
           </p>
           <div className="mt-6">
             <Link
