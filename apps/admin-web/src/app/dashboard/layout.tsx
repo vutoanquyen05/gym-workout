@@ -87,7 +87,7 @@ export default async function DashboardLayout({
             {/* Quick Action 1: Điểm danh nhanh */}
             <Link
               href="/dashboard/check-in"
-              className="inline-flex items-center gap-2 px-4 h-10 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 transition-colors shadow-2xs"
+              className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-lg text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors shadow-xs whitespace-nowrap"
             >
               <ScanLine className="w-4 h-4 text-emerald-600" />
               <span>Điểm danh nhanh</span>
@@ -96,7 +96,7 @@ export default async function DashboardLayout({
             {/* Quick Action 2: Đăng ký hội viên */}
             <Link
               href="/dashboard/members/create"
-              className="inline-flex items-center gap-2 px-4.5 h-10 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
+              className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-xs whitespace-nowrap"
             >
               <UserPlus className="w-4 h-4 text-white" />
               <span>Đăng ký hội viên</span>

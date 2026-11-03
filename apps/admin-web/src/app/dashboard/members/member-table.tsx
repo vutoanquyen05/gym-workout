@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
+import Link from 'next/link';
 import { MemberWithDetails, MemberBranchOption, updateMemberStatus } from './actions';
 import {
   Search,
@@ -16,6 +17,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   ShieldAlert,
+  ArrowUpRight,
 } from 'lucide-react';
 
 interface MemberTableProps {
@@ -309,9 +311,12 @@ export function MemberTable({ initialMembers, branches }: MemberTableProps) {
                             {initials}
                           </div>
                           <div>
-                            <span className="font-mono text-xs font-bold text-slate-900 block">
+                            <Link
+                              href={`/dashboard/members/${member.id}`}
+                              className="font-mono text-xs font-bold text-indigo-700 hover:text-indigo-900 hover:underline block"
+                            >
                               {member.member_code}
-                            </span>
+                            </Link>
                             <span className="text-[10px] text-slate-400 block">
                               {new Date(member.created_at).toLocaleDateString('vi-VN')}
                             </span>
@@ -321,9 +326,12 @@ export function MemberTable({ initialMembers, branches }: MemberTableProps) {
 
                       {/* Họ và tên, SĐT, Email */}
                       <td className="py-3.5 px-5">
-                        <span className="font-semibold text-slate-900 block text-xs">
+                        <Link
+                          href={`/dashboard/members/${member.id}`}
+                          className="font-semibold text-slate-900 hover:text-indigo-600 transition-colors block text-xs"
+                        >
                           {member.full_name}
-                        </span>
+                        </Link>
                         <div className="flex flex-col gap-0.5 mt-0.5 text-[11px] text-slate-500">
                           {member.phone && (
                             <span className="inline-flex items-center gap-1 font-mono">
@@ -415,6 +423,15 @@ export function MemberTable({ initialMembers, branches }: MemberTableProps) {
                       {/* Thao tác */}
                       <td className="py-3.5 px-5 text-right">
                         <div className="inline-flex items-center gap-1.5">
+                          <Link
+                            href={`/dashboard/members/${member.id}`}
+                            className="inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-xs font-semibold border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors shadow-2xs"
+                            title="Xem toàn bộ hồ sơ chi tiết 360°"
+                          >
+                            <span>Chi tiết 360°</span>
+                            <ArrowUpRight className="w-3 h-3" />
+                          </Link>
+
                           <button
                             disabled={isCurrentPending}
                             onClick={() => handleToggleStatus(member.id, member.status)}

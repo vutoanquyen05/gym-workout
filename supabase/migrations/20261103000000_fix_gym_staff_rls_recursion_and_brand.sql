@@ -24,11 +24,11 @@ CREATE POLICY gym_staff_select_policy ON public.gym_staff
   );
 
 -- -----------------------------------------------------------------------------
--- 2. ĐỒNG BỘ THƯƠNG HIỆU PHÒNG TẬP MẶC ĐỊNH SANG 'GymOS'
+-- 2. ĐỒNG BỘ THƯƠNG HIỆU PHÒNG TẬP MẶC ĐỊNH SANG 'GymOS' & SLUG 'gymos'
 -- -----------------------------------------------------------------------------
 UPDATE public.gyms
-SET name = 'GymOS', updated_at = now()
-WHERE name ILIKE '%Hưng Vượng%' OR name ILIKE '%Gym Tracker%';
+SET name = 'GymOS', slug = 'gymos', updated_at = timezone('utc', now())
+WHERE name ILIKE '%Hưng Vượng%' OR name ILIKE '%Gym Tracker%' OR slug = 'gym-tracker-hung-vuong';
 
 COMMIT;
 

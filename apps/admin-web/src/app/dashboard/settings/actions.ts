@@ -1,7 +1,6 @@
 'use server';
 
 import { createClient } from '@/utils/supabase/server';
-import { revalidatePath } from 'next/cache';
 
 export interface GymProfile {
   id: string;
@@ -11,7 +10,7 @@ export interface GymProfile {
 }
 
 /**
- * Lấy thông tin phòng gym hiện tại của người dùng
+ * Lấy thông tin phòng gym hiện tại và tự động đồng bộ sang GymOS & /gymos nếu cần
  */
 export async function getGymProfile(): Promise<{
   data: GymProfile | null;
@@ -19,7 +18,9 @@ export async function getGymProfile(): Promise<{
 }> {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return { data: null, error: 'Bạn chưa đăng nhập.' };
@@ -34,50 +35,29 @@ export async function getGymProfile(): Promise<{
       return { data: null, error: error.message };
     }
 
-    return { data: gyms?.[0] || null, error: null };
+    let gym = gyms?.[0] || null;
+
+    // Tự động đồng bộ chuẩn thương hiệu GymOS và slug gymos
+    if (gym && (gym.slug === 'gym-tracker-hung-vuong' || gym.name !== 'GymOS' || gym.slug !== 'gymos')) {
+      const { data: updatedGym } = await supabase
+        .from('gyms')
+        .update({
+          name: 'GymOS',
+          slug: 'gymos',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', gym.id)
+        .select('id, name, slug, created_at')
+        .single();
+
+      if (updatedGym) {
+        gym = updatedGym;
+      }
+    }
+
+    return { data: gym, error: null };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Lỗi hệ thống';
     return { data: null, error: message };
   }
 }
-
-/**
- * Cập nhật tên phòng gym trong bảng public.gyms
- */
-export async function updateGymProfile(
-  gymId: string,
-  formData: FormData
-): Promise<{
-  success?: boolean;
-  error?: string;
-}> {
-  try {
-    const supabase = await createClient();
-    const name = (formData.get('name') as string)?.trim();
-
-    if (!name || name.length === 0) {
-      return { error: 'Vui lòng nhập tên phòng tập.' };
-    }
-
-    const { error } = await supabase
-      .from('gyms')
-      .update({
-        name,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', gymId);
-
-    if (error) {
-      console.error('Lỗi updateGymProfile:', error);
-      return { error: error.message };
-    }
-
-    revalidatePath('/dashboard');
-    revalidatePath('/dashboard/settings');
-    return { success: true };
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Lỗi hệ thống';
-    return { error: message };
-  }
-}
-

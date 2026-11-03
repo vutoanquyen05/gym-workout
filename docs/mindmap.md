@@ -100,7 +100,7 @@
   - Bộ lọc nâng cao theo trạng thái thẻ (Đang tập, Hết hạn, Bảo lưu, Sắp hết hạn trong 7 ngày) và thanh tìm kiếm đa năng.
 - [x] **P03-T02** `[Track: GM]` — **Luồng Đăng ký Hội viên & POS Checkout 1 bước**:
   - Form tiếp nhận khách hàng walk-in: nhập thông tin cá nhân, chọn gói tập, ghi nhận thanh toán tiền mặt/chuyển khoản/POS qua `payment_transactions`, kích hoạt thẻ và sinh mã thẻ `MEM-XXXXXX` tức thì mà không cần tài khoản Auth.
-- [ ] **P03-T03** `[Track: GM]` — **Trang Hồ sơ Chi tiết Hội viên 360° (`Member Detail 4-Tab View`)**:
+- [x] **P03-T03** `[Track: GM]` — **Trang Hồ sơ Chi tiết Hội viên 360° (`Member Detail 4-Tab View`)**:
   - *Tab 1 — Thẻ & Gói tập:* Xem chi tiết gói hiện tại, nút Gia hạn gói, nút Nâng cấp gói, nút Bảo lưu thẻ.
   - *Tab 2 — Lịch sử Giao dịch:* Danh sách các khoản thanh toán, biên nhận thu tiền, hóa đơn của hội viên.
   - *Tab 3 — Lịch sử Điểm danh:* Nhật ký vào/ra phòng gym theo mốc thời gian thực tế.
@@ -1059,3 +1059,23 @@
   - `apps/admin-web/src/app/page.tsx`: Tái thiết kế toàn diện Cổng thông tin GymOS với Header `h-20`, Hero, Trust Metrics và Bento Grid 4 phân hệ.
   - `apps/admin-web/src/app/login/page.tsx`: Đồng bộ thương hiệu GymOS và nút đăng nhập dày `h-11`.
   - `docs/supabase-schema.md`, `docs/design-system.md`, `docs/mindmap.md`: Cập nhật tài liệu kỹ thuật SSOT.
+
+### 2026-11-04 — Hoàn Thiện Hồ Sơ Chi Tiết Hội Viên 360°, Tinh Chỉnh Topbar, Khóa Cấu Hình GymOS & Điều Hướng Trực Tiếp (P03-T03: feat/p03-crm-members-pos)
+
+- **Mục tiêu:**
+  1. Chuyển đổi tuyến đường gốc `/` (`apps/admin-web/src/app/page.tsx`) thành Server-side Redirect Controller: Điều hướng tự động về `/dashboard` (nếu đã đăng nhập) hoặc `/login` (nếu chưa đăng nhập).
+  2. Tinh gọn trang đăng nhập (`app/login/page.tsx`): Xóa bỏ liên kết quay lại cổng thông tin, bổ sung chú thích nhận diện "GymOS v2.0 — Hệ thống quản trị phòng tập nội bộ".
+  3. Khắc phục lỗi thiếu padding ngang trên nút "Đăng ký hội viên" do class không chuẩn `px-4.5`; đồng bộ nhãn cả 2 nút trên thanh Header (`layout.tsx`) và trang Tổng quan (`dashboard/page.tsx`) thành chính xác "Điểm danh nhanh" và "Đăng ký hội viên" với class chuẩn Tailwind v3 (`h-10 px-5 rounded-lg text-sm font-semibold`).
+  4. Khóa cấu hình phần mềm thương hiệu GymOS và mã định danh `/gymos` tại trang Cài đặt (`/dashboard/settings`): Xóa form chỉnh sửa tên và nút lưu, thay bằng Bảng thông tin định danh hệ thống (chế độ chỉ đọc / Locked), đồng thời cập nhật migration 12 để đồng bộ `slug = 'gymos'` trên cơ sở dữ liệu.
+  5. Xây dựng hoàn chỉnh trang Hồ sơ Chi tiết Hội viên 360° (`/dashboard/members/[id]`): Tóm tắt định danh hội viên, nút Điểm danh nhanh 1 chạm, và 4 Tabs toàn diện (Thẻ tập & hồ sơ cá nhân + gia hạn thẻ tại quầy, Lịch sử thanh toán hóa đơn, Nhật ký điểm danh, Chỉ số cơ thể InBody & giáo án PT 3 tầng).
+  6. Kết nối liên kết điều hướng từ Bảng danh sách hội viên (`member-table.tsx`) sang trang chi tiết 360° qua mã thẻ, họ tên và nút thao tác "Chi tiết 360°".
+- **Files đã tạo mới & cập nhật:**
+  - `apps/admin-web/src/app/page.tsx`: Chuyển thành Server Redirect Controller `/dashboard` hoặc `/login`.
+  - `apps/admin-web/src/app/login/page.tsx`: Xóa nút quay lại, tinh chỉnh card đăng nhập GymOS chuẩn mực.
+  - `apps/admin-web/src/app/dashboard/layout.tsx` & `page.tsx`: Đồng bộ 2 nút "Điểm danh nhanh" và "Đăng ký hội viên" với class chuẩn `h-10 px-5 rounded-lg`.
+  - `supabase/migrations/20261103000000_fix_gym_staff_rls_recursion_and_brand.sql`: Đồng bộ tên 'GymOS' và slug 'gymos' trong bảng `public.gyms`.
+  - `apps/admin-web/src/app/dashboard/settings/*` (`actions.ts`, `page.tsx`): Khóa cấu hình chỉ đọc và auto-sync slug `/gymos`.
+  - `apps/admin-web/src/app/dashboard/members/actions.ts`: Bổ sung 6 Server Actions v2.0 (`getMember360Profile`, `updateMemberProfile`, `renewOrAddMembership`, `updateSubscriptionStatus`, `recordBodyMeasurement`, `quickCheckInMember`).
+  - `apps/admin-web/src/app/dashboard/members/[id]/page.tsx` & `member-360-view.tsx`: Giao diện Hồ sơ chi tiết hội viên 360° 4 Tabs hoàn chỉnh.
+  - `apps/admin-web/src/app/dashboard/members/member-table.tsx`: Nối link chi tiết 360° và thêm nút "Chi tiết 360°".
+  - `docs/mindmap.md`: Đánh dấu hoàn tất `[x] P03-T03`, cập nhật con trỏ trạng thái sẵn sàng đóng Phase P03.

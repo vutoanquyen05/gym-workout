@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { login } from './actions';
-import { AlertTriangle, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -94,14 +93,9 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="mt-8 text-center text-xs text-slate-400 border-t border-slate-100 pt-6">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 transition-colors font-medium"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Quay lại cổng thông tin</span>
-          </Link>
+        <div className="mt-8 text-center text-xs text-slate-400 border-t border-slate-100 pt-6 flex items-center justify-center gap-1.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-indigo-500" />
+          <span>GymOS v2.0 — Hệ thống quản trị phòng tập nội bộ</span>
         </div>
       </div>
     </div>
