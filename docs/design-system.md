@@ -315,10 +315,12 @@ Quy chuẩn thiết kế giao diện phân hệ Admin & PT Web Portal (`apps/adm
 ### 3.2. Bảng Màu & Thành Phần Giao Diện (Enterprise Palette)
 - **Nền Toàn Trang (App Background):** `bg-slate-50/70` sạch sẽ, tạo độ tương phản nhẹ với các khối thẻ trắng.
 - **Thanh Điều Hướng Sidebar (Devias Dark Shell):**
+  - Chiều rộng cố định: `w-72` (288px) đảm bảo độ thoáng cho tên thương hiệu ("GymOS") và các tiêu đề phân hệ tiếng Việt không bị cụt hay gãy dòng.
+  - Kích thước mục menu: `px-3.5 py-2.5 rounded-xl text-[14px] font-medium gap-3` với icon chuẩn `w-5 h-5`.
   - Màu nền: `bg-slate-950 text-slate-300 border-r border-slate-800/80`.
   - Mục được chọn (Active Item): `bg-indigo-600/15 text-indigo-400 font-semibold ring-1 ring-inset ring-indigo-500/30`.
   - Khoảng đệm chân Sidebar: Thêm `pb-16` để tránh bị nút Next.js DevTools che khuất phiên bản và email quản trị viên.
-- **Thanh Tác Vụ Đỉnh Trang (Quick-Action Topbar):** Chiều cao cố định `h-14 bg-white border-b border-slate-200 px-6`, tích hợp nút Điểm danh nhanh (`ScanLine`) và Đăng ký Hội viên (`UserPlus` với màu `bg-indigo-600 text-white`).
+- **Thanh Tác Vụ Đỉnh Trang (Quick-Action Topbar):** Chiều cao cố định `h-16 bg-white border-b border-slate-200/80 px-8`, loại bỏ tiêu đề thương hiệu rườm rà (thay bằng pill trạng thái trực tuyến "Hệ thống trực tuyến" và ngày tháng tiếng Việt), tích hợp nút Điểm danh nhanh (`ScanLine`) và Đăng ký hội viên (`UserPlus`) với kích thước dày dặn công thái học `h-10 px-4` đến `px-4.5 rounded-xl font-semibold`.
 - **Thẻ Nội Dung (Enterprise Cards):** `bg-white rounded-xl border border-slate-200/80 shadow-xs`.
 
 ### 3.3. Cấu Trúc Tiêu Đề Trang (Page Header Không Đóng Hộp)
@@ -327,3 +329,22 @@ Quy chuẩn thiết kế giao diện phân hệ Admin & PT Web Portal (`apps/adm
   - **Bên trái:** Breadcrumb điều hướng nhỏ (`text-xs text-slate-500`) + Tiêu đề trang (`text-2xl font-semibold tracking-tight text-slate-900`) + Dòng mô tả phạm vi (`text-sm text-slate-500 mt-0.5`).
   - **Bên phải:** Nhóm nút hành động chính (Primary / Outline Actions).
 - **Khung chứa trang:** Tiêu chuẩn `max-w-[1600px] mx-auto px-6 py-6 space-y-6` nhằm tận dụng tối đa không gian màn hình rộng và hiển thị bảng dữ liệu chuyên nghiệp.
+
+### 3.4. Quy Chuẩn Typography Tiếng Việt (Sentence Case & Cấm dùng &)
+- **Chuẩn Sentence Case:** Toàn bộ tiêu đề trang, danh mục, menu điều hướng, nhãn form và cột bảng dữ liệu trên Admin Web phải viết theo chuẩn Sentence Case (chỉ viết hoa chữ cái đầu tiên và từ viết tắt chuyên ngành như CRM, ERP, POS, PT, QR, VNĐ). Không viết hoa chữ cái đầu của mọi từ (Title Case).
+- **Cấm ký tự & trong UI text:** Tuyệt đối không dùng ký tự `&` trong câu tiếng Việt trên giao diện (thay bằng từ "và" hoặc dấu phẩy phù hợp).
+- **Cấm Emoji:** 100% biểu tượng là icon `lucide-react`, không dùng Emoji hệ điều hành.
+
+### 3.5. Quy Chuẩn Kích Thước Nút Bấm & Công Thái Học (Button Sizing & Ergonomics)
+- **Nút Hành Động Chính trên Page Header (Primary Actions):** Kích thước `h-11 px-5 rounded-xl text-sm font-semibold shadow-xs` (áp dụng cho các nút "Đăng ký hội viên mới", "Thêm chi nhánh mới", "Tạo gói tập mới", "Thêm nhân sự mới", "Quầy điểm danh").
+- **Nút Hành Động trên Topbar Header:** Kích thước `h-10 px-4` đến `px-4.5 rounded-xl text-sm font-semibold`.
+- **Component Nút Bấm Chuẩn (`components/ui/button.tsx`):**
+  - Size `sm`: `h-9 px-3.5 text-xs rounded-lg font-medium`
+  - Size `md` (mặc định): `h-10 px-5 text-sm rounded-xl font-semibold`
+  - Size `lg`: `h-11 px-6 text-sm rounded-xl font-semibold shadow-xs`
+- **Thanh Công Cụ Tìm Kiếm & Lọc (Filters & Search Toolbar):**
+  - Ô nhập liệu tìm kiếm (Search Input): Chiều cao `h-10 text-sm rounded-xl pl-9 pr-8`.
+  - Nút chuyển tab trạng thái / phân loại: Chiều cao `h-10 px-4 rounded-xl text-sm font-semibold`.
+  - Menu thả xuống (Select dropdown): Chiều cao `h-10 px-3.5 rounded-xl text-sm font-medium`.
+- **Nút Thao Tác Dòng Bảng (Table Row Actions):** Chiều cao `h-8 px-3 rounded-lg text-xs font-semibold`.
+- **Nút Kêu Gọi Hành Động Cổng Thông Tin (Landing Hero CTA):** Chiều cao `h-12 px-7 rounded-xl text-base font-semibold shadow-md shadow-indigo-600/20`.

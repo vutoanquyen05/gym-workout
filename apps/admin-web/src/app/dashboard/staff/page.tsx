@@ -4,8 +4,6 @@ import { getStaffMembers, getActiveBranchesForStaff } from './actions';
 import { StaffTable } from './staff-table';
 import { ShieldCheck, Plus, AlertTriangle } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
-
 export default async function StaffPage() {
   const [{ data: staffList, error }, { data: branches }] = await Promise.all([
     getStaffMembers(),
@@ -26,10 +24,10 @@ export default async function StaffPage() {
           </div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-              Quản Lý Nhân Sự & Huấn Luyện Viên
+              Quản lý nhân sự và huấn luyện viên
             </h1>
-            <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-              Staff & PT Hub
+            <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+              Nhân sự và PT
             </span>
           </div>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -39,9 +37,9 @@ export default async function StaffPage() {
 
         <Link
           href="/dashboard/staff/create"
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs self-start sm:self-center"
+          className="inline-flex items-center gap-2 h-11 px-5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs self-start sm:self-center"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="w-4 h-4" />
           <span>Thêm nhân sự mới</span>
         </Link>
       </div>
@@ -75,9 +73,9 @@ export default async function StaffPage() {
           <div className="mt-6">
             <Link
               href="/dashboard/staff/create"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
+              className="inline-flex items-center gap-2 h-11 px-5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               <span>Thêm nhân sự đầu tiên</span>
             </Link>
           </div>

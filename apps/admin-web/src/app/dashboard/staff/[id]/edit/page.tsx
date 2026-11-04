@@ -53,13 +53,13 @@ export default async function EditStaffPage({
             </Link>
             <span>/</span>
             <Link href="/dashboard/staff" className="hover:text-indigo-600 transition-colors">
-              Nhân sự & PT
+              Nhân sự và PT
             </Link>
             <span>/</span>
             <span className="font-medium text-slate-700">Chỉnh sửa</span>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-            Chỉnh Sửa Hồ Sơ: {staff.full_name || 'Nhân Sự'}
+            Chỉnh sửa hồ sơ: {staff.full_name || 'Nhân sự'}
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
             Cập nhật vai trò, chi nhánh phụ trách, chuyên môn huấn luyện hoặc trạng thái hoạt động.
@@ -71,7 +71,7 @@ export default async function EditStaffPage({
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs self-start sm:self-center"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Về Danh sách</span>
+          <span>Về danh sách</span>
         </Link>
       </div>
 
@@ -80,4 +80,3 @@ export default async function EditStaffPage({
     </div>
   );
 }
-

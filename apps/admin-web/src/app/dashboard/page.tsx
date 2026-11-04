@@ -10,8 +10,6 @@ import {
   UserPlus,
   ArrowUpRight,
   Dumbbell,
-  Settings,
-  ShieldCheck,
   CheckCircle2,
   Clock,
 } from 'lucide-react';
@@ -94,28 +92,28 @@ export default async function DashboardPage() {
         <div className="flex items-center gap-2.5 shrink-0">
           <Link
             href="/dashboard/check-in"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 transition-colors shadow-2xs"
+            className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-lg text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors shadow-xs whitespace-nowrap"
           >
-            <ScanLine className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Quầy Điểm danh</span>
+            <ScanLine className="w-4 h-4 text-emerald-600" />
+            <span>Điểm danh nhanh</span>
           </Link>
           <Link
             href="/dashboard/members/create"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
+            className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-xs whitespace-nowrap"
           >
-            <UserPlus className="w-3.5 h-3.5" />
-            <span>Thêm Hội viên</span>
+            <UserPlus className="w-4 h-4" />
+            <span>Đăng ký hội viên</span>
           </Link>
         </div>
       </div>
 
-      {/* 4 Executive KPI Cards (Stripe / Devias Style) */}
+      {/* 4 Executive KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: CRM Members */}
         <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
-              Tổng Hội Viên CRM
+              Tổng hội viên CRM
             </span>
             <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center">
               <Users className="w-4 h-4" />
@@ -136,7 +134,7 @@ export default async function DashboardPage() {
         <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
-              Thẻ Tập Hiệu Lực
+              Thẻ tập hiệu lực
             </span>
             <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
               <CreditCard className="w-4 h-4" />
@@ -148,7 +146,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mt-1">
               <Clock className="w-3.5 h-3.5 text-slate-400" />
-              <span>Thời hạn & gói buổi</span>
+              <span>Thời hạn và gói buổi</span>
             </div>
           </div>
         </div>
@@ -157,7 +155,7 @@ export default async function DashboardPage() {
         <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
-              Doanh Thu Tích Lũy
+              Doanh thu tích lũy
             </span>
             <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
@@ -169,7 +167,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium mt-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span>POS Quầy & Chuyển khoản</span>
+              <span>POS quầy và chuyển khoản</span>
             </div>
           </div>
         </div>
@@ -178,7 +176,7 @@ export default async function DashboardPage() {
         <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
-              Chi Nhánh Hoạt Động
+              Chi nhánh hoạt động
             </span>
             <div className="w-9 h-9 rounded-lg bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center">
               <Building2 className="w-4 h-4" />
@@ -203,7 +201,7 @@ export default async function DashboardPage() {
           <div className="px-5 py-4 border-b border-slate-200/80 flex items-center justify-between bg-white">
             <div>
               <h2 className="text-sm font-semibold text-slate-900">
-                Hội Viên CRM Mới Đăng Ký
+                Hội viên CRM mới đăng ký
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 5 hồ sơ thành viên cập nhật gần nhất trên toàn hệ thống
@@ -222,11 +220,11 @@ export default async function DashboardPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50/70 border-b border-slate-200/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                 <tr>
-                  <th className="px-5 py-3">Mã Hội Viên</th>
-                  <th className="px-5 py-3">Họ và Tên</th>
-                  <th className="px-5 py-3">Số Điện Thoại</th>
-                  <th className="px-5 py-3">Cơ Sở Gốc</th>
-                  <th className="px-5 py-3">Trạng Thái</th>
+                  <th className="px-5 py-3">Mã hội viên</th>
+                  <th className="px-5 py-3">Họ và tên</th>
+                  <th className="px-5 py-3">Số điện thoại</th>
+                  <th className="px-5 py-3">Cơ sở gốc</th>
+                  <th className="px-5 py-3">Trạng thái</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -287,9 +285,9 @@ export default async function DashboardPage() {
                       </p>
                       <Link
                         href="/dashboard/members/create"
-                        className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-700"
+                        className="inline-flex items-center gap-2 mt-3 h-10 px-4 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700"
                       >
-                        <UserPlus className="w-3.5 h-3.5" />
+                        <UserPlus className="w-4 h-4" />
                         <span>Đăng ký hội viên ngay</span>
                       </Link>
                     </td>
@@ -300,11 +298,11 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Right Column: ERP Shortcuts & System Health (1 col) */}
+        {/* Right Column: ERP Shortcuts (1 col) */}
         <div className="space-y-4">
           <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-5">
             <h2 className="text-sm font-semibold text-slate-900 mb-1">
-              Lối Tắt Vận Hành ERP
+              Lối tắt vận hành ERP
             </h2>
             <p className="text-xs text-slate-500 mb-4">
               Truy cập nhanh các nghiệp vụ quản trị hàng ngày
@@ -321,10 +319,10 @@ export default async function DashboardPage() {
                   </div>
                   <div>
                     <span className="text-xs font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors block">
-                      Quầy Tiếp Tân & Check-in
+                      Quầy tiếp tân và điểm danh
                     </span>
                     <span className="text-[11px] text-slate-500">
-                      Điểm danh thẻ & trừ buổi tự động
+                      Điểm danh thẻ và trừ buổi tự động
                     </span>
                   </div>
                 </div>
@@ -341,10 +339,10 @@ export default async function DashboardPage() {
                   </div>
                   <div>
                     <span className="text-xs font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors block">
-                      Gói Tập & Bảng Giá
+                      Gói tập và bảng giá
                     </span>
                     <span className="text-[11px] text-slate-500">
-                      Cấu hình gói tháng & gói buổi PT
+                      Cấu hình gói tháng và gói buổi PT
                     </span>
                   </div>
                 </div>
@@ -361,10 +359,10 @@ export default async function DashboardPage() {
                   </div>
                   <div>
                     <span className="text-xs font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors block">
-                      Trạm Giáo Án PT (3 Tầng)
+                      Trạm giáo án PT (3 tầng)
                     </span>
                     <span className="text-[11px] text-slate-500">
-                      Biên soạn chương trình & gán học viên
+                      Biên soạn chương trình và gán học viên
                     </span>
                   </div>
                 </div>
@@ -381,35 +379,14 @@ export default async function DashboardPage() {
                   </div>
                   <div>
                     <span className="text-xs font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors block">
-                      Quản Trị Chi Nhánh
+                      Quản trị chi nhánh
                     </span>
                     <span className="text-[11px] text-slate-500">
-                      Mạng lưới cơ sở & phân quyền
+                      Mạng lưới cơ sở và phân quyền
                     </span>
                   </div>
                 </div>
                 <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
-              </Link>
-            </div>
-          </div>
-
-          <div className="bg-slate-900 text-white rounded-xl p-4.5 border border-slate-800 shadow-xs">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-slate-300">Kiến Trúc Vận Hành</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-                v2.0 Locked
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              Hệ thống tách biệt hoàn toàn giữa danh tính đăng nhập (<code className="text-slate-300 font-mono">auth.users</code>) và hồ sơ hội viên (<code className="text-slate-300 font-mono">gym_members</code>), bảo vệ toàn vẹn bằng RLS Policies và Transactional RPCs.
-            </p>
-            <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Multi-tenant RLS</span>
-              </span>
-              <Link href="/dashboard/settings" className="text-indigo-400 hover:text-indigo-300 font-medium">
-                Cài đặt hệ thống
               </Link>
             </div>
           </div>

@@ -18,13 +18,13 @@ export default async function CreateStaffPage() {
             </Link>
             <span>/</span>
             <Link href="/dashboard/staff" className="hover:text-indigo-600 transition-colors">
-              Nhân sự & PT
+              Nhân sự và PT
             </Link>
             <span>/</span>
             <span className="font-medium text-slate-700">Thêm mới</span>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-            Thêm Nhân Sự / Huấn Luyện Viên Mới
+            Thêm nhân sự mới
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
             Tạo hồ sơ huấn luyện viên thể hình (PT), quản lý chi nhánh hoặc nhân viên lễ tân quầy tiếp tân.
@@ -36,7 +36,7 @@ export default async function CreateStaffPage() {
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs self-start sm:self-center"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Về Danh sách</span>
+          <span>Về danh sách</span>
         </Link>
       </div>
 
@@ -45,4 +45,3 @@ export default async function CreateStaffPage() {
     </div>
   );
 }
-

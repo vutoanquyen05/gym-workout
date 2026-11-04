@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { login } from './actions';
+import { AlertTriangle, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -26,42 +26,33 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 via-slate-100 to-blue-50">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/40">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-slate-200/80">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-600 text-white font-bold text-xl mb-3 shadow-md shadow-blue-500/20">
-            GT
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-600 text-white font-bold text-xl mb-3 shadow-md shadow-indigo-500/20">
+            G
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Đăng nhập Admin</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            Đăng nhập GymOS
+          </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Cổng quản trị chuỗi phòng tập Gym Tracker
+            Hệ thống quản trị phòng tập đa chi nhánh
           </p>
         </div>
 
         {errorMessage && (
-          <div className="mb-6 p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
-            <svg
-              className="w-5 h-5 flex-shrink-0 text-red-500"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
+          <div className="mb-6 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <Input
-            label="Email"
+            label="Email quản trị"
             name="email"
             type="email"
-            placeholder="admin@gymtracker.com"
+            placeholder="admin@gymos.vn"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -83,24 +74,28 @@ export default function LoginPage() {
             <label className="flex items-center gap-1.5 cursor-pointer">
               <input
                 type="checkbox"
-                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
               />
-              Ghi nhớ đăng nhập
+              <span>Ghi nhớ đăng nhập</span>
             </label>
-            <span className="text-blue-600 hover:underline cursor-pointer">
+            <span className="text-indigo-600 hover:underline cursor-pointer font-medium">
               Quên mật khẩu?
             </span>
           </div>
 
-          <Button type="submit" isLoading={isPending} className="w-full mt-2">
-            Đăng nhập
+          <Button
+            type="submit"
+            size="lg"
+            isLoading={isPending}
+            className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold rounded-xl"
+          >
+            Đăng nhập hệ thống
           </Button>
         </form>
 
-        <div className="mt-8 text-center text-xs text-slate-400 border-t border-slate-100 pt-6">
-          <Link href="/" className="text-slate-500 hover:text-blue-600 transition-colors">
-            ← Quay lại trang chủ
-          </Link>
+        <div className="mt-8 text-center text-xs text-slate-400 border-t border-slate-100 pt-6 flex items-center justify-center gap-1.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-indigo-500" />
+          <span>GymOS v2.0 — Hệ thống quản trị phòng tập nội bộ</span>
         </div>
       </div>
     </div>

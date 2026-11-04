@@ -50,13 +50,13 @@ export default async function EditPlanPage({
             </Link>
             <span>/</span>
             <Link href="/dashboard/plans" className="hover:text-indigo-600 transition-colors">
-              Gói tập & Bảng giá
+              Gói tập và bảng giá
             </Link>
             <span>/</span>
             <span className="font-medium text-slate-700">Chỉnh sửa</span>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-            Chỉnh Sửa Gói Tập: {plan.name}
+            Chỉnh sửa gói tập: {plan.name}
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
             Cập nhật đơn giá, thời hạn sử dụng, số buổi tập hoặc tạm dừng mở bán gói này.
@@ -68,7 +68,7 @@ export default async function EditPlanPage({
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs self-start sm:self-center"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Về Danh sách</span>
+          <span>Về danh sách</span>
         </Link>
       </div>
 
@@ -77,4 +77,3 @@ export default async function EditPlanPage({
     </div>
   );
 }
-

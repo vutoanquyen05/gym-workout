@@ -85,7 +85,7 @@ export default function CreateBranchPage() {
             <span className="font-medium text-slate-700">Tạo mới</span>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-            Thêm Chi Nhánh Mới
+            Thêm chi nhánh mới
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
             Nhập thông tin cơ sở phòng tập vật lý để phân bổ nhân sự, thiết bị và hội viên.
@@ -97,7 +97,7 @@ export default function CreateBranchPage() {
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs self-start sm:self-center"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Về Danh sách</span>
+          <span>Về danh sách</span>
         </Link>
       </div>
 
@@ -110,7 +110,7 @@ export default function CreateBranchPage() {
             </div>
             <div>
               <h2 className="text-base font-semibold text-slate-900 tracking-tight">
-                Thông tin Cơ sở Chi nhánh
+                Thông tin cơ sở chi nhánh
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Các trường đánh dấu sao đỏ là bắt buộc

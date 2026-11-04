@@ -11,13 +11,13 @@
 ## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)
 
 - **Current Architecture Version:** v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)
-- **Current Phase:** P02 — Admin Web Shell v2.0, Branches, Plans & Staff Management (HOÀN TẤT 4/4 TASKS — SẴN SÀNG ĐÓNG GÓI)
-- **Current Active Task:** P02-T04 (Quản lý Nhân sự & Huấn luyện viên PT: Staff Management)
+- **Current Phase:** P03 — CRM Hội viên 360° & Thu ngân tại quầy (Members & POS)
+- **Current Active Task:** P03-T01 + P03-T02 (CRM Directory & Member Registration Form Lock)
 - **Task Status:** IN_REVIEW
-- **Active Git Branch:** `feat/p02-admin-erp-foundation`
-- **Last Completed Task:** P02-T04 (Quản lý Nhân sự & Huấn luyện viên PT: Staff Management)
-- **Next Scheduled Task:** P03-T01 (CRM Member Directory 360° & Search/Filter)
-- **Last Updated:** 02/11/2026
+- **Active Git Branch:** `feat/p03-crm-members-pos`
+- **Last Completed Task:** P03-T01 + P03-T02 (Bảng danh sách Hội viên CRM và Luồng đăng ký hội viên không dùng Auth UUID)
+- **Next Scheduled Task:** P03-T03 (Trang Hồ sơ Chi tiết Hội viên 360° - Member Detail 4-Tab View)
+- **Last Updated:** 03/11/2026
 
 ---
 
@@ -95,12 +95,12 @@
 ### PHASE P03 — CRM HỘI VIÊN 360° & THU NGÂN TẠI QUẦY (MEMBERS & POS)
 *Mục tiêu: Xây dựng trung tâm CRM hội viên hoàn chỉnh; luồng bán gói/thu tiền tại quầy không phụ thuộc Auth và hồ sơ hội viên 360° đa tab.*
 
-- [ ] **P03-T01** `[Track: GM]` — **Bảng Danh sách Hội viên CRM (`gym_members`)**:
+- [x] **P03-T01** `[Track: GM]` — **Bảng Danh sách Hội viên CRM (`gym_members`)**:
   - Bảng danh sách hội viên hiển thị: Họ tên, SĐT, Mã thẻ `MEM-XXXXXX`, Trạng thái thẻ, Gói đang tập, Thời hạn còn lại, PT phụ trách.
   - Bộ lọc nâng cao theo trạng thái thẻ (Đang tập, Hết hạn, Bảo lưu, Sắp hết hạn trong 7 ngày) và thanh tìm kiếm đa năng.
-- [ ] **P03-T02** `[Track: GM]` — **Luồng Đăng ký Hội viên & POS Checkout 1 bước**:
+- [x] **P03-T02** `[Track: GM]` — **Luồng Đăng ký Hội viên & POS Checkout 1 bước**:
   - Form tiếp nhận khách hàng walk-in: nhập thông tin cá nhân, chọn gói tập, ghi nhận thanh toán tiền mặt/chuyển khoản/POS qua `payment_transactions`, kích hoạt thẻ và sinh mã thẻ `MEM-XXXXXX` tức thì mà không cần tài khoản Auth.
-- [ ] **P03-T03** `[Track: GM]` — **Trang Hồ sơ Chi tiết Hội viên 360° (`Member Detail 4-Tab View`)**:
+- [x] **P03-T03** `[Track: GM]` — **Trang Hồ sơ Chi tiết Hội viên 360° (`Member Detail 4-Tab View`)**:
   - *Tab 1 — Thẻ & Gói tập:* Xem chi tiết gói hiện tại, nút Gia hạn gói, nút Nâng cấp gói, nút Bảo lưu thẻ.
   - *Tab 2 — Lịch sử Giao dịch:* Danh sách các khoản thanh toán, biên nhận thu tiền, hóa đơn của hội viên.
   - *Tab 3 — Lịch sử Điểm danh:* Nhật ký vào/ra phòng gym theo mốc thời gian thực tế.
@@ -1011,3 +1011,71 @@
   - `npm.cmd run build --workspace=@gym-tracker/admin-web`: Success (16 routes tĩnh/động tối ưu, compiled thành công).
   - `npm.cmd run lint`: 0 errors.
   - `npm.cmd test`: 13 test suites passed, 54 tests passed.
+
+### 2026-11-03 — Chuẩn Hóa Typography Tiếng Việt, Giao Diện ERP & Hoàn Thành Phân Hệ Hội Viên CRM (P03-T01 + P03-T02: feat/p03-crm-members-pos)
+
+- **Mục tiêu:**
+  1. Hợp nhất nhánh `feat/p02-admin-erp-foundation` vào `main` (--no-ff) để đóng Phase P02 và khởi tạo nhánh `feat/p03-crm-members-pos`.
+  2. Mở rộng Sidebar lên `w-72` (288px), tăng kích thước font menu và icon Lucide `w-5 h-5`; đổi tên thương hiệu thành "GymOS" (Hệ thống quản trị phòng tập) và bổ sung tính năng tùy biến tên phòng tập trong Cài đặt (`/dashboard/settings`).
+  3. Xóa bỏ hoàn toàn hộp đen "Kiến Trúc Vận Hành" ở góc phải màn hình tổng quan (`/dashboard/page.tsx`).
+  4. Thiết lập quy chuẩn Typography tiếng Việt: 100% văn bản UI theo chuẩn Sentence Case, xóa bỏ hoàn toàn việc viết hoa mọi chữ cái đầu (Title Case) và loại bỏ 100% ký hiệu `&` trong câu tiếng Việt trên toàn bộ các phân hệ Admin Web.
+  5. Xây dựng hoàn chỉnh phân hệ Hội viên CRM 360° (`/dashboard/members`): Bảng danh sách hội viên đa tiêu chí (`gym_members`), 4 thẻ KPI tài chính/vận hành, bộ lọc tìm kiếm và trạng thái.
+  6. Đại tu form Đăng ký Hội viên mới (`/dashboard/members/create`): Xóa bỏ hoàn toàn trường nhập UUID/Auth UID; bố cục 2 phân vùng (Thông tin cá nhân & Gói tập/Thanh toán POS tại quầy); Live Member Card & Receipt Preview thời gian thực.
+- **Files đã tạo mới & cập nhật:**
+  - `apps/admin-web/src/app/dashboard/sidebar-nav.tsx` & `layout.tsx`: Mở rộng Sidebar `w-72`, cập nhật nhãn Sentence Case không dùng `&`, thương hiệu GymOS.
+  - `apps/admin-web/src/app/dashboard/settings/*` (`actions.ts`, `settings-form.tsx`, `page.tsx`): Tính năng tùy biến tên phòng tập lưu vào `public.gyms`.
+  - `apps/admin-web/src/app/dashboard/page.tsx`: Xóa bỏ hộp đen "Kiến Trúc Vận Hành", chuẩn hóa toàn bộ Sentence Case và zero `&`.
+  - `apps/admin-web/src/app/dashboard/branches/*`: Chuẩn hóa Sentence Case và zero `&`.
+  - `apps/admin-web/src/app/dashboard/plans/*`: Chuẩn hóa Sentence Case và zero `&`.
+  - `apps/admin-web/src/app/dashboard/staff/*`: Chuẩn hóa Sentence Case và zero `&`.
+  - `apps/admin-web/src/app/dashboard/check-in/page.tsx` & `workouts/page.tsx`: Chuẩn hóa Sentence Case và zero `&`.
+  - `apps/admin-web/src/app/dashboard/members/actions.ts`: Server Actions v2.0 `getMembers()` truy vấn CRM 360°, `getMemberRegistrationOptions()` và `registerNewMember()` tích hợp RPC `rpc_register_member_with_plan` kèm fallback direct insert (không cần Auth UUID).
+  - `apps/admin-web/src/app/dashboard/members/member-table.tsx`: Bảng hội viên CRM 360° tương tác thời gian thực, 4 thẻ KPI, thanh tìm kiếm và bộ lọc.
+  - `apps/admin-web/src/app/dashboard/members/page.tsx`: Trang CRM hội viên chuẩn Enterprise.
+  - `apps/admin-web/src/app/dashboard/members/create/create-form.tsx` & `page.tsx`: Form đăng ký hội viên và bán thẻ POS tại quầy xóa bỏ trường UUID, tích hợp Live Preview thẻ hội viên.
+  - `docs/rule.md` & `docs/design-system.md`: Ghi nhận chuẩn Typography tiếng Việt (Sentence Case, zero-emoji, cấm ký hiệu `&` trong UI text) và chiều rộng Sidebar `w-72`.
+  - `docs/mindmap.md`: Cập nhật Execution Pointer sang Phase P03, đánh dấu `[x] P03-T01` và `[x] P03-T02`.
+
+### 2026-11-03 — Khắc Phục Lỗi RLS Recursion gym_staff, Nâng Cấp Công Thái Học Nút Bấm, Chuẩn Hóa Topbar & Tái Thiết Kế Landing Portal GymOS (P03-T02-FIX: feat/p03-crm-members-pos)
+
+- **Mục tiêu:**
+  1. Khắc phục triệt để lỗi đệ quy vô hạn `infinite recursion detected in policy for relation "gym_staff"` khi mở trang Hội viên CRM (`/dashboard/members`).
+  2. Tách rời độc lập truy vấn danh sách hội viên (`gym_members`), thẻ tập (`memberships`) và nhân sự PT (`gym_staff`) trong Server Actions bằng `Promise.allSettled`; loại bỏ toàn bộ lệnh `console.error` gây kích hoạt popup lỗi đỏ Next.js 15 DevTools.
+  3. Dọn dẹp thanh Topbar Header (`dashboard/layout.tsx`): Loại bỏ tiêu đề cơ sở dư thừa, thay bằng pill trạng thái trực tuyến ("Hệ thống trực tuyến") kèm hiển thị ngày tháng tiếng Việt, làm dày các nút bấm quầy tiếp tân và đăng ký hội viên.
+  4. Nâng cấp chuẩn công thái học nút bấm (Button Sizing & Ergonomics) trên toàn hệ thống: `components/ui/button.tsx` (size `sm`, `md`, `lg`), các nút Primary Actions trên Page Header (`h-11 px-5 rounded-xl text-sm font-semibold`), và thanh tìm kiếm/lọc (`h-10 rounded-xl`) trên 5 phân hệ (`dashboard`, `members`, `branches`, `plans`, `staff`).
+  5. Tái thiết kế toàn diện Cổng thông tin Enterprise Portal Landing page (`apps/admin-web/src/app/page.tsx`), trang đăng nhập (`login/page.tsx`) và root metadata (`app/layout.tsx`) sang thương hiệu GymOS chuẩn mực với Header `h-20`, Hero ấn tượng và Bento Grid 4 khối tính năng cốt lõi.
+  6. Tạo tệp migration thứ 12 (`supabase/migrations/20261103000000_fix_gym_staff_rls_recursion_and_brand.sql`) và cập nhật SSOT docs (`docs/supabase-schema.md`, `docs/design-system.md`, `docs/mindmap.md`).
+- **Files đã tạo mới & cập nhật:**
+  - `supabase/migrations/20261103000000_fix_gym_staff_rls_recursion_and_brand.sql`: Migration 12 tái cấu trúc policy RLS `gym_staff` và cập nhật tên gym mặc định thành GymOS.
+  - `apps/admin-web/src/components/ui/button.tsx`: Thêm variant size `sm` (`h-9`), `md` (`h-10`), `lg` (`h-11`) bo góc `rounded-xl font-semibold`.
+  - `apps/admin-web/src/app/dashboard/layout.tsx`: Dọn dẹp Topbar Header `h-16 px-8`, thêm pill trực tuyến và làm dày các nút bấm nhanh.
+  - `apps/admin-web/src/app/dashboard/members/actions.ts`: Decouple queries qua `Promise.allSettled`, xóa `console.error`.
+  - `apps/admin-web/src/app/dashboard/page.tsx`: Làm dày 2 nút Quầy điểm danh và Thêm hội viên (`h-11 px-5 rounded-xl`).
+  - `apps/admin-web/src/app/dashboard/members/page.tsx` & `member-table.tsx`: Làm dày nút Đăng ký hội viên mới, thanh tìm kiếm và bộ lọc trạng thái/chi nhánh.
+  - `apps/admin-web/src/app/dashboard/branches/page.tsx` & `branch-table.tsx`: Làm dày nút Thêm chi nhánh mới, thanh tìm kiếm và bộ lọc.
+  - `apps/admin-web/src/app/dashboard/plans/page.tsx` & `plan-table.tsx`: Làm dày nút Tạo gói tập mới, thanh tìm kiếm và bộ lọc.
+  - `apps/admin-web/src/app/dashboard/staff/page.tsx` & `staff-table.tsx`: Làm dày nút Thêm nhân sự mới, thanh tìm kiếm và bộ lọc.
+  - `apps/admin-web/src/app/layout.tsx`: Cập nhật metadata title `GymOS — Hệ thống quản trị phòng tập`.
+  - `apps/admin-web/src/app/page.tsx`: Tái thiết kế toàn diện Cổng thông tin GymOS với Header `h-20`, Hero, Trust Metrics và Bento Grid 4 phân hệ.
+  - `apps/admin-web/src/app/login/page.tsx`: Đồng bộ thương hiệu GymOS và nút đăng nhập dày `h-11`.
+  - `docs/supabase-schema.md`, `docs/design-system.md`, `docs/mindmap.md`: Cập nhật tài liệu kỹ thuật SSOT.
+
+### 2026-11-04 — Hoàn Thiện Hồ Sơ Chi Tiết Hội Viên 360°, Tinh Chỉnh Topbar, Khóa Cấu Hình GymOS & Điều Hướng Trực Tiếp (P03-T03: feat/p03-crm-members-pos)
+
+- **Mục tiêu:**
+  1. Chuyển đổi tuyến đường gốc `/` (`apps/admin-web/src/app/page.tsx`) thành Server-side Redirect Controller: Điều hướng tự động về `/dashboard` (nếu đã đăng nhập) hoặc `/login` (nếu chưa đăng nhập).
+  2. Tinh gọn trang đăng nhập (`app/login/page.tsx`): Xóa bỏ liên kết quay lại cổng thông tin, bổ sung chú thích nhận diện "GymOS v2.0 — Hệ thống quản trị phòng tập nội bộ".
+  3. Khắc phục lỗi thiếu padding ngang trên nút "Đăng ký hội viên" do class không chuẩn `px-4.5`; đồng bộ nhãn cả 2 nút trên thanh Header (`layout.tsx`) và trang Tổng quan (`dashboard/page.tsx`) thành chính xác "Điểm danh nhanh" và "Đăng ký hội viên" với class chuẩn Tailwind v3 (`h-10 px-5 rounded-lg text-sm font-semibold`).
+  4. Khóa cấu hình phần mềm thương hiệu GymOS và mã định danh `/gymos` tại trang Cài đặt (`/dashboard/settings`): Xóa form chỉnh sửa tên và nút lưu, thay bằng Bảng thông tin định danh hệ thống (chế độ chỉ đọc / Locked), đồng thời cập nhật migration 12 để đồng bộ `slug = 'gymos'` trên cơ sở dữ liệu.
+  5. Xây dựng hoàn chỉnh trang Hồ sơ Chi tiết Hội viên 360° (`/dashboard/members/[id]`): Tóm tắt định danh hội viên, nút Điểm danh nhanh 1 chạm, và 4 Tabs toàn diện (Thẻ tập & hồ sơ cá nhân + gia hạn thẻ tại quầy, Lịch sử thanh toán hóa đơn, Nhật ký điểm danh, Chỉ số cơ thể InBody & giáo án PT 3 tầng).
+  6. Kết nối liên kết điều hướng từ Bảng danh sách hội viên (`member-table.tsx`) sang trang chi tiết 360° qua mã thẻ, họ tên và nút thao tác "Chi tiết 360°".
+- **Files đã tạo mới & cập nhật:**
+  - `apps/admin-web/src/app/page.tsx`: Chuyển thành Server Redirect Controller `/dashboard` hoặc `/login`.
+  - `apps/admin-web/src/app/login/page.tsx`: Xóa nút quay lại, tinh chỉnh card đăng nhập GymOS chuẩn mực.
+  - `apps/admin-web/src/app/dashboard/layout.tsx` & `page.tsx`: Đồng bộ 2 nút "Điểm danh nhanh" và "Đăng ký hội viên" với class chuẩn `h-10 px-5 rounded-lg`.
+  - `supabase/migrations/20261103000000_fix_gym_staff_rls_recursion_and_brand.sql`: Đồng bộ tên 'GymOS' và slug 'gymos' trong bảng `public.gyms`.
+  - `apps/admin-web/src/app/dashboard/settings/*` (`actions.ts`, `page.tsx`): Khóa cấu hình chỉ đọc và auto-sync slug `/gymos`.
+  - `apps/admin-web/src/app/dashboard/members/actions.ts`: Bổ sung 6 Server Actions v2.0 (`getMember360Profile`, `updateMemberProfile`, `renewOrAddMembership`, `updateSubscriptionStatus`, `recordBodyMeasurement`, `quickCheckInMember`).
+  - `apps/admin-web/src/app/dashboard/members/[id]/page.tsx` & `member-360-view.tsx`: Giao diện Hồ sơ chi tiết hội viên 360° 4 Tabs hoàn chỉnh.
+  - `apps/admin-web/src/app/dashboard/members/member-table.tsx`: Nối link chi tiết 360° và thêm nút "Chi tiết 360°".
+  - `docs/mindmap.md`: Đánh dấu hoàn tất `[x] P03-T03`, cập nhật con trỏ trạng thái sẵn sàng đóng Phase P03.

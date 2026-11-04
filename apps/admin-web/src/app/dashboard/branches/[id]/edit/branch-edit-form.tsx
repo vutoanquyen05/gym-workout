@@ -74,10 +74,10 @@ export function BranchEditForm({ branch }: BranchEditFormProps) {
           </div>
           <div>
             <h2 className="text-base font-semibold text-slate-900 tracking-tight">
-              Chỉnh Sửa Chi Nhánh: {branch.name}
+              Chỉnh sửa chi nhánh: {branch.name}
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              ID Cơ sở: <span className="font-mono text-slate-700">{branch.id}</span>
+              Mã cơ sở: <span className="font-mono text-slate-700">{branch.id}</span>
             </p>
           </div>
         </div>
@@ -184,7 +184,7 @@ export function BranchEditForm({ branch }: BranchEditFormProps) {
             >
               <option value="active">Đang hoạt động (active)</option>
               <option value="suspended">Tạm ngưng hoạt động (suspended)</option>
-              <option value="archived">Lưu trữ / Đóng cửa (archived)</option>
+              <option value="archived">Lưu trữ hoặc đóng cửa (archived)</option>
             </select>
           </div>
         </div>
