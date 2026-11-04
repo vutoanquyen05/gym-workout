@@ -11,13 +11,13 @@
 ## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)
 
 - **Current Architecture Version:** v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)
-- **Current Phase:** P03 — CRM Hội viên 360° & Thu ngân tại quầy (Members & POS)
-- **Current Active Task:** P03-T01 + P03-T02 (CRM Directory & Member Registration Form Lock)
+- **Current Phase:** P04 — Quầy Điểm Danh Thông Minh (Smart Check-in Desk) [HOÀN TẤT 1/1 TASK — SẴN SÀNG ĐÓNG GÓI]
+- **Current Active Task:** P04-T01 (Giao diện Quầy Check-in Tiếp tân Thông minh)
 - **Task Status:** IN_REVIEW
-- **Active Git Branch:** `feat/p03-crm-members-pos`
-- **Last Completed Task:** P03-T01 + P03-T02 (Bảng danh sách Hội viên CRM và Luồng đăng ký hội viên không dùng Auth UUID)
-- **Next Scheduled Task:** P03-T03 (Trang Hồ sơ Chi tiết Hội viên 360° - Member Detail 4-Tab View)
-- **Last Updated:** 03/11/2026
+- **Active Git Branch:** `feat/p04-smart-checkin-desk`
+- **Last Completed Task:** P04-T01 (Quầy Điểm Danh Tiếp Tân: Tra cứu tức thì, xác thực thời gian thực và nhật ký ra vào)
+- **Next Scheduled Task:** P05-T01 (Quản lý Thư viện Bài tập trên Web - Exercises Catalog Management)
+- **Last Updated:** 04/11/2026
 
 ---
 
@@ -111,7 +111,7 @@
 ### PHASE P04 — QUẦY ĐIỂM DANH THÔNG MINH (SMART CHECK-IN DESK)
 *Mục tiêu: Tối ưu hóa tốc độ điểm danh quầy tiếp tân dưới 300ms; xác thực điều kiện thẻ tự động và nhật ký thời gian thực.*
 
-- [ ] **P04-T01** `[Track: GM]` — **Giao diện Quầy Check-in Tiếp tân Thông minh**:
+- [x] **P04-T01** `[Track: GM]` — **Giao diện Quầy Check-in Tiếp tân Thông minh**:
   - Hộp nhập nhanh mã thẻ `MEM-XXXXXX` hoặc tìm kiếm tức thì theo SĐT/Họ tên hội viên.
   - Động cơ kiểm tra thẻ tự động: Kiểm tra hạn thẻ, số buổi còn lại, chi nhánh cho phép, nợ phí.
   - Hiển thị kết quả điểm danh trực quan (Thành công kèm số buổi còn lại / Từ chối kèm lý do rõ ràng).
@@ -1079,3 +1079,22 @@
   - `apps/admin-web/src/app/dashboard/members/[id]/page.tsx` & `member-360-view.tsx`: Giao diện Hồ sơ chi tiết hội viên 360° 4 Tabs hoàn chỉnh.
   - `apps/admin-web/src/app/dashboard/members/member-table.tsx`: Nối link chi tiết 360° và thêm nút "Chi tiết 360°".
   - `docs/mindmap.md`: Đánh dấu hoàn tất `[x] P03-T03`, cập nhật con trỏ trạng thái sẵn sàng đóng Phase P03.
+
+### 2026-11-04 — Đóng Gói Phase P03 & Xây Dựng Quầy Điểm Danh Thông Minh Tiếp Tân (P04-T01: feat/p04-smart-checkin-desk)
+
+- **Mục tiêu:**
+  1. Hợp nhất nhánh `feat/p03-crm-members-pos` vào `main` (`--no-ff`), đóng gói toàn diện Phase P03 và tạo nhánh mới `feat/p04-smart-checkin-desk`.
+  2. Xây dựng Server Actions tại `apps/admin-web/src/app/dashboard/check-in/actions.ts`:
+     - `getCheckInDeskData()`: Tối ưu truy vấn song song qua `Promise.allSettled` cho các chi nhánh hoạt động, danh sách hội viên, trạng thái thẻ tập và 100 lượt điểm danh gần nhất kèm 4 thẻ KPI thời gian thực.
+     - `performDeskCheckIn()`: Tích hợp trực tiếp hàm RPC transactional `public.rpc_check_in_member`, kiểm tra điều kiện thẻ, tự động trừ buổi tập đối với gói PT, ghi nhận `attendance_logs` và trả về kết quả chi tiết kèm cảnh báo sắp hết hạn nếu còn ≤ 7 ngày hoặc ≤ 2 buổi.
+     - `checkOutAttendance()`: Cập nhật `check_out_at` khi hội viên ra về, tự động tính toán tổng thời lượng buổi tập.
+  3. Xây dựng giao diện Quầy điểm danh thông minh tại `apps/admin-web/src/app/dashboard/check-in/` (`page.tsx` và `check-in-desk.tsx`):
+     - Unboxed Page Header đồng bộ nút "Danh sách hội viên" và "Đăng ký hội viên".
+     - 4 thẻ KPI `tabular-nums`: Lượt điểm danh hôm nay, Đang tập trong phòng, Hội viên đủ điều kiện, Thẻ sắp hết hạn.
+     - Bố cục Split-Desk trực quan: Cột trái (Trạm quét mã / tra cứu tức thì, danh sách gợi ý 1 chạm, Thẻ kết quả xác thực trực quan xanh/đỏ); Cột phải (Nhật ký ra vào thời gian thực, bộ lọc 3 tầng và nút ghi nhận ra về).
+  4. Tuân thủ tuyệt đối quy chuẩn văn phong tiếng Việt (Sentence case, không dùng dấu `&`), Zero-Emoji, 100% icon `lucide-react`, nút bấm dày chuẩn Tailwind v3.
+- **Files đã tạo mới & cập nhật:**
+  - `apps/admin-web/src/app/dashboard/check-in/actions.ts`: Server Actions cho Quầy điểm danh tiếp tân.
+  - `apps/admin-web/src/app/dashboard/check-in/check-in-desk.tsx`: Client Component Quầy điểm danh 2 cột Split-Desk.
+  - `apps/admin-web/src/app/dashboard/check-in/page.tsx`: Server Component Page nạp dữ liệu và kết nối trạm điểm danh.
+  - `docs/mindmap.md`: Đánh dấu hoàn tất `[x] P04-T01`, cập nhật con trỏ thực thi sang Phase P05.
