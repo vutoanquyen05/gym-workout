@@ -11,13 +11,13 @@
 ## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)
 
 - **Current Architecture Version:** v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)
-- **Current Phase:** P04 — Quầy Điểm Danh Thông Minh (Smart Check-in Desk) [HOÀN TẤT 1/1 TASK — SẴN SÀNG ĐÓNG GÓI]
-- **Current Active Task:** P04-T01 (Giao diện Quầy Check-in Tiếp tân Thông minh)
+- **Current Phase:** P05 — Trạm Thiết Kế Giáo Án & Xếp Bài Tập 3 Tầng (Workout Programming Studio)
+- **Current Active Task:** P05-T01 (Quản lý Thư viện Bài tập trên Web: Exercises Catalog)
 - **Task Status:** IN_REVIEW
-- **Active Git Branch:** `feat/p04-smart-checkin-desk`
-- **Last Completed Task:** P04-T01 (Quầy Điểm Danh Tiếp Tân: Tra cứu tức thì, xác thực thời gian thực và nhật ký ra vào)
-- **Next Scheduled Task:** P05-T01 (Quản lý Thư viện Bài tập trên Web - Exercises Catalog Management)
-- **Last Updated:** 04/11/2026
+- **Active Git Branch:** `feat/p05-workout-programming-studio`
+- **Last Completed Task:** P05-T01 (Quản lý Thư viện Bài tập Chuẩn, Nâng cấp UI Core: Radix, Sonner, QRCode, Recharts & Cầu nối Monorepo Expo Go)
+- **Next Scheduled Task:** P05-T02 (Trình thiết kế Giáo án Mẫu 3 Tầng: Program Templates Builder)
+- **Last Updated:** 05/11/2026
 
 ---
 
@@ -122,7 +122,7 @@
 ### PHASE P05 — TRẠM THIẾT KẾ GIÁO ÁN & XẾP BÀI TẬP 3 TẦNG (WORKOUT PROGRAMMING STUDIO)
 *Mục tiêu: Xây dựng công cụ xếp giáo án chuyên nghiệp cho PT và Chủ phòng gym; quản lý danh mục bài tập và cá nhân hóa lộ trình tập luyện.*
 
-- [ ] **P05-T01** `[Track: GM & PT]` — **Quản lý Thư viện Bài tập trên Web (`Exercises Catalog`)**:
+- [x] **P05-T01** `[Track: GM & PT]` — **Quản lý Thư viện Bài tập trên Web (`Exercises Catalog`)**:
   - Giao diện danh mục bài tập: Tìm kiếm, lọc theo nhóm cơ chính, nhóm cơ phụ, dụng cụ và độ khó.
   - Form thêm bài tập riêng của phòng gym kèm hướng dẫn kỹ thuật chi tiết.
 - [ ] **P05-T02** `[Track: PT]` — **Trình thiết kế Giáo án Mẫu 3 Tầng (`Program Templates Builder`)**:
@@ -1098,3 +1098,30 @@
   - `apps/admin-web/src/app/dashboard/check-in/check-in-desk.tsx`: Client Component Quầy điểm danh 2 cột Split-Desk.
   - `apps/admin-web/src/app/dashboard/check-in/page.tsx`: Server Component Page nạp dữ liệu và kết nối trạm điểm danh.
   - `docs/mindmap.md`: Đánh dấu hoàn tất `[x] P04-T01`, cập nhật con trỏ thực thi sang Phase P05.
+
+### 2026-11-05 — Đóng Gói Phase P04, Cài Đặt Bộ Thư Viện UI Nâng Cao, Vá Lỗi Expo Go & Hoàn Thành Thư Viện Bài Tập Chuẩn (P05-T01: feat/p05-workout-programming-studio)
+
+- **Mục tiêu:**
+  1. Hợp nhất nhánh `feat/p04-smart-checkin-desk` vào `main` (`--no-ff`), đóng gói toàn diện Phase P04 và tạo nhánh mới `feat/p05-workout-programming-studio`.
+  2. Nâng cấp hệ sinh thái thư viện UI cho `@gym-tracker/admin-web`: Cài đặt thành công `clsx`, `tailwind-merge`, `class-variance-authority`, `@radix-ui/react-dialog`, `@radix-ui/react-tabs`, `sonner`, `qrcode.react`, `recharts`.
+  3. Tạo tiện ích `cn()` tại `apps/admin-web/src/lib/utils.ts`, tích hợp hệ thống thông báo nổi `<Toaster position="top-right" richColors />` từ `sonner` vào `dashboard/layout.tsx`.
+  4. Nâng cấp trang Hồ sơ chi tiết hội viên 360° (`member-360-view.tsx`):
+     - Hiển thị Mã QR thẻ hội viên thật với `QRCodeSVG` từ `qrcode.react` (`gymos://member/MEM-XXXXXX`) hỗ trợ camera quầy lễ tân quét điểm danh.
+     - Tích hợp Biểu đồ biến thiên tiến độ thể chất InBody (Cân nặng, Cơ xương, Tỷ lệ mỡ) bằng `ResponsiveContainer` và `AreaChart` từ `recharts`.
+     - Chuyển đổi các thông báo thao tác sang hệ thống `toast` nổi từ `sonner`.
+  5. Vá lỗi Expo Go Monorepo trên Android: Tạo tệp cầu nối `App.tsx` tại cả `apps/mobile/App.tsx` và root `App.tsx` chuyển hướng trực tiếp sang `expo-router/entry` nhằm khắc phục dứt điểm lỗi `UnableToResolveError ../../App` từ `node_modules/expo/AppEntry.js`.
+  6. Xây dựng hoàn chỉnh Tầng 1 của Trạm Giáo Án PT — Quản lý Thư viện Bài tập Chuẩn tại `/dashboard/workouts`:
+     - Server Actions (`actions.ts`): `getExercisesCatalogData`, `createCustomExercise`, `updateCustomExercise`, `deleteCustomExercise` truy vấn và cập nhật bảng `public.exercises` kết hợp bài tập hệ thống (`scope = 'system'`) và bài tập riêng của phòng gym (`scope = 'gym'`).
+     - Client Component (`exercise-catalog.tsx`): 4 thẻ KPI danh mục, bộ lọc đa chiều (tìm kiếm từ khóa, 8 nhóm cơ, 7 loại dụng cụ, 3 cấp độ khó, nguồn gốc bài tập), lưới thẻ bài tập trực quan, và các hộp thoại Radix Modal (`@radix-ui/react-dialog`) để thêm mới, xem hướng dẫn kỹ thuật chi tiết và chỉnh sửa bài tập riêng.
+  7. Cập nhật tài liệu kỹ thuật SSOT: `docs/design-system.md` và `docs/mindmap.md`.
+- **Files đã tạo mới & cập nhật:**
+  - `App.tsx`: Cầu nối dự phòng Monorepo cho Expo Go.
+  - `apps/mobile/App.tsx`: Cầu nối dự phòng Monorepo cho Expo Go trong thư mục mobile.
+  - `apps/admin-web/package.json` & `package-lock.json`: Thêm các dependencies UI nâng cao.
+  - `apps/admin-web/src/lib/utils.ts`: Tiện ích `cn()` kết hợp `clsx` và `tailwind-merge`.
+  - `apps/admin-web/src/app/dashboard/layout.tsx`: Tích hợp `<Toaster />` từ `sonner`.
+  - `apps/admin-web/src/app/dashboard/members/[id]/member-360-view.tsx`: Bổ sung mã QR `QRCodeSVG`, biểu đồ Recharts và thông báo Sonner.
+  - `apps/admin-web/src/app/dashboard/workouts/actions.ts`: Server Actions cho Thư viện bài tập.
+  - `apps/admin-web/src/app/dashboard/workouts/exercise-catalog.tsx`: Giao diện tương tác Thư viện bài tập chuẩn dùng Radix Dialog và Sonner Toast.
+  - `apps/admin-web/src/app/dashboard/workouts/page.tsx`: Server Component kết nối dữ liệu Thư viện bài tập.
+  - `docs/design-system.md` & `docs/mindmap.md`: Cập nhật tài liệu thiết kế và roadmap.

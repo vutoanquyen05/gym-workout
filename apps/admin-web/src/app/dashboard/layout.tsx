@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { signOut } from './actions';
 import { SidebarNav } from './sidebar-nav';
+import { Toaster } from 'sonner';
 import { ScanLine, UserPlus, LogOut, Database, Activity } from 'lucide-react';
 
 export default async function DashboardLayout({
@@ -130,6 +131,9 @@ export default async function DashboardLayout({
         <main className="flex-1 bg-slate-50/70 overflow-auto">
           {children}
         </main>
+
+        {/* Global Toast System */}
+        <Toaster position="top-right" richColors />
       </div>
     </div>
   );
