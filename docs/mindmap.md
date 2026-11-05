@@ -11,12 +11,12 @@
 ## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)
 
 - **Current Architecture Version:** v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)
-- **Current Phase:** P05 — Trạm Thiết Kế Giáo Án & Xếp Bài Tập 3 Tầng (Workout Programming Studio)
-- **Current Active Task:** P05-T01 (Quản lý Thư viện Bài tập trên Web: Exercises Catalog)
-- **Task Status:** IN_REVIEW
+- **Current Phase:** P05 — Trạm Thiết Kế Giáo Án & Xếp Bài Tập 3 Tầng (Workout Programming Studio) [COMPLETED]
+- **Current Active Task:** P05-T02 & P05-T03 (Trình thiết kế Giáo án Mẫu 3 Tầng & Giao Giáo án cho Hội viên)
+- **Task Status:** COMPLETED
 - **Active Git Branch:** `feat/p05-workout-programming-studio`
-- **Last Completed Task:** P05-T01 (Quản lý Thư viện Bài tập Chuẩn, Nâng cấp UI Core: Radix, Sonner, QRCode, Recharts & Cầu nối Monorepo Expo Go)
-- **Next Scheduled Task:** P05-T02 (Trình thiết kế Giáo án Mẫu 3 Tầng: Program Templates Builder)
+- **Last Completed Task:** P05-T02 & P05-T03 (Trình thiết kế Giáo án Mẫu 3 Tầng: Program Templates Builder, Gán & Cá nhân hóa Lộ trình Học viên và Đồng bộ Supabase Cloud Migration 10)
+- **Next Scheduled Task:** Phase P05 Packaging & Ready for Phase P06 (Dashboard Analytics Kinh Doanh & Đồng Bộ Mobile v2.0)
 - **Last Updated:** 05/11/2026
 
 ---
@@ -125,11 +125,11 @@
 - [x] **P05-T01** `[Track: GM & PT]` — **Quản lý Thư viện Bài tập trên Web (`Exercises Catalog`)**:
   - Giao diện danh mục bài tập: Tìm kiếm, lọc theo nhóm cơ chính, nhóm cơ phụ, dụng cụ và độ khó.
   - Form thêm bài tập riêng của phòng gym kèm hướng dẫn kỹ thuật chi tiết.
-- [ ] **P05-T02** `[Track: PT]` — **Trình thiết kế Giáo án Mẫu 3 Tầng (`Program Templates Builder`)**:
+- [x] **P05-T02** `[Track: PT]` — **Trình thiết kế Giáo án Mẫu 3 Tầng (`Program Templates Builder`)**:
   - Trình tạo giáo án mẫu: Đặt tên giáo án, mô tả mục tiêu (Tăng cơ, Giảm mỡ, Sức mạnh).
   - Chia các buổi tập trong tuần (`program_days` - ví dụ: Ngày 1 Ngực/Tay sau, Ngày 2 Lưng/Tay trước...).
   - Xếp danh sách bài tập cho từng ngày (`program_day_exercises`): Cấu hình số hiệp (Sets), số lần (Reps), thời gian nghỉ (Rest seconds), nhóm Superset và ghi chú lưu ý kỹ thuật của PT.
-- [ ] **P05-T03** `[Track: PT]` — **Giao Giáo án cho Hội viên & Cá nhân hóa (`Assign & Customize Member Program`)**:
+- [x] **P05-T03** `[Track: PT]` — **Giao Giáo án cho Hội viên & Cá nhân hóa (`Assign & Customize Member Program`)**:
   - Chức năng gán giáo án mẫu cho Hội viên cụ thể: Tự động nhân bản sang hồ sơ hội viên và cho phép PT tinh chỉnh hiệp/tạ/bài tập phù hợp với thể trạng riêng của học viên.
   - Tích hợp trực tiếp vào Tab Giáo án trong Hồ sơ Hội viên 360°.
 
@@ -1125,3 +1125,23 @@
   - `apps/admin-web/src/app/dashboard/workouts/exercise-catalog.tsx`: Giao diện tương tác Thư viện bài tập chuẩn dùng Radix Dialog và Sonner Toast.
   - `apps/admin-web/src/app/dashboard/workouts/page.tsx`: Server Component kết nối dữ liệu Thư viện bài tập.
   - `docs/design-system.md` & `docs/mindmap.md`: Cập nhật tài liệu thiết kế và roadmap.
+
+### 2026-11-05 — Hoàn Thành Trình Biên Soạn Giáo Án Mẫu 3 Tầng, Phân Công Lộ Trình Học Viên & Đồng Bộ Supabase Cloud (P05-T02 & P05-T03: feat/p05-workout-programming-studio)
+
+- **Mục tiêu:**
+  1. Đồng bộ và áp dụng thành công migration 10 (`20261102010000_v2_rpcs_and_seed_catalog.sql`) lên Supabase Cloud qua Supabase MCP (`apply_migration`), triển khai 3 transactional RPCs (`rpc_assign_program_template`, `rpc_check_in_member`, `rpc_register_member_with_plan`), seed 12 bài tập hệ thống chuẩn (`scope = 'system'`) và giáo án mẫu 3 tầng Push - Pull - Legs.
+  2. Mở rộng toàn diện Server Actions tại `apps/admin-web/src/app/dashboard/workouts/actions.ts`:
+     - `getWorkoutStudioFullData()`: Truy vấn cấu trúc cây phân cấp 3 tầng (`workout_programs`, `program_days`, `program_day_exercises` kèm bài tập kỹ thuật join `exercises`), nạp danh sách hội viên hoạt động (`gym_members`) và nhân viên huấn luyện (`gym_staff`).
+     - Tầng 2 CRUD: `createProgramTemplate`, `deleteProgramTemplate`, `addProgramDay`, `deleteProgramDay`, `addExerciseToProgramDay`, `removeExerciseFromProgramDay`.
+     - Tầng 3 Assignment: `assignProgramToMember` (gọi RPC `rpc_assign_program_template` tự động deep-clone sang học viên), `updateAssignedProgramStatus` và `deleteAssignedProgram`.
+  3. Xây dựng Trạm Thiết Kế Giáo Án 3 Tầng hoàn chỉnh (`apps/admin-web/src/app/dashboard/workouts/workout-studio.tsx` & `page.tsx`):
+     - Giao diện 3 Tabs Radix UI (`@radix-ui/react-tabs`): Tầng 1 Thư viện bài tập chuẩn, Tầng 2 Trình biên soạn giáo án mẫu, Tầng 3 Quản lý lộ trình học viên đã giao.
+     - Tầng 2 Templates Builder: Thống kê KPI, bộ lọc cấp độ khó (Beginner, Intermediate, Advanced), thẻ giáo án mẫu trực quan, giao diện Active Template Editor xếp các buổi tập trong tuần (`program_days`) và xếp bài tập với Sets, Reps, RPE mục tiêu, Thời gian nghỉ và Ghi chú kỹ thuật của HLV.
+     - Tầng 3 Assigned Programs: Thống kê trạng thái lộ trình, tìm kiếm học viên, bảng phân công lộ trình với liên kết mã thẻ hội viên dẫn sang hồ sơ 360°, dropdown cập nhật trạng thái nhanh và modal xem chi tiết toàn bộ lịch tập của học viên.
+     - Hộp thoại Radix Dialogs (`@radix-ui/react-dialog`) và thông báo `toast` Sonner cho toàn bộ các thao tác.
+  4. Tuân thủ tuyệt đối quy chuẩn văn phong tiếng Việt (Sentence case, không dùng dấu `&`), Zero-Emoji, 100% icon `lucide-react`. Vượt qua toàn bộ Quality Gates (Lint sạch, Typecheck không lỗi, Build Next.js thành công và 13/13 test suites pass).
+- **Files đã tạo mới & cập nhật:**
+  - `apps/admin-web/src/app/dashboard/workouts/actions.ts`: Mở rộng Server Actions cho toàn bộ 3 tầng giáo án.
+  - `apps/admin-web/src/app/dashboard/workouts/workout-studio.tsx`: Client Component Workout Studio 3 tầng hoàn chỉnh.
+  - `apps/admin-web/src/app/dashboard/workouts/page.tsx`: Server Component kết nối dữ liệu 3 tầng cho Coaching Studio.
+  - `docs/mindmap.md`: Đánh dấu hoàn tất `[x] P05-T02` và `[x] P05-T03`, cập nhật con trỏ thực thi hoàn tất Phase P05.

@@ -1,13 +1,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, UserPlus, Dumbbell } from 'lucide-react';
-import { getExercisesCatalogData } from './actions';
-import { ExerciseCatalog } from './exercise-catalog';
+import { getWorkoutStudioFullData } from './actions';
+import { WorkoutStudio } from './workout-studio';
 
 export const dynamic = 'force-dynamic';
 
 export default async function WorkoutsPage() {
-  const catalogData = await getExercisesCatalogData();
+  const studioData = await getWorkoutStudioFullData();
 
   return (
     <div className="max-w-[1600px] mx-auto px-6 py-6 space-y-6">
@@ -21,18 +21,18 @@ export default async function WorkoutsPage() {
             <span>/</span>
             <span className="font-medium text-slate-700">Dịch vụ và giáo án</span>
             <span>/</span>
-            <span className="font-medium text-slate-700">Thư viện bài tập</span>
+            <span className="font-medium text-slate-700">Trạm xếp giáo án 3 tầng</span>
           </div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-              Thư viện bài tập chuẩn và cá nhân hóa
+              Trạm thiết kế giáo án và xếp bài tập 3 tầng
             </h1>
             <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-              Tầng 1 — Thư viện bài tập
+              Coaching Studio v2.0
             </span>
           </div>
           <p className="text-sm text-slate-500 mt-0.5">
-            Danh mục bài tập kỹ thuật chuẩn khoa học làm tiền đề thiết kế giáo án và xếp lịch tập luyện cho hội viên.
+            Quản trị danh mục bài tập chuẩn, thiết kế khung giáo án mẫu và cá nhân hóa lộ trình tập luyện cho từng hội viên.
           </p>
         </div>
 
@@ -56,8 +56,8 @@ export default async function WorkoutsPage() {
         </div>
       </div>
 
-      {/* Main Exercise Catalog Interactive Component */}
-      <ExerciseCatalog initialData={catalogData} />
+      {/* Main 3-Tier Interactive Workout Studio Component */}
+      <WorkoutStudio initialData={studioData} />
     </div>
   );
 }
