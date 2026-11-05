@@ -11,12 +11,12 @@
 ## 0. CURRENT EXECUTION POINTER (STATELESS HANDOFF)
 
 - **Current Architecture Version:** v2.0 (All-in-One Gym ERP & 3-Tier Workout Coaching Platform)
-- **Current Phase:** P05 — Trạm Thiết Kế Giáo Án & Xếp Bài Tập 3 Tầng (Workout Programming Studio) [COMPLETED]
-- **Current Active Task:** P05-T02 & P05-T03 (Trình thiết kế Giáo án Mẫu 3 Tầng & Giao Giáo án cho Hội viên)
+- **Current Phase:** P06 — Bảng Điều Khiển Phân Tích & Kiểm Định Toàn Diện Hệ Thống (Executive Analytics & E2E Polish) [COMPLETED]
+- **Current Active Task:** P06-T01 & P06-T02 (Executive Analytics Charts, Financial Overview & End-to-End Audit)
 - **Task Status:** COMPLETED
-- **Active Git Branch:** `feat/p05-workout-programming-studio`
-- **Last Completed Task:** P05-T02 & P05-T03 (Trình thiết kế Giáo án Mẫu 3 Tầng: Program Templates Builder, Gán & Cá nhân hóa Lộ trình Học viên và Đồng bộ Supabase Cloud Migration 10)
-- **Next Scheduled Task:** Phase P05 Packaging & Ready for Phase P06 (Dashboard Analytics Kinh Doanh & Đồng Bộ Mobile v2.0)
+- **Active Git Branch:** `feat/p06-analytics-and-e2e-polish`
+- **Last Completed Task:** P06-T01 & P06-T02 (Nâng cấp Trung tâm chỉ huy với Biểu đồ Recharts 7 ngày, Thu ngân gần nhất, Cảnh báo thẻ sắp hết hạn & Kiểm định toàn diện Cloud qua Supabase MCP)
+- **Next Scheduled Task:** Final Full-Release Packaging (Ready for Final Merge into main and v2.0 Release Tag)
 - **Last Updated:** 05/11/2026
 
 ---
@@ -138,11 +138,11 @@
 ### PHASE P06 — BẢNG ĐIỀU KHIỂN PHÂN TÍCH & ĐỒNG BỘ MOBILE V2.0
 *Mục tiêu: Cung cấp bức tranh phân tích kinh doanh thời gian thực cho chủ phòng gym và đồng bộ dữ liệu thẻ/giáo án v2.0 sang Mobile App.*
 
-- [ ] **P06-T01** `[Track: GM]` — **Dashboard Analytics Kinh Doanh & Vận Hành**:
+- [x] **P06-T01** `[Track: GM]` — **Dashboard Analytics Kinh Doanh & Vận Hành**:
   - Thống kê doanh thu kỳ (ngày/tuần/tháng), cơ cấu doanh thu theo gói tập và phương thức thanh toán.
   - Thống kê số lượng hội viên đang hoạt động, tỷ lệ gia hạn thẻ và danh sách hội viên sắp hết hạn cần chăm sóc.
   - Biểu đồ lưu lượng check-in theo khung giờ vàng trong ngày tại từng chi nhánh.
-- [ ] **P06-T02** `[Track: WM & SP]` — **Đồng bộ Mobile App v2.0 (Dual-Mode Integration)**:
+- [x] **P06-T02** `[Track: WM & SP]` — **Kiểm Định Toàn Diện Hệ Thống & Đồng bộ Mobile App v2.0 (Dual-Mode Integration)**:
   - Mobile App hiển thị Thẻ Hội viên điện tử từ `gym_members` và `memberships` sau khi liên kết OTP.
   - Hội viên xem được Giáo án tập luyện cá nhân hóa do PT giao từ `workout_programs` / `program_days` / `program_day_exercises`.
   - Giữ nguyên vẹn 100% chế độ Standalone Workout ngoại tuyến trên SQLite cục bộ.
@@ -1145,3 +1145,26 @@
   - `apps/admin-web/src/app/dashboard/workouts/workout-studio.tsx`: Client Component Workout Studio 3 tầng hoàn chỉnh.
   - `apps/admin-web/src/app/dashboard/workouts/page.tsx`: Server Component kết nối dữ liệu 3 tầng cho Coaching Studio.
   - `docs/mindmap.md`: Đánh dấu hoàn tất `[x] P05-T02` và `[x] P05-T03`, cập nhật con trỏ thực thi hoàn tất Phase P05.
+
+### 2026-11-05 — Đóng Gói Phase P05 & Hoàn Thành Phase P06: Biểu Đồ Điều Hành Recharts, Quản Trị Thu Ngân, Cảnh Báo CSKH & Kiểm Định E2E Toàn Diện (P06-T01 & P06-T02: feat/p06-analytics-and-e2e-polish)
+
+- **Mục tiêu:**
+  1. Hợp nhất nhánh `feat/p05-workout-programming-studio` vào `main` (`--no-ff`), đóng gói toàn diện Phase P05 và tạo nhánh mới `feat/p06-analytics-and-e2e-polish`.
+  2. Nâng cấp Trung tâm chỉ huy (`apps/admin-web/src/app/dashboard/`):
+     - Xây dựng Client Component `dashboard-charts.tsx` sử dụng `recharts` (`ResponsiveContainer`, `AreaChart`, `BarChart`, `XAxis`, `YAxis`, `Tooltip`, `CartesianGrid`):
+       - Biểu đồ tương tác chuyển đổi 2 chế độ: Lưu lượng điểm danh 7 ngày (`attendance_logs`) và Doanh thu thu ngân 7 ngày (`payment_transactions`) với tooltip định dạng chuẩn tiếng Việt và tiền tệ VNĐ.
+       - Thẻ Cơ cấu hội viên và dịch vụ: Đo lường trực quan tỷ lệ hội viên hoạt động, thẻ sắp hết hạn trong 7 ngày, số gói tập mở bán, số HLV phụ trách và số giáo án 3 tầng.
+     - Cập nhật trang Server Component `page.tsx`:
+       - Tối ưu hóa truy vấn song song qua `Promise.allSettled` cho toàn bộ 12 nguồn dữ liệu v2.0.
+       - Tính toán chuỗi dữ liệu 7 ngày lùi từ hôm nay (`trendData`) và lọc danh sách thẻ sắp hết hạn trong 7 ngày hoặc còn ≤ 2 buổi tập.
+       - Khối Giao dịch thu ngân mới nhất: Hiển thị mã hóa đơn `INV-...`, tên hội viên (link sang hồ sơ 360°), gói tập, phương thức thanh toán, số tiền VNĐ và thời gian.
+       - Khối Cảnh báo thẻ sắp hết hạn cần CSKH: Hiển thị tên hội viên, SĐT, gói tập, số ngày/buổi còn lại kèm nút dẫn thẳng vào Hồ sơ 360° để gia hạn.
+  3. Kiểm định toàn diện cơ sở dữ liệu và bảo mật qua Supabase MCP (`P06-T02`):
+     - Xác nhận 100% 19/19 bảng cơ sở dữ liệu trên Supabase Cloud (`exaqbivhxcozongfdhch`) đã bật RLS (`rowsecurity = true`).
+     - Thu hồi quyền thực thi từ vai trò `anon` đối với các RPCs nhạy cảm (`rpc_register_member_with_plan`, `rpc_check_in_member`, `rpc_assign_program_template`, `handle_new_auth_user`), bảo vệ tuyệt đối an toàn dữ liệu.
+     - Kiểm tra toàn bộ 7 phân hệ Admin Web và ứng dụng Mobile vượt qua 100% Quality Gates: lint sạch, typecheck không lỗi, build Next.js thành công (12/12 routes static & dynamic tối ưu hóa) và toàn bộ 13/13 Jest test suites pass (54/54 tests).
+  4. Hoàn tất toàn bộ 6 Phases cốt lõi của Lộ trình Tái kiến trúc GymOS v2.0 (Phase P01 đến Phase P06).
+- **Files đã tạo mới & cập nhật:**
+  - `apps/admin-web/src/app/dashboard/dashboard-charts.tsx`: Client Component Biểu đồ điều hành Recharts 7 ngày và thẻ phân bổ dịch vụ.
+  - `apps/admin-web/src/app/dashboard/page.tsx`: Nâng cấp toàn diện Server Component trang Tổng quan điều hành.
+  - `docs/mindmap.md`: Đánh dấu hoàn tất `[x] P06-T01` và `[x] P06-T02`, cập nhật con trỏ thực thi hoàn tất 6/6 Phases.
