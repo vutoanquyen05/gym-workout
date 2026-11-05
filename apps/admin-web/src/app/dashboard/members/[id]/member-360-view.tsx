@@ -11,6 +11,17 @@ import {
   quickCheckInMember,
   updateMemberStatus,
 } from '../actions';
+import { QRCodeSVG } from 'qrcode.react';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from 'recharts';
+import { toast } from 'sonner';
 import {
   ArrowLeft,
   Users,
@@ -67,6 +78,22 @@ export function Member360View({ initialData }: Member360ViewProps) {
 
   // Thống kê nhanh InBody mới nhất
   const latestMeasure = bodyMeasurements.length > 0 ? bodyMeasurements[0] : null;
+
+  // Dữ liệu tiến độ InBody cho biểu đồ Recharts
+  const inbodyChartData = React.useMemo(() => {
+    return [...bodyMeasurements]
+      .sort((a, b) => new Date((a.measured_at || a.created_at)).getTime() - new Date((b.measured_at || b.created_at)).getTime())
+      .map((m) => {
+        const d = new Date((m.measured_at || m.created_at));
+        return {
+          date: `${d.getDate()}/${d.getMonth() + 1}`,
+          fullDate: d.toLocaleDateString('vi-VN'),
+          weight: m.weight_kg,
+          bodyFat: m.body_fat_pct,
+          muscle: m.skeletal_muscle_kg,
+        };
+      });
+  }, [bodyMeasurements]);
   const bmi =
     latestMeasure && latestMeasure.height_cm && latestMeasure.weight_kg
       ? (latestMeasure.weight_kg / Math.pow(latestMeasure.height_cm / 100, 2)).toFixed(1)
@@ -84,11 +111,11 @@ export function Member360View({ initialData }: Member360ViewProps) {
       const res = await quickCheckInMember(member.id, member.member_code, member.home_branch_id);
       if (res?.error) {
         setActionAlert({ type: 'error', message: res.error });
+        toast.error(res.error);
       } else {
-        setActionAlert({
-          type: 'success',
-          message: res?.message || 'Đã ghi nhận điểm danh hội viên thành công.',
-        });
+        const msg = res?.message || 'Đã ghi nhận điểm danh hội viên thành công.';
+        setActionAlert({ type: 'success', message: msg });
+        toast.success(msg);
       }
     });
   };
@@ -104,8 +131,11 @@ export function Member360View({ initialData }: Member360ViewProps) {
       const res = await updateMemberStatus(member.id, nextStatus);
       if (res?.error) {
         setActionAlert({ type: 'error', message: res.error });
+        toast.error(res.error);
       } else {
-        setActionAlert({ type: 'success', message: `Đã ${actionLabel} hồ sơ thành công.` });
+        const msg = `Đã ${actionLabel} hồ sơ thành công.`;
+        setActionAlert({ type: 'success', message: msg });
+        toast.success(msg);
         setData((prev) => ({
           ...prev,
           member: { ...prev.member, status: nextStatus },
@@ -136,8 +166,11 @@ export function Member360View({ initialData }: Member360ViewProps) {
       const res = await updateSubscriptionStatus(membershipId, member.id, nextStatus);
       if (res?.error) {
         setActionAlert({ type: 'error', message: res.error });
+        toast.error(res.error);
       } else {
-        setActionAlert({ type: 'success', message: `Đã ${label} thẻ tập thành công.` });
+        const msg = `Đã ${label} thẻ tập thành công.`;
+        setActionAlert({ type: 'success', message: msg });
+        toast.success(msg);
         setData((prev) => ({
           ...prev,
           memberships: prev.memberships.map((m) =>
@@ -158,8 +191,10 @@ export function Member360View({ initialData }: Member360ViewProps) {
       const res = await updateMemberProfile(member.id, formData);
       if (res?.error) {
         setActionAlert({ type: 'error', message: res.error });
+        toast.error(res.error);
       } else {
         setActionAlert({ type: 'success', message: 'Đã cập nhật hồ sơ hội viên thành công.' });
+        toast.success('Đã cập nhật hồ sơ hội viên thành công.');
       }
     });
   };
@@ -174,8 +209,10 @@ export function Member360View({ initialData }: Member360ViewProps) {
       const res = await renewOrAddMembership(member.id, formData);
       if (res?.error) {
         setActionAlert({ type: 'error', message: res.error });
+        toast.error(res.error);
       } else {
         setActionAlert({ type: 'success', message: 'Đã kích hoạt gia hạn gói tập thành công.' });
+        toast.success('Đã kích hoạt gia hạn gói tập thành công.');
         setShowRenewForm(false);
       }
     });
@@ -191,8 +228,10 @@ export function Member360View({ initialData }: Member360ViewProps) {
       const res = await recordBodyMeasurement(member.id, formData);
       if (res?.error) {
         setActionAlert({ type: 'error', message: res.error });
+        toast.error(res.error);
       } else {
         setActionAlert({ type: 'success', message: 'Đã lưu chỉ số InBody thành công.' });
+        toast.success('Đã lưu chỉ số InBody thành công.');
         setShowMeasureForm(false);
       }
     });
@@ -298,8 +337,29 @@ export function Member360View({ initialData }: Member360ViewProps) {
             </div>
           </div>
 
-          {/* Right: Primary Fast Actions */}
+          {/* Right: Primary Fast Actions & Real QR Code */}
           <div className="flex flex-wrap items-center gap-3 shrink-0">
+            {/* Mã QR Thẻ Hội Viên Thật */}
+            <div className="hidden sm:flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/90 shadow-2xs">
+              <div className="bg-white p-1 rounded-lg border border-slate-200 shadow-2xs">
+                <QRCodeSVG
+                  value={`gymos://member/${member.member_code}`}
+                  size={64}
+                  level="M"
+                />
+              </div>
+              <div className="text-left space-y-0.5">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+                  Mã QR Hội viên
+                </span>
+                <span className="font-mono text-xs font-bold text-slate-900 block">
+                  {member.member_code}
+                </span>
+                <span className="text-[10px] text-emerald-600 font-medium block">
+                  Quét tại quầy tiếp tân
+                </span>
+              </div>
+            </div>
             <button
               onClick={handleQuickCheckIn}
               disabled={isPending || !isActive}
@@ -1046,6 +1106,122 @@ export function Member360View({ initialData }: Member360ViewProps) {
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Biểu đồ biến thiên chỉ số InBody (Recharts) */}
+          <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <div>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-indigo-600" />
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    Biểu đồ biến thiên chỉ số InBody
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Theo dõi tiến độ thay đổi cân nặng (kg), tỷ lệ mỡ (%) và khối lượng cơ xương (kg)
+                </p>
+              </div>
+              {/* Chú giải màu sắc */}
+              <div className="flex items-center gap-4 text-xs font-medium">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
+                  <span className="text-slate-700">Cân nặng (kg)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
+                  <span className="text-slate-700">Cơ xương (kg)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                  <span className="text-slate-700">Tỷ lệ mỡ (%)</span>
+                </div>
+              </div>
+            </div>
+
+            {inbodyChartData.length >= 2 ? (
+              <div className="h-72 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={inbodyChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="weightGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="muscleGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 11, fill: '#64748b' }}
+                      tickLine={false}
+                      axisLine={{ stroke: '#e2e8f0' }}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11, fill: '#64748b' }}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const item = payload[0].payload;
+                          return (
+                            <div className="bg-slate-900 text-white p-3 rounded-xl shadow-lg text-xs space-y-1">
+                              <div className="font-semibold text-slate-300 border-b border-slate-700 pb-1 mb-1">
+                                Ngày đo: {item.fullDate}
+                              </div>
+                              <div className="text-indigo-300 flex justify-between gap-4">
+                                <span>Cân nặng:</span>
+                                <span className="font-bold">{item.weight} kg</span>
+                              </div>
+                              {item.muscle && (
+                                <div className="text-emerald-300 flex justify-between gap-4">
+                                  <span>Khối lượng cơ:</span>
+                                  <span className="font-bold">{item.muscle} kg</span>
+                                </div>
+                              )}
+                              {item.bodyFat && (
+                                <div className="text-amber-300 flex justify-between gap-4">
+                                  <span>Tỷ lệ mỡ:</span>
+                                  <span className="font-bold">{item.bodyFat}%</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="weight"
+                      stroke="#6366f1"
+                      strokeWidth={2.5}
+                      fill="url(#weightGrad)"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="muscle"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      fill="url(#muscleGrad)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="py-10 text-center text-xs text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                <TrendingUp className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="font-medium text-slate-600">Chưa đủ dữ liệu để dựng biểu đồ tiến độ</p>
+                <p className="text-slate-400 mt-0.5">
+                  Cần tối thiểu 2 lần đo chỉ số InBody khác ngày để hệ thống tự động vẽ biểu đồ xu hướng.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Form Ghi nhận số đo mới */}

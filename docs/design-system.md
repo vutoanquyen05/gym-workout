@@ -348,3 +348,10 @@ Quy chuẩn thiết kế giao diện phân hệ Admin & PT Web Portal (`apps/adm
   - Menu thả xuống (Select dropdown): Chiều cao `h-10 px-3.5 rounded-xl text-sm font-medium`.
 - **Nút Thao Tác Dòng Bảng (Table Row Actions):** Chiều cao `h-8 px-3 rounded-lg text-xs font-semibold`.
 - **Nút Kêu Gọi Hành Động Cổng Thông Tin (Landing Hero CTA):** Chiều cao `h-12 px-7 rounded-xl text-base font-semibold shadow-md shadow-indigo-600/20`.
+
+### 3.6. Hệ Thống Thư Viện UI Nâng Cao (Shadcn Core, Sonner, QRCode và Recharts)
+- **Tiện ích Hợp nhất Class (`lib/utils.ts`):** Hàm `cn(...inputs)` kết hợp `clsx` và `tailwind-merge` cho phép tùy biến style linh hoạt mà không bị xung đột class Tailwind.
+- **Hệ Thống Thông Báo Nổi (Global Toaster — Sonner):** Tích hợp `<Toaster position="top-right" richColors />` tại `dashboard/layout.tsx`. Bổ sung thông báo `toast.success()` và `toast.error()` với phản hồi trực quan, tự động biến mất và thiết kế bo góc SaaS hiện đại.
+- **Mã QR Thẻ Hội Viên Thật (`qrcode.react`):** Component `QRCodeSVG` hiển thị mã QR định dạng chuẩn `gymos://member/MEM-XXXXXX` hỗ trợ camera quầy lễ tân quét điểm danh ngay tại trạm tiếp tân.
+- **Biểu Đồ Trực Quan Hóa Dữ Liệu (`recharts`):** Sử dụng `ResponsiveContainer` và `AreaChart` với gradient màu sắc nhận diện (`#6366f1` cho Cân nặng, `#10b981` cho Khối lượng cơ, `#f59e0b` cho Tỷ lệ mỡ) và `Tooltip` tùy biến để thể hiện xu hướng biến thiên thể chất InBody theo thời gian thực.
+- **Hộp Thoại Modal Chuẩn Tiếp Cận (`@radix-ui/react-dialog`):** Dùng cho các thao tác thêm mới, chỉnh sửa bài tập và hiển thị hướng dẫn kỹ thuật chi tiết không làm gián đoạn luồng làm việc trên trang.
