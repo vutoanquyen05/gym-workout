@@ -67,6 +67,7 @@ coverage/
 .vscode/
 .claude/
 .agents/
+.playwright-mcp/
 skills-lock.json
 opencode.json
 *.sublime-project
