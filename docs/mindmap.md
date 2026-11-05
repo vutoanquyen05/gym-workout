@@ -1168,3 +1168,22 @@
   - `apps/admin-web/src/app/dashboard/dashboard-charts.tsx`: Client Component Biểu đồ điều hành Recharts 7 ngày và thẻ phân bổ dịch vụ.
   - `apps/admin-web/src/app/dashboard/page.tsx`: Nâng cấp toàn diện Server Component trang Tổng quan điều hành.
   - `docs/mindmap.md`: Đánh dấu hoàn tất `[x] P06-T01` và `[x] P06-T02`, cập nhật con trỏ thực thi hoàn tất 6/6 Phases.
+
+
+### 2026-11-05 — Kiểm Định Giao Diện & Tương Tác Tự Động Bằng Playwright MCP (E2E-PLAYWRIGHT-AUDIT: main)
+
+- **Mục tiêu:**
+  1. Khởi chạy dev server `@gym-tracker/admin-web` và cấu hình Playwright MCP với viewport chuẩn Desktop Enterprise (`1440x900`).
+  2. Thực thi kiểm định tự động End-to-End toàn diện trên trình duyệt qua 7 Luồng người dùng cốt lõi (User Journeys):
+     - Luồng 1 — Điều hướng gốc & Đăng nhập (`/` -> `/login` -> `/dashboard`): Tự động redirect từ `/` sang `/login`, form đăng nhập SSR an toàn, reset và xác thực thông tin tài khoản `admin@gym.com`, điều hướng trơn tru vào `/dashboard`.
+     - Luồng 2 — Trung tâm chỉ huy (`/dashboard`): 4 thẻ KPI tổng quan, biểu đồ điều hành Recharts 7 ngày hỗ trợ chuyển đổi mượt mà giữa "Lưu lượng điểm danh" (BarChart) và "Doanh thu thu ngân" (AreaChart), danh sách hội viên mới, giao dịch thu ngân POS, cảnh báo thẻ tập sắp hết hạn và lối tắt ERP.
+     - Luồng 3 — Quầy điểm danh thông minh (`/dashboard/check-in`): Tìm kiếm nhanh theo mã thẻ/tên, đề xuất hội viên gần nhất, thực thi điểm danh thực tế với thẻ xanh xác thực "Cho phép vào tập" và ghi nhận lịch sử vào `attendance_logs`.
+     - Luồng 4 — Quản lý hội viên CRM 360° (`/dashboard/members`, `/dashboard/members/create`, `/dashboard/members/[id]`): Danh sách hội viên, form đăng ký mới không UUID, giao diện hồ sơ 360° với mã QR thật (`QRCodeSVG`), duyệt 4 tabs phân hệ (Thẻ tập, Thanh toán, Điểm danh, InBody & Giáo án).
+     - Luồng 5 — Gói tập và bảng giá (`/dashboard/plans`, `/dashboard/plans/create`): Bảng danh mục gói tập, giao diện tạo gói mới kèm Live POS Preview card hiển thị thẻ xem trước trực quan cập nhật theo thời gian thực.
+     - Luồng 6 — Trạm thiết kế giáo án 3 tầng (`/dashboard/workouts`): 3 Tabs Radix UI (Tầng 1 Thư viện bài tập chuẩn 12 bài, Tầng 2 Trình biên soạn giáo án mẫu Push-Pull-Legs và trình xếp bài tập chi tiết, Tầng 3 Quản lý lộ trình học viên đã giao) cùng các hộp thoại phân công và thêm bài tập riêng.
+     - Luồng 7 — Quản trị doanh nghiệp (`/dashboard/branches`, `/dashboard/staff`, `/dashboard/settings`): Danh sách chi nhánh cơ sở, danh bạ nhân sự và HLV PT (3 nhân sự, phân bổ học viên), trang cài đặt khóa cứng định danh phần mềm `GymOS` và slug `/gymos`.
+  3. Kiểm tra Console Log trên toàn bộ hành trình: 0 lỗi runtime/hydration, 0 cảnh báo.
+  4. Vượt qua 100% Quality Gates: lint sạch toàn repo, TypeScript typecheck không lỗi trên cả admin-web và mobile, 13/13 Jest test suites pass (54/54 tests).
+- **Files đã cập nhật:**
+  - `.gitignore`: Bổ sung `.playwright-mcp/` vào danh mục bỏ qua kiểm soát phiên bản.
+  - `docs/mindmap.md`: Ghi nhận hoàn thành kiểm định E2E Playwright trên nhánh `main`.
