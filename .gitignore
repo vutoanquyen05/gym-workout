@@ -42,7 +42,7 @@ android/
 *.key
 *.mobileprovision
 
-# --- 4. Next.js Web Build Outputs & Caches (apps/web) ---
+# --- 4. Next.js Web Build Outputs & Caches (apps/admin-web) ---
 .next/
 out/
 build/
@@ -61,6 +61,8 @@ supabase/.branches/
 coverage/
 .nyc_output/
 *.lcov
+playwright-report/
+test-results/
 
 # --- 8. IDE, Text Editors & AI Tools ---
 .idea/
@@ -80,6 +82,7 @@ opencode.json
 *.bak
 *.tmp
 *.temp
+scratch/
 *~
 
 # --- 10. Logs & Debugging ---
