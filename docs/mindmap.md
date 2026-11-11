@@ -14,8 +14,8 @@
 - **Current Phase:** RELEASED — ALL 6 PHASES COMPLETED ON MAIN
 - **Current Active Task:** ALL PHASES P01..P06 COMPLETED & VERIFIED
 - **Task Status:** COMPLETED
-- **Active Git Branch:** `chore/repo-cleanup-and-hygiene`
-- **Last Completed Task:** CHORE-REPO-CLEANUP (Repository Hygiene & Config Standardization)
+- **Active Git Branch:** `main`
+- **Last Completed Task:** CHORE-REPO-CLEANUP & E2E-PLAYWRIGHT-AUDIT
 - **Next Scheduled Task:** Mobile Dual-Mode Integration (Phase 3.T02/T04 & Phase P06-T02b)
 - **Last Updated:** 11/11/2026
 
@@ -1198,8 +1198,8 @@
      - Root `package.json`: Tinh gọn `"workspaces": ["apps/*"]` (loại bỏ `"packages/*"` không tồn tại), bổ sung lệnh `"typecheck": "npm run typecheck --workspaces --if-present"`.
      - `apps/admin-web/package.json`: Bổ sung script `"typecheck": "tsc --noEmit"`.
      - `apps/mobile/package.json`: Bổ sung script `"typecheck": "tsc --noEmit"`.
-  4. Tinh chỉnh tệp `.gitignore`: Sửa ghi chú `(apps/admin-web)`, bổ sung `playwright-report/`, `test-results/` và `scratch/`. Giữ nguyên 12 tệp migration SQL trong `supabase/migrations/` và 8 tệp SSOT trong `docs/`.
-  5. Vượt qua 100% Quality Gates: `npm run lint` (0 error, 0 warning), `npm run typecheck` (0 type error trên cả 2 workspaces), và `npm test` (13 test suites, 54 tests passed).
+  4. Tinh chỉnh tệp `.gitignore`: Sửa ghi chú `(apps/admin-web)`, bổ sung `playwright-report/`, `test-results/` và `scratch/`. Giữ nguyên 12 tệp migration SQL trong `supabase/migrations/` (`20261021112229`..`20261103000000`) và 8 tệp SSOT trong `docs/`.
+  5. Vượt qua 100% Quality Gates: `npm run lint` (0 error, 0 warning), `npm run typecheck` (0 type error trên cả 2 workspaces), và `npm test` (Jest 13 test suites, 54 tests passed trên `apps/mobile`).
 - **Files đã sửa đổi & gỡ bỏ:**
   - Xóa: `PROJECT_RECOVERY.md`, `scratch/`, `.playwright-mcp/`, `apps/mobile/scripts/reset-project.js`, `CLAUDE.md`.
   - Cập nhật: `.gitignore`, `package.json`, `apps/admin-web/package.json`, `apps/mobile/package.json`, `docs/mindmap.md`.
