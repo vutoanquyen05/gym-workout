@@ -15,9 +15,9 @@
 - **Current Active Task:** ALL PHASES P01..P06 COMPLETED & VERIFIED
 - **Task Status:** COMPLETED
 - **Active Git Branch:** `main`
-- **Last Completed Task:** Phase P06 Final Packaging & GymOS v2.0 Release
-- **Next Scheduled Task:** Production Deployment & Mobile App Store Preparation
-- **Last Updated:** 05/11/2026
+- **Last Completed Task:** CHORE-REPO-CLEANUP & E2E-PLAYWRIGHT-AUDIT
+- **Next Scheduled Task:** Mobile Dual-Mode Integration (Phase 3.T02/T04 & Phase P06-T02b)
+- **Last Updated:** 11/11/2026
 
 ---
 
@@ -1187,3 +1187,19 @@
 - **Files đã cập nhật:**
   - `.gitignore`: Bổ sung `.playwright-mcp/` vào danh mục bỏ qua kiểm soát phiên bản.
   - `docs/mindmap.md`: Ghi nhận hoàn thành kiểm định E2E Playwright trên nhánh `main`.
+
+
+### 2026-11-11 — Dọn Dẹp Kho Lưu Trữ, Chuẩn Hóa Cấu Hình Monorepo & Tối Ưu Hóa Gitignore (CHORE-REPO-CLEANUP: chore/repo-cleanup-and-hygiene)
+
+- **Mục tiêu:**
+  1. Loại bỏ các tệp rác và tệp untracked/git-ignored ngoài luồng: `PROJECT_RECOVERY.md`, thư mục rỗng `scratch/`, và thư mục artifacts Playwright `.playwright-mcp/`.
+  2. Gỡ bỏ các tệp dư thừa đang được Git theo dõi qua `git rm`: script template `apps/mobile/scripts/reset-project.js` và tệp chỉ dẫn trùng lặp `CLAUDE.md` (giữ lại `AGENTS.md` làm bản quy chuẩn quản trị duy nhất).
+  3. Chuẩn hóa cấu hình Monorepo trong `package.json` toàn repo:
+     - Root `package.json`: Tinh gọn `"workspaces": ["apps/*"]` (loại bỏ `"packages/*"` không tồn tại), bổ sung lệnh `"typecheck": "npm run typecheck --workspaces --if-present"`.
+     - `apps/admin-web/package.json`: Bổ sung script `"typecheck": "tsc --noEmit"`.
+     - `apps/mobile/package.json`: Bổ sung script `"typecheck": "tsc --noEmit"`.
+  4. Tinh chỉnh tệp `.gitignore`: Sửa ghi chú `(apps/admin-web)`, bổ sung `playwright-report/`, `test-results/` và `scratch/`. Giữ nguyên 12 tệp migration SQL trong `supabase/migrations/` (`20261021112229`..`20261103000000`) và 8 tệp SSOT trong `docs/`.
+  5. Vượt qua 100% Quality Gates: `npm run lint` (0 error, 0 warning), `npm run typecheck` (0 type error trên cả 2 workspaces), và `npm test` (Jest 13 test suites, 54 tests passed trên `apps/mobile`).
+- **Files đã sửa đổi & gỡ bỏ:**
+  - Xóa: `PROJECT_RECOVERY.md`, `scratch/`, `.playwright-mcp/`, `apps/mobile/scripts/reset-project.js`, `CLAUDE.md`.
+  - Cập nhật: `.gitignore`, `package.json`, `apps/admin-web/package.json`, `apps/mobile/package.json`, `docs/mindmap.md`.
